@@ -123,10 +123,11 @@
                                 class="w-full bg-surface-container-highest border-none rounded-lg p-3 pl-4 pr-10 text-on-surface focus:ring-2 focus:ring-purple-600 focus:outline-none shadow-sm transition-all duration-200 appearance-none"
                                 required>
                                 <option value="">Select your course</option>
-                                <option {{ old('course') == 'BS in Information Technology' ? 'selected' : '' }}>BS in Information Technology</option>
-                                <option {{ old('course') == 'BS in Computer Science' ? 'selected' : '' }}>BS in Computer Science</option>
-                                <option {{ old('course') == 'BS in Engineering' ? 'selected' : '' }}>BS in Engineering</option>
-                                <option {{ old('course') == 'Bachelor of Elementary Education' ? 'selected' : '' }}>Bachelor of Elementary Education</option>
+                                @foreach($courses as $course)
+                                    <option value="{{ $course->course_name }}" {{ old('course') == $course->course_name ? 'selected' : '' }}>
+                                        {{ $course->course_name }}
+                                    </option>
+                                @endforeach
                             </select>
                             <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-on-surface">
                                 <span class="material-symbols-outlined">expand_more</span>

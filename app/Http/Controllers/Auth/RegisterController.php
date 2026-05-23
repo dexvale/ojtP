@@ -13,7 +13,8 @@ class RegisterController extends Controller
 {
     public function showRegistrationForm()
     {
-        return view('auth.register');
+        $courses = \App\Models\Course::orderBy('course_name', 'asc')->get();
+        return view('auth.register', compact('courses'));
     }
 
     public function register(Request $request)
@@ -35,12 +36,18 @@ class RegisterController extends Controller
                 'role' => 'Student',
             ]);
 
+            // Determine the hours automatically from the courses table
+            $selectedCourse = $request->course;
+            $courseRecord = \App\Models\Course::where('course_name', $selectedCourse)->first();
+            $automaticallyAssignedHours = $courseRecord ? $courseRecord->required_hours : 0;
+
             $user->studentProfile()->create([
                 'student_id_number' => $request->student_id,
                 'first_name' => $request->first_name,
                 'middle_name' => $request->middle_name,
                 'last_name' => $request->last_name,
-                'course' => $request->course,
+                'course' => $selectedCourse,
+                'required_hours' => $automaticallyAssignedHours,
             ]);
         });
 

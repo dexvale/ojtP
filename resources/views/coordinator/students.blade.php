@@ -54,6 +54,11 @@
                 <span class="material-symbols-outlined" data-icon="business">business</span>
                 <span>Company Directory</span>
             </a>
+            <a href="{{ route('courses.index') }}" 
+               class="mx-2 my-1 px-4 py-3 flex items-center gap-3 text-sm font-medium rounded-lg transition-all duration-300 {{ request()->routeIs('courses.*') ? 'bg-[#faf1f8]/10 text-[#ffffff] translate-x-1' : 'text-[#faf1f8]/70 hover:text-[#ffffff] hover:bg-[#ffffff]/5' }}">
+                <span class="material-symbols-outlined" data-icon="settings">settings</span>
+                <span>Course Settings</span>
+            </a>
             <a href="{{ route('coordinator.reports') }}" 
                class="mx-2 my-1 px-4 py-3 flex items-center gap-3 text-sm font-medium rounded-lg transition-all duration-300 {{ request()->routeIs('coordinator.reports') ? 'bg-[#faf1f8]/10 text-[#ffffff] translate-x-1' : 'text-[#faf1f8]/70 hover:text-[#ffffff] hover:bg-[#ffffff]/5' }}">
                 <span class="material-symbols-outlined" data-icon="assessment">assessment</span>
@@ -165,78 +170,36 @@
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100">
-                        <!-- Row 1: Deployed & In Progress (BSCS) -->
+                        @foreach($students as $student)
                         <tr class="hover:bg-slate-50/50 transition-colors group">
                             <td class="px-6 py-4">
                                 <div class="flex items-center gap-3">
-                                    <img class="w-10 h-10 rounded-full object-cover shadow-sm"
-                                        src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?ixlib=rb-1.2.1&auto=format&fit=crop&w=64&h=64&q=80" alt="Avatar">
-                                    <div>
-                                        <p class="text-sm font-bold text-slate-900 group-hover:text-primary transition-colors">Jane Doe</p>
-                                        <p class="text-xs text-slate-500">STD-2021-0145</p>
-                                    </div>
-                                </div>
-                            </td>
-                            <td class="px-6 py-4">
-                                <p class="text-sm font-medium text-slate-900">BSCS</p>
-                                <p class="text-xs text-slate-500">4th Year</p>
-                            </td>
-                            <td class="px-6 py-4">
-                                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-200/50">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-green-600 mr-1.5"></span>
-                                    Deployed
-                                </span>
-                            </td>
-                            <td class="px-6 py-4">
-                                <div class="w-full max-w-[180px]">
-                                    <div class="flex justify-between items-center mb-1.5">
-                                        <span class="text-xs font-semibold text-slate-700">320 / 400 hrs</span>
-                                        <span class="text-xs font-bold text-primary">80%</span>
-                                    </div>
-                                    <div class="h-2 w-full bg-slate-100 rounded-full overflow-hidden shadow-inner">
-                                        <div class="h-full bg-primary rounded-full transition-all duration-500" style="width: 80%"></div>
-                                    </div>
-                                </div>
-                            </td>
-                            <td class="px-6 py-4 text-right">
-                                <button class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-primary/30 text-primary text-xs font-semibold rounded-lg hover:bg-purple-50 hover:border-primary/50 transition-all focus:ring-2 focus:ring-primary/20">
-                                    View Profile
-                                    <span class="material-symbols-outlined text-[16px]">chevron_right</span>
-                                </button>
-                            </td>
-                        </tr>
-
-                        <!-- Row 2: Pending Placement (BSIT) -->
-                        <tr class="hover:bg-slate-50/50 transition-colors group">
-                            <td class="px-6 py-4">
-                                <div class="flex items-center gap-3">
-                                    <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold shadow-sm">
-                                        MS
+                                    <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold shadow-sm uppercase">
+                                        {{ substr($student->first_name, 0, 1) }}{{ substr($student->last_name, 0, 1) }}
                                     </div>
                                     <div>
-                                        <p class="text-sm font-bold text-slate-900 group-hover:text-primary transition-colors">Mark Smith</p>
-                                        <p class="text-xs text-slate-500">STD-2022-0092</p>
+                                        <p class="text-sm font-bold text-slate-900 group-hover:text-primary transition-colors">{{ $student->first_name }} {{ $student->last_name }}</p>
+                                        <p class="text-xs text-slate-500">{{ $student->student_id_number }}</p>
                                     </div>
                                 </div>
                             </td>
                             <td class="px-6 py-4">
-                                <p class="text-sm font-medium text-slate-900">BSIT</p>
-                                <p class="text-xs text-slate-500">3rd Year</p>
+                                <p class="text-sm font-medium text-slate-900">{{ $student->course }}</p>
                             </td>
                             <td class="px-6 py-4">
                                 <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-800 border border-amber-200/50">
                                     <span class="w-1.5 h-1.5 rounded-full bg-amber-600 mr-1.5"></span>
-                                    Pending Placement
+                                    {{ ($student->approved_hours_count ?? 0) >= $student->required_hours && $student->required_hours > 0 ? 'Completed' : 'In Progress' }}
                                 </span>
                             </td>
                             <td class="px-6 py-4">
                                 <div class="w-full max-w-[180px]">
                                     <div class="flex justify-between items-center mb-1.5">
-                                        <span class="text-xs font-semibold text-slate-700">0 / 400 hrs</span>
-                                        <span class="text-xs font-bold text-slate-400">0%</span>
+                                        <span class="text-xs font-semibold text-slate-700">{{ $student->approved_hours_count ?? 0 }} / {{ $student->required_hours }} hrs</span>
+                                        <span class="text-xs font-bold text-slate-400">{{ $student->required_hours > 0 ? round(($student->approved_hours_count / $student->required_hours) * 100) : 0 }}%</span>
                                     </div>
                                     <div class="h-2 w-full bg-slate-100 rounded-full overflow-hidden shadow-inner">
-                                        <div class="h-full bg-primary rounded-full transition-all duration-500" style="width: 0%"></div>
+                                        <div class="h-full bg-primary rounded-full transition-all duration-500" style="width: {{ $student->required_hours > 0 ? round(($student->approved_hours_count / $student->required_hours) * 100) : 0 }}%"></div>
                                     </div>
                                 </div>
                             </td>
@@ -247,88 +210,7 @@
                                 </button>
                             </td>
                         </tr>
-
-                        <!-- Row 3: Completed (BSCS) -->
-                        <tr class="hover:bg-slate-50/50 transition-colors group">
-                            <td class="px-6 py-4">
-                                <div class="flex items-center gap-3">
-                                    <img class="w-10 h-10 rounded-full object-cover shadow-sm"
-                                        src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-1.2.1&auto=format&fit=crop&w=64&h=64&q=80" alt="Avatar">
-                                    <div>
-                                        <p class="text-sm font-bold text-slate-900 group-hover:text-primary transition-colors">Robert Chen</p>
-                                        <p class="text-xs text-slate-500">STD-2021-0305</p>
-                                    </div>
-                                </div>
-                            </td>
-                            <td class="px-6 py-4">
-                                <p class="text-sm font-medium text-slate-900">BSCS</p>
-                                <p class="text-xs text-slate-500">4th Year</p>
-                            </td>
-                            <td class="px-6 py-4">
-                                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-purple-600 text-white shadow-sm">
-                                    <span class="material-symbols-outlined text-[12px] mr-1">check_circle</span>
-                                    Completed
-                                </span>
-                            </td>
-                            <td class="px-6 py-4">
-                                <div class="w-full max-w-[180px]">
-                                    <div class="flex justify-between items-center mb-1.5">
-                                        <span class="text-xs font-semibold text-slate-700">400 / 400 hrs</span>
-                                        <span class="text-xs font-bold text-green-600">100%</span>
-                                    </div>
-                                    <div class="h-2 w-full bg-slate-100 rounded-full overflow-hidden shadow-inner">
-                                        <div class="h-full bg-green-500 rounded-full transition-all duration-500" style="width: 100%"></div>
-                                    </div>
-                                </div>
-                            </td>
-                            <td class="px-6 py-4 text-right">
-                                <button class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-primary/30 text-primary text-xs font-semibold rounded-lg hover:bg-purple-50 hover:border-primary/50 transition-all focus:ring-2 focus:ring-primary/20">
-                                    View Profile
-                                    <span class="material-symbols-outlined text-[16px]">chevron_right</span>
-                                </button>
-                            </td>
-                        </tr>
-
-                        <!-- Row 4: Deployed & Low Progress (BSIT) -->
-                        <tr class="hover:bg-slate-50/50 transition-colors group">
-                            <td class="px-6 py-4">
-                                <div class="flex items-center gap-3">
-                                    <img class="w-10 h-10 rounded-full object-cover shadow-sm"
-                                        src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-1.2.1&auto=format&fit=crop&w=64&h=64&q=80" alt="Avatar">
-                                    <div>
-                                        <p class="text-sm font-bold text-slate-900 group-hover:text-primary transition-colors">Emily Rivera</p>
-                                        <p class="text-xs text-slate-500">STD-2022-0188</p>
-                                    </div>
-                                </div>
-                            </td>
-                            <td class="px-6 py-4">
-                                <p class="text-sm font-medium text-slate-900">BSIT</p>
-                                <p class="text-xs text-slate-500">3rd Year</p>
-                            </td>
-                            <td class="px-6 py-4">
-                                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-200/50">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-green-600 mr-1.5"></span>
-                                    Deployed
-                                </span>
-                            </td>
-                            <td class="px-6 py-4">
-                                <div class="w-full max-w-[180px]">
-                                    <div class="flex justify-between items-center mb-1.5">
-                                        <span class="text-xs font-semibold text-slate-700">80 / 400 hrs</span>
-                                        <span class="text-xs font-bold text-primary">20%</span>
-                                    </div>
-                                    <div class="h-2 w-full bg-slate-100 rounded-full overflow-hidden shadow-inner">
-                                        <div class="h-full bg-primary rounded-full transition-all duration-500" style="width: 20%"></div>
-                                    </div>
-                                </div>
-                            </td>
-                            <td class="px-6 py-4 text-right">
-                                <button class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-primary/30 text-primary text-xs font-semibold rounded-lg hover:bg-purple-50 hover:border-primary/50 transition-all focus:ring-2 focus:ring-primary/20">
-                                    View Profile
-                                    <span class="material-symbols-outlined text-[16px]">chevron_right</span>
-                                </button>
-                            </td>
-                        </tr>
+                        @endforeach
                     </tbody>
                 </table>
             </div>

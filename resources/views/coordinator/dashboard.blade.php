@@ -54,6 +54,11 @@
                 <span class="material-symbols-outlined" data-icon="business">business</span>
                 <span>Company Directory</span>
             </a>
+            <a href="{{ route('courses.index') }}" 
+               class="mx-2 my-1 px-4 py-3 flex items-center gap-3 text-sm font-medium rounded-lg transition-all duration-300 {{ request()->routeIs('courses.*') ? 'bg-[#faf1f8]/10 text-[#ffffff] translate-x-1' : 'text-[#faf1f8]/70 hover:text-[#ffffff] hover:bg-[#ffffff]/5' }}">
+                <span class="material-symbols-outlined" data-icon="settings">settings</span>
+                <span>Course Settings</span>
+            </a>
             <a href="{{ route('coordinator.reports') }}" 
                class="mx-2 my-1 px-4 py-3 flex items-center gap-3 text-sm font-medium rounded-lg transition-all duration-300 {{ request()->routeIs('coordinator.reports') ? 'bg-[#faf1f8]/10 text-[#ffffff] translate-x-1' : 'text-[#faf1f8]/70 hover:text-[#ffffff] hover:bg-[#ffffff]/5' }}">
                 <span class="material-symbols-outlined" data-icon="assessment">assessment</span>
@@ -235,6 +240,8 @@
                                     <th class="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-on-surface/50"
                                         style="">Company</th>
                                     <th class="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-on-surface/50"
+                                        style="">Req. Hours</th>
+                                    <th class="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-on-surface/50"
                                         style="">Hours Status</th>
                                     <th class="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-on-surface/50"
                                         style="">Docs</th>
@@ -243,84 +250,49 @@
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-outline/5">
-                                <!-- Student Row 1 -->
+                                @foreach($students as $student)
                                 <tr class="hover:bg-white/40 transition-colors group">
                                     <td class="px-6 py-4" style="">
                                         <div class="flex items-center gap-3">
-                                            <img class="w-9 h-9 rounded-lg object-cover"
-                                                src="https://lh3.googleusercontent.com/aida-public/AB6AXuDqd_n1I1zpk4MIhXX0CfvY0myzGKjrfvwpriUA-19Ti_UczynCXRaj0X3C921nDSkbiFKQpcyg5cPJcYV76FBkupznUth-FYID_wg-gahmLV3balqz0_6j09hDl4d-kHzxh8X5AvLevjGDb10uG_JmXecpp8-ucxD_G4XxoXFYsqr7g1KePQPgIokCdFRvk33Jb7-l0JoDPqmZNw_HJzfuAbXycKRPQ3dHRLgkHvyCBtCWQLXggKM-ikHES66ocwMC60YxEgBeU1ZH"
-                                                style="">
+                                            <div class="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center text-primary font-bold text-xs uppercase">
+                                                {{ substr($student->first_name, 0, 1) }}{{ substr($student->last_name, 0, 1) }}
+                                            </div>
                                             <div>
                                                 <p class="text-sm font-bold text-on-surface group-hover:text-primary transition-colors"
-                                                    style="">Marcus Chen</p>
+                                                    style="">{{ $student->first_name }} {{ $student->last_name }}</p>
                                                 <p class="text-[11px] text-on-surface/60 font-medium" style="">
-                                                    BS Computer Science</p>
+                                                    {{ $student->course }}</p>
                                             </div>
                                         </div>
                                     </td>
-                                    <td class="px-6 py-4 text-sm font-medium" style="">NexusTech Solutions</td>
+                                    <td class="px-6 py-4 text-sm font-medium" style="">Assigned Company</td>
+                                    <td class="px-6 py-4 text-sm font-bold text-primary" style="">
+                                        {{ $student->required_hours }} hrs
+                                    </td>
                                     <td class="px-6 py-4" style="">
                                         <div class="w-full max-w-[120px]">
                                             <div class="flex justify-between items-center mb-1">
-                                                <span class="text-[10px] font-bold text-primary" style="">320 /
-                                                    480h</span>
+                                                <span class="text-[10px] font-bold text-primary" style="">{{ $student->approved_hours_count ?? 0 }} /
+                                                    {{ $student->required_hours }}h</span>
                                                 <span class="text-[10px] font-bold text-on-surface/40"
-                                                    style="">66%</span>
+                                                    style="">{{ $student->required_hours > 0 ? round(($student->approved_hours_count / $student->required_hours) * 100) : 0 }}%</span>
                                             </div>
                                             <div class="h-1 w-full bg-outline/20 rounded-full overflow-hidden">
-                                                <div class="h-full bg-primary rounded-full" style="width: 66%"></div>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td class="px-6 py-4" style="">
-                                        <span
-                                            class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-tertiary/10 text-tertiary"
-                                            style="">Verified</span>
-                                    </td>
-                                    <td class="px-6 py-4 text-right" style="">
-                                        <span class="text-[11px] font-bold text-on-surface/60" style="">92%
-                                            Complete</span>
-                                    </td>
-                                </tr>
-                                <!-- Student Row 2 -->
-                                <tr class="hover:bg-white/40 transition-colors group">
-                                    <td class="px-6 py-4" style="">
-                                        <div class="flex items-center gap-3">
-                                            <img class="w-9 h-9 rounded-lg object-cover"
-                                                src="https://lh3.googleusercontent.com/aida-public/AB6AXuBsJhFhOE8vPim4FA3IGwVAhx0vLcJkkwt62V5bjEn8U3v54aTaMJBv2SXgA4g_xwXhbGEMzgwqQHx9ZDhyGwKFIN0w2rf5RaPCFlxX465_VDMJKfXINgPDtvtOt2OPC5zfxNzMxfHxowiNK4WYJx7-cxMstJhBJDVjjyPLUmcm9OONssORl1xv8cvmGUyZE9Trvcq7bWJiOtbJWStDW8oLus5WGFb4NEAoVbmKBv4VcDn4Yy8yJ83b1qEZr5gZq2H4B669u7jWJJRs"
-                                                style="">
-                                            <div>
-                                                <p class="text-sm font-bold text-on-surface group-hover:text-primary transition-colors"
-                                                    style="">Sarah Jenkins</p>
-                                                <p class="text-[11px] text-on-surface/60 font-medium" style="">
-                                                    Business Admin</p>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td class="px-6 py-4 text-sm font-medium" style="">Global Finance Group</td>
-                                    <td class="px-6 py-4" style="">
-                                        <div class="w-full max-w-[120px]">
-                                            <div class="flex justify-between items-center mb-1">
-                                                <span class="text-[10px] font-bold text-primary" style="">410 /
-                                                    480h</span>
-                                                <span class="text-[10px] font-bold text-on-surface/40"
-                                                    style="">85%</span>
-                                            </div>
-                                            <div class="h-1 w-full bg-outline/20 rounded-full overflow-hidden">
-                                                <div class="h-full bg-primary rounded-full" style="width: 85%"></div>
+                                                <div class="h-full bg-primary rounded-full" style="width: {{ $student->required_hours > 0 ? round(($student->approved_hours_count / $student->required_hours) * 100) : 0 }}%"></div>
                                             </div>
                                         </div>
                                     </td>
                                     <td class="px-6 py-4" style="">
                                         <span
                                             class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-secondary/10 text-secondary"
-                                            style="">Pending</span>
+                                            style="">{{ ($student->approved_hours_count ?? 0) >= $student->required_hours && $student->required_hours > 0 ? 'Completed' : 'In Progress' }}</span>
                                     </td>
                                     <td class="px-6 py-4 text-right" style="">
-                                        <span class="text-[11px] font-bold text-on-surface/60" style="">78%
+                                        <span class="text-[11px] font-bold text-on-surface/60" style="">{{ $student->required_hours > 0 ? round(($student->approved_hours_count / $student->required_hours) * 100) : 0 }}%
                                             Complete</span>
                                     </td>
                                 </tr>
+                                @endforeach
                             </tbody>
                         </table>
                     </div>

@@ -25,15 +25,11 @@ Route::middleware(['auth', 'no.cache'])->group(function () {
     Route::get('/student/logs', [StudentDashboard::class, 'logs'])->name('student.logs');
 });
 
-// Coordinator / Admin Routes
-Route::middleware(['auth', 'no.cache', 'role:Admin'])->group(function () {
-    Route::get('/coordinator/dashboard', function () {
-        return view('coordinator.dashboard');
-    })->name('coordinator.dashboard');
+// Coordinator Routes
+Route::middleware(['auth', 'no.cache', 'role:Admin,coordinator'])->group(function () {
+    Route::get('/coordinator/dashboard', [\App\Http\Controllers\Coordinator\DashboardController::class, 'index'])->name('coordinator.dashboard');
 
-    Route::get('/coordinator/students', function () {
-        return view('coordinator.students');
-    })->name('coordinator.students');
+    Route::get('/coordinator/students', [\App\Http\Controllers\Coordinator\DashboardController::class, 'students'])->name('coordinator.students');
 
     Route::get('/coordinator/reports', function () {
         return view('coordinator.reports');
@@ -42,6 +38,15 @@ Route::middleware(['auth', 'no.cache', 'role:Admin'])->group(function () {
     Route::get('/coordinator/companies', function () {
         return view('coordinator.companies');
     })->name('coordinator.companies');
+
+    Route::resource('coordinator/courses', \App\Http\Controllers\Coordinator\CourseController::class)
+        ->names([
+            'index' => 'courses.index',
+            'store' => 'courses.store',
+            'update' => 'courses.update',
+            'destroy' => 'courses.destroy',
+        ])
+        ->except(['create', 'show', 'edit']);
 });
 
 // Supervisor / Advisor Routes
