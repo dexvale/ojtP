@@ -14,7 +14,7 @@
     </div>
     <div class="relative z-10 mt-12 md:mt-0">
         <blockquote class="border-l-2 border-secondary pl-6">
-            <p class="font-headline text-lg italic opacity-80 leading-relaxed text-on-primary">"The modern academic environment demands clarity, precision, and rigorous commitment to professional development."</p>
+            <p class="font-headline text-lg italic opacity-80 leading-relaxed text-on-primary"><span class="-ml-[0.3em]">"</span>The modern academic environment demands clarity, precision, and rigorous commitment to professional development."</p>
         </blockquote>
     </div>
 </div>

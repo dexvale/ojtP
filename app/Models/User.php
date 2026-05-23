@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-#[Fillable(['name', 'email', 'password'])]
+#[Fillable(['email', 'password', 'role'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -28,5 +28,28 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    public function studentProfile()
+    {
+        return $this->hasOne(StudentProfile::class);
+    }
+
+    public function getNameAttribute()
+    {
+        if ($this->role === 'Student' && $this->studentProfile) {
+            return trim($this->studentProfile->first_name . ' ' . ($this->studentProfile->middle_name ? $this->studentProfile->middle_name . ' ' : '') . $this->studentProfile->last_name);
+        }
+        return $this->email;
+    }
+
+    public function internships()
+    {
+        return $this->hasMany(Internship::class, 'student_id');
+    }
+
+    public function advisedInternships()
+    {
+        return $this->hasMany(Internship::class, 'advisor_id');
     }
 }

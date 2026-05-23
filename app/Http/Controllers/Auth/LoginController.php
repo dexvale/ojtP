@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\ValidationException;
 
 class LoginController extends Controller
 {
@@ -15,27 +16,29 @@ class LoginController extends Controller
 
     public function login(Request $request)
     {
-        $credentials = $request->only('email', 'password');
+        $credentials = $request->validate([
+            'email'    => ['required', 'email'],
+            'password' => ['required', 'string'],
+        ]);
 
-        if (Auth::attempt($credentials)) {
+        if (Auth::attempt($credentials, $request->boolean('remember'))) {
             $request->session()->regenerate();
 
-            // Redirect based on role
             $user = Auth::user();
-            switch ($user->role) {
-                case 'student':
-                    return redirect()->route('student.dashboard');
-                case 'coordinator':
-                    return redirect()->route('coordinator.dashboard');
-                case 'supervisor':
-                    return redirect()->route('supervisor.dashboard');
-                default:
-                    return redirect('/');
+
+            if ($user->role === 'Admin') {
+                return redirect()->intended(route('coordinator.dashboard'));
+            } 
+            
+            if ($user->role === 'Advisor') {
+                return redirect()->intended(route('supervisor.dashboard'));
             }
+
+            return redirect()->intended(route('student.dashboard'));
         }
 
-        return back()->withErrors([
-            'email' => 'The provided credentials do not match our records.',
+        throw ValidationException::withMessages([
+            'email' => __('The provided credentials do not match our records.'),
         ]);
     }
 

@@ -18,15 +18,15 @@ Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 Route::get('/register', [RegisterController::class, 'showRegistrationForm'])->name('register');
 Route::post('/register', [RegisterController::class, 'register']);
 
-// Student Routes (auth temporarily disabled for preview)
-// Route::middleware(['auth'])->group(function () {
+// Student Routes
+Route::middleware(['auth', 'no.cache'])->group(function () {
     Route::get('/student/dashboard', [StudentDashboard::class, 'index'])->name('student.dashboard');
     Route::get('/student/profile', [StudentDashboard::class, 'profile'])->name('student.profile');
     Route::get('/student/logs', [StudentDashboard::class, 'logs'])->name('student.logs');
-// });
+});
 
-// Coordinator Routes (auth temporarily disabled for preview)
-// Route::middleware(['auth', 'role:coordinator'])->group(function () {
+// Coordinator / Admin Routes
+Route::middleware(['auth', 'no.cache', 'role:Admin'])->group(function () {
     Route::get('/coordinator/dashboard', function () {
         return view('coordinator.dashboard');
     })->name('coordinator.dashboard');
@@ -42,10 +42,10 @@ Route::post('/register', [RegisterController::class, 'register']);
     Route::get('/coordinator/companies', function () {
         return view('coordinator.companies');
     })->name('coordinator.companies');
-// });
+});
 
-// Supervisor Routes (auth temporarily disabled for preview)
-// Route::middleware(['auth', 'role:supervisor'])->group(function () {
+// Supervisor / Advisor Routes
+Route::middleware(['auth', 'no.cache', 'role:Advisor'])->group(function () {
     Route::get('/supervisor/dashboard', function () {
         return view('supervisor.dashboard');
     })->name('supervisor.dashboard');
@@ -57,4 +57,4 @@ Route::post('/register', [RegisterController::class, 'register']);
     Route::get('/supervisor/approvals', function () {
         return view('supervisor.approvals');
     })->name('supervisor.approvals');
-// });
+});
