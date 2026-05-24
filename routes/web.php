@@ -23,6 +23,8 @@ Route::middleware(['auth', 'no.cache'])->group(function () {
     Route::get('/student/dashboard', [StudentDashboard::class, 'index'])->name('student.dashboard');
     Route::get('/student/profile', [StudentDashboard::class, 'profile'])->name('student.profile');
     Route::get('/student/logs', [StudentDashboard::class, 'logs'])->name('student.logs');
+    
+    Route::post('/student/logs/store', [\App\Http\Controllers\OjtLogController::class, 'store'])->name('student.logs.store');
 });
 
 // Coordinator Routes
@@ -30,14 +32,15 @@ Route::middleware(['auth', 'no.cache', 'role:Admin,coordinator'])->group(functio
     Route::get('/coordinator/dashboard', [\App\Http\Controllers\Coordinator\DashboardController::class, 'index'])->name('coordinator.dashboard');
 
     Route::get('/coordinator/students', [\App\Http\Controllers\Coordinator\DashboardController::class, 'students'])->name('coordinator.students');
+    Route::post('/coordinator/students/{student}/assign', [\App\Http\Controllers\Coordinator\StudentPlacementController::class, 'assign'])->name('coordinator.students.assign');
 
     Route::get('/coordinator/reports', function () {
         return view('coordinator.reports');
     })->name('coordinator.reports');
 
-    Route::get('/coordinator/companies', function () {
-        return view('coordinator.companies');
-    })->name('coordinator.companies');
+    Route::get('/coordinator/companies', [\App\Http\Controllers\Coordinator\CompanyController::class, 'index'])->name('coordinator.companies');
+    Route::post('/coordinator/companies', [\App\Http\Controllers\Coordinator\CompanyController::class, 'store'])->name('coordinator.companies.store');
+    Route::post('/coordinator/supervisors/store', [\App\Http\Controllers\Coordinator\CompanyController::class, 'storeSupervisor'])->name('coordinator.supervisors.store');
 
     Route::resource('coordinator/courses', \App\Http\Controllers\Coordinator\CourseController::class)
         ->names([
@@ -51,15 +54,10 @@ Route::middleware(['auth', 'no.cache', 'role:Admin,coordinator'])->group(functio
 
 // Supervisor / Advisor Routes
 Route::middleware(['auth', 'no.cache', 'role:Advisor'])->group(function () {
-    Route::get('/supervisor/dashboard', function () {
-        return view('supervisor.dashboard');
-    })->name('supervisor.dashboard');
-
-    Route::get('/supervisor/attendance', function () {
-        return view('supervisor.attendance');
-    })->name('supervisor.attendance');
-
-    Route::get('/supervisor/approvals', function () {
-        return view('supervisor.approvals');
-    })->name('supervisor.approvals');
+    Route::get('/supervisor/dashboard', [\App\Http\Controllers\Supervisor\DashboardController::class, 'index'])->name('supervisor.dashboard');
+    Route::get('/supervisor/attendance', [\App\Http\Controllers\Supervisor\DashboardController::class, 'attendance'])->name('supervisor.attendance');
+    Route::get('/supervisor/approvals', [\App\Http\Controllers\Supervisor\DashboardController::class, 'approvals'])->name('supervisor.approvals');
+    
+    Route::post('/supervisor/logs/{log}/approve', [\App\Http\Controllers\Supervisor\DashboardController::class, 'approve'])->name('supervisor.logs.approve');
+    Route::post('/supervisor/logs/{log}/reject', [\App\Http\Controllers\Supervisor\DashboardController::class, 'reject'])->name('supervisor.logs.reject');
 });

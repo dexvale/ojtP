@@ -102,10 +102,10 @@
                         <circle class="stroke-current text-surface-container" cx="50" cy="50" fill="transparent" r="42" stroke-width="8"/>
                         <circle class="stroke-current text-primary progress-ring__circle" cx="50" cy="50" fill="transparent" r="42"
                                 stroke-linecap="round" stroke-width="8"
-                                style="stroke-dasharray: 263.89; stroke-dashoffset: 92.36;"/>
+                                style="stroke-dasharray: 263.89; stroke-dashoffset: {{ 263.89 - (263.89 * $completionPercentage / 100) }};"/>
                     </svg>
                     <div class="absolute inset-0 flex flex-col items-center justify-center">
-                        <span class="text-4xl font-extrabold font-headline text-primary leading-none">65%</span>
+                        <span class="text-4xl font-extrabold font-headline text-primary leading-none">{{ $completionPercentage }}%</span>
                         <span class="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider mt-1">Completed</span>
                     </div>
                 </div>
@@ -119,19 +119,19 @@
                     <div class="grid grid-cols-3 gap-3">
                         <div class="space-y-1">
                             <p class="text-[10px] font-bold text-outline uppercase tracking-wide">Approved</p>
-                            <p class="text-2xl font-extrabold font-headline text-on-surface">260
+                            <p class="text-2xl font-extrabold font-headline text-on-surface">{{ $approvedHours }}
                                 <span class="text-xs font-medium text-on-surface-variant">hrs</span>
                             </p>
                         </div>
                         <div class="space-y-1">
                             <p class="text-[10px] font-bold text-outline uppercase tracking-wide">Lacking</p>
-                            <p class="text-2xl font-extrabold font-headline text-error">140
+                            <p class="text-2xl font-extrabold font-headline text-error">{{ $lackingHours }}
                                 <span class="text-xs font-medium text-error/70">hrs</span>
                             </p>
                         </div>
                         <div class="space-y-1">
                             <p class="text-[10px] font-bold text-outline uppercase tracking-wide">Required</p>
-                            <p class="text-2xl font-extrabold font-headline text-on-surface">400
+                            <p class="text-2xl font-extrabold font-headline text-on-surface">{{ $requiredHours }}
                                 <span class="text-xs font-medium text-on-surface-variant">hrs</span>
                             </p>
                         </div>
@@ -204,7 +204,7 @@
                  LOG OJT SHIFT  (8 cols)
             ──────────────────────────────── -->
             <section class="col-span-12 lg:col-span-8 bg-surface-container-lowest rounded-xl shadow-sm border border-surface-variant/20 overflow-hidden">
-                <form method="POST" action="#" id="shift-form">
+                <form method="POST" action="{{ route('student.logs.store') }}" id="shift-form">
                     @csrf
 
                     {{-- ── Card Header ── --}}
@@ -373,8 +373,8 @@
                             <span class="material-symbols-outlined text-2xl text-on-surface-variant" style='font-variation-settings:"FILL" 1,"wght" 400,"GRAD" 0,"opsz" 24;'>person</span>
                         </div>
                         <div class="min-w-0">
-                            <p class="font-bold text-on-surface text-sm">Prof. Sarah Mitchell</p>
-                            <p class="text-[11px] text-on-surface-variant truncate">sarah.mitchell@university.edu</p>
+                            <p class="font-bold text-on-surface text-sm">{{ auth()->user()->studentProfile->supervisor->name ?? 'Not Assigned' }}</p>
+                            <p class="text-[11px] text-on-surface-variant truncate">{{ auth()->user()->studentProfile->supervisor->email ?? 'Pending assignment' }}</p>
                         </div>
                         <button class="ml-auto p-2 bg-surface-container rounded-lg text-primary hover:bg-primary/10 transition-colors flex-shrink-0" aria-label="Send email">
                             <span class="material-symbols-outlined text-xl">mail</span>
@@ -406,45 +406,35 @@
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-surface-variant/10">
+                            @forelse($recentLogs as $log)
                             <tr class="hover:bg-surface-container-low transition-colors group">
-                                <td class="py-4 pl-4 font-bold text-sm whitespace-nowrap">Oct 23, 2024</td>
+                                <td class="py-4 pl-4 font-bold text-sm whitespace-nowrap">{{ $log->log_date->format('M d, Y') }}</td>
                                 <td class="py-4 text-sm text-on-surface-variant max-w-xs lg:max-w-md">
-                                    <span class="line-clamp-1">Implemented responsive grid system using Tailwind CSS for the client dashboard...</span>
+                                    <span class="line-clamp-1">{{ Str::limit($log->tasks_performed, 70) }}</span>
                                 </td>
-                                <td class="py-4 text-sm font-bold text-on-surface whitespace-nowrap">8.0 hrs</td>
+                                <td class="py-4 text-sm font-bold text-on-surface whitespace-nowrap">{{ number_format($log->hours_rendered, 1) }} hrs</td>
                                 <td class="py-4">
+                                    @if($log->status === 'Approved')
                                     <span class="px-2.5 py-1 bg-tertiary-container text-on-tertiary-container text-[10px] font-bold rounded-lg uppercase tracking-wide">Approved</span>
+                                    @elseif($log->status === 'Rejected')
+                                    <span class="px-2.5 py-1 bg-error/10 text-error text-[10px] font-bold rounded-lg uppercase tracking-wide">Rejected</span>
+                                    @else
+                                    <span class="px-2.5 py-1 text-xs font-bold rounded-full bg-amber-50 text-amber-700 border border-amber-200">
+                                        Pending
+                                    </span>
+                                    @endif
                                 </td>
                                 <td class="py-4 text-right pr-4">
                                     <button class="text-secondary text-xs font-bold hover:underline underline-offset-4">View Entry</button>
                                 </td>
                             </tr>
-                            <tr class="hover:bg-surface-container-low transition-colors">
-                                <td class="py-4 pl-4 font-bold text-sm whitespace-nowrap">Oct 22, 2024</td>
-                                <td class="py-4 text-sm text-on-surface-variant max-w-xs lg:max-w-md">
-                                    <span class="line-clamp-1">Debugged API authentication middleware and optimized token refresh logic...</span>
-                                </td>
-                                <td class="py-4 text-sm font-bold text-on-surface whitespace-nowrap">8.0 hrs</td>
-                                <td class="py-4">
-                                    <span class="px-2.5 py-1 bg-tertiary-container text-on-tertiary-container text-[10px] font-bold rounded-lg uppercase tracking-wide">Approved</span>
-                                </td>
-                                <td class="py-4 text-right pr-4">
-                                    <button class="text-secondary text-xs font-bold hover:underline underline-offset-4">View Entry</button>
+                            @empty
+                            <tr>
+                                <td colspan="5" class="py-6 text-center text-sm text-on-surface-variant font-medium">
+                                    No recent daily submissions found.
                                 </td>
                             </tr>
-                            <tr class="hover:bg-surface-container-low transition-colors">
-                                <td class="py-4 pl-4 font-bold text-sm whitespace-nowrap">Oct 21, 2024</td>
-                                <td class="py-4 text-sm text-on-surface-variant max-w-xs lg:max-w-md">
-                                    <span class="line-clamp-1">Attended weekly sprint planning meeting and presented progress on UI/UX mockups...</span>
-                                </td>
-                                <td class="py-4 text-sm font-bold text-on-surface whitespace-nowrap">7.5 hrs</td>
-                                <td class="py-4">
-                                    <span class="px-2.5 py-1 bg-surface-container-highest text-on-surface-variant text-[10px] font-bold rounded-lg uppercase tracking-wide">Pending</span>
-                                </td>
-                                <td class="py-4 text-right pr-4">
-                                    <button class="text-secondary text-xs font-bold hover:underline underline-offset-4">View Entry</button>
-                                </td>
-                            </tr>
+                            @endforelse
                         </tbody>
                     </table>
                 </div>

@@ -79,20 +79,19 @@
             <!-- Review Queue List -->
             <div class="flex flex-col gap-6">
 
-                <!-- Submission Card 1 -->
+                @forelse($pendingLogs as $log)
                 <div class="bg-surface-container rounded-2xl shadow-sm border border-outline/20 p-6 transition-all hover:bg-white relative">
-                    <!-- Global Actions responsive (shows on mobile above the card list if needed, or keeping it hidden). I will skip mobile sort for brevity, but make card responsive -->
                     <!-- Card Header -->
                     <div class="flex flex-wrap items-center justify-between gap-4 mb-4">
                         <div class="flex items-center gap-3">
-                            <div class="w-12 h-12 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-sm border-2 border-surface border-primary/20 shadow-sm">MC</div>
+                            <div class="w-12 h-12 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-sm border-2 border-surface border-primary/20 shadow-sm">{{ strtoupper(substr($log->user->name, 0, 2)) }}</div>
                             <div>
-                                <h3 class="font-bold text-base text-on-surface">Marcus Chen</h3>
-                                <p class="text-xs font-semibold text-on-surface/50">BS Computer Science • Yesterday, 5:00 PM</p>
+                                <h3 class="font-bold text-base text-on-surface">{{ $log->user->name }}</h3>
+                                <p class="text-xs font-semibold text-on-surface/50">{{ $log->user->studentProfile->course ?? 'Intern' }} • {{ $log->log_date->format('M d, Y') }}</p>
                             </div>
                         </div>
                         <div class="bg-surface border border-outline/30 px-3 py-1.5 rounded-lg shadow-sm">
-                            <span class="text-xs font-bold text-on-surface/70 tracking-wide">Hours Logged: <span class="text-primary font-black ml-1 text-sm font-headline">8.0 hrs</span></span>
+                            <span class="text-xs font-bold text-on-surface/70 tracking-wide">Hours Logged: <span class="text-primary font-black ml-1 text-sm font-headline">{{ number_format($log->hours_rendered, 1) }} hrs</span></span>
                         </div>
                     </div>
 
@@ -104,77 +103,7 @@
                             <div class="pl-4">
                                 <span class="text-[10px] font-bold uppercase tracking-widest text-on-surface/40 mb-2 block">Task Description</span>
                                 <p class="text-sm font-medium italic text-on-surface/80 leading-relaxed">
-                                    "Assisted in troubleshooting the network server and resetting the main router for the marketing floor. I also documented the IP configurations for the new developer workstations and ran the scheduled backup script."
-                                </p>
-                            </div>
-                        </div>
-                        
-                        <!-- Evidence -->
-                        <div class="md:col-span-1">
-                            <span class="text-[10px] font-bold uppercase tracking-widest text-on-surface/40 mb-2 block">Evidence</span>
-                            <div class="relative group cursor-pointer overflow-hidden rounded-xl border border-outline/20 aspect-video md:aspect-[4/3] bg-surface-container-high w-full flex items-center justify-center">
-                                <!-- Dummy image placeholder mimicking a code screen -->
-                                <div class="w-full h-full bg-[#1e1e2f] p-3 text-[8px] sm:text-[10px] md:text-[8px] text-[#10b981] font-mono whitespace-pre opacity-90 overflow-hidden break-words leading-tight">
-<span class="text-primary/70">root@server:~#</span> ping 192.168.1.1
-PING 192.168.1.1 56 data bytes
-64 bytes from 192.168.1.1: icmp_seq=1 ttl=64
-...
-<span class="text-primary/70">root@server:~#</span> sudo backup.sh
-Starting backup...
-Backup complete.
-                                </div>
-
-                                <div class="absolute inset-0 bg-primary/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-[2px]">
-                                    <div class="bg-surface text-primary p-2 rounded-full shadow border border-outline/20 hover:scale-110 transition-transform">
-                                        <span class="material-symbols-outlined text-[20px]">zoom_in</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Card Footer Actions -->
-                    <div class="border-t border-outline/10 pt-4 mt-6">
-                        <div class="flex flex-col gap-4">
-                            <input type="text" class="w-full bg-surface-container-high/50 border border-outline/20 rounded-lg px-4 py-2.5 text-sm font-medium text-on-surface focus:ring-primary focus:border-primary placeholder-on-surface/40 transition-colors" placeholder="Add remarks or feedback for the intern (Optional)...">
-                            
-                            <div class="flex justify-end gap-3 items-center flex-wrap">
-                                <button class="flex items-center gap-1.5 px-4 py-2 md:py-2.5 rounded-lg text-xs md:text-sm font-bold text-error border border-error/30 hover:bg-error/5 hover:border-error transition-all active:scale-95 bg-white shadow-sm">
-                                    <span class="material-symbols-outlined text-[16px]">undo</span> Reject & Request Revision
-                                </button>
-                                <button class="flex items-center gap-1.5 bg-primary text-white px-5 py-2 md:py-2.5 rounded-lg text-xs md:text-sm font-bold shadow hover:bg-primary/95 transition-all active:scale-95 hover:shadow-md">
-                                    <span class="material-symbols-outlined text-[16px]">check_circle</span> Verify & Approve
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Submission Card 2 -->
-                <div class="bg-surface-container rounded-2xl shadow-sm border border-outline/20 p-6 transition-all hover:bg-white relative">
-                    <!-- Card Header -->
-                    <div class="flex flex-wrap items-center justify-between gap-4 mb-4">
-                        <div class="flex items-center gap-3">
-                            <div class="w-12 h-12 rounded-full bg-secondary/10 text-secondary flex items-center justify-center font-bold text-sm border-2 border-surface border-secondary/20 shadow-sm">SJ</div>
-                            <div>
-                                <h3 class="font-bold text-base text-on-surface">Sarah Jenkins</h3>
-                                <p class="text-xs font-semibold text-on-surface/50">BS Business Admin • Yesterday, 4:45 PM</p>
-                            </div>
-                        </div>
-                        <div class="bg-surface border border-outline/30 px-3 py-1.5 rounded-lg shadow-sm">
-                            <span class="text-xs font-bold text-on-surface/70 tracking-wide">Hours Logged: <span class="text-primary font-black ml-1 text-sm font-headline">8.0 hrs</span></span>
-                        </div>
-                    </div>
-
-                    <!-- Card Body -->
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-4">
-                        <!-- Task Description -->
-                        <div class="md:col-span-2 relative">
-                            <div class="absolute w-1 h-full bg-secondary/20 left-0 rounded-full top-0"></div>
-                            <div class="pl-4">
-                                <span class="text-[10px] font-bold uppercase tracking-widest text-on-surface/40 mb-2 block">Task Description</span>
-                                <p class="text-sm font-medium italic text-on-surface/80 leading-relaxed">
-                                    "Completed data entry for the Q3 partner reports and reorganized the client filing system on Google Drive. I effectively reduced the file clutter by 30% and prepared the draft for the weekly progress meeting."
+                                    "{{ $log->tasks_performed }}"
                                 </p>
                             </div>
                         </div>
@@ -183,15 +112,9 @@ Backup complete.
                         <div class="md:col-span-1">
                             <span class="text-[10px] font-bold uppercase tracking-widest text-on-surface/40 mb-2 block">Evidence</span>
                             <div class="relative group cursor-pointer overflow-hidden rounded-xl border border-outline/20 aspect-video md:aspect-[4/3] bg-surface flex items-center justify-center">
-                                <!-- Dummy image placeholder mimicking a spreadsheet/report -->
-                                <div class="w-full h-full flex flex-col items-center justify-center text-outline gap-1 border-4 border-white bg-[#e3f2fd]">
-                                    <span class="material-symbols-outlined text-[40px] text-success/40">table_chart</span>
-                                    <span class="text-[8px] font-bold text-[#1e88e5]">Q3_REPORT.XLSX</span>
-                                </div>
-                                <div class="absolute inset-0 bg-primary/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-[2px]">
-                                    <div class="bg-surface text-primary p-2 rounded-full shadow border border-outline/20 hover:scale-110 transition-transform">
-                                        <span class="material-symbols-outlined text-[20px]">zoom_in</span>
-                                    </div>
+                                <div class="w-full h-full flex flex-col items-center justify-center text-outline gap-1 border-4 border-white bg-surface-container-highest">
+                                    <span class="material-symbols-outlined text-[40px] text-outline/40">image</span>
+                                    <span class="text-[8px] font-bold text-outline">NO PHOTO UPLOADED</span>
                                 </div>
                             </div>
                         </div>
@@ -203,16 +126,29 @@ Backup complete.
                             <input type="text" class="w-full bg-surface-container-high/50 border border-outline/20 rounded-lg px-4 py-2.5 text-sm font-medium text-on-surface focus:ring-primary focus:border-primary placeholder-on-surface/40 transition-colors" placeholder="Add remarks or feedback for the intern (Optional)...">
                             
                             <div class="flex justify-end gap-3 items-center flex-wrap">
-                                <button class="flex items-center gap-1.5 px-4 py-2 md:py-2.5 rounded-lg text-xs md:text-sm font-bold text-error border border-error/30 hover:bg-error/5 hover:border-error transition-all active:scale-95 bg-white shadow-sm">
-                                    <span class="material-symbols-outlined text-[16px]">undo</span> Reject & Request Revision
-                                </button>
-                                <button class="flex items-center gap-1.5 bg-primary text-white px-5 py-2 md:py-2.5 rounded-lg text-xs md:text-sm font-bold shadow hover:bg-primary/95 transition-all active:scale-95 hover:shadow-md">
-                                    <span class="material-symbols-outlined text-[16px]">check_circle</span> Verify & Approve
-                                </button>
+                                <form method="POST" action="{{ route('supervisor.logs.reject', $log) }}" class="inline">
+                                    @csrf
+                                    <button type="submit" class="flex items-center gap-1.5 px-4 py-2 md:py-2.5 rounded-lg text-xs md:text-sm font-bold text-error border border-error/30 hover:bg-error/5 hover:border-error transition-all active:scale-95 bg-white shadow-sm">
+                                        <span class="material-symbols-outlined text-[16px]">undo</span> Reject & Request Revision
+                                    </button>
+                                </form>
+                                <form method="POST" action="{{ route('supervisor.logs.approve', $log) }}" class="inline">
+                                    @csrf
+                                    <button type="submit" class="flex items-center gap-1.5 bg-primary text-white px-5 py-2 md:py-2.5 rounded-lg text-xs md:text-sm font-bold shadow hover:bg-primary/95 transition-all active:scale-95 hover:shadow-md">
+                                        <span class="material-symbols-outlined text-[16px]">check_circle</span> Verify & Approve
+                                    </button>
+                                </form>
                             </div>
                         </div>
                     </div>
                 </div>
+                @empty
+                <div class="text-center py-12">
+                    <span class="material-symbols-outlined text-6xl text-outline/30 mb-4">fact_check</span>
+                    <h3 class="text-xl font-bold font-headline text-on-surface mb-2">All Caught Up!</h3>
+                    <p class="text-on-surface/60 font-medium">There are no pending log entries requiring your approval at this time.</p>
+                </div>
+                @endforelse
 
             </div>
             

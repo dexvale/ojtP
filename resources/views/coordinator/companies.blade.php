@@ -74,6 +74,7 @@
             </div>
             <div class="flex gap-3">
                 <button
+                    onclick="document.getElementById('addCompanyModal').classList.remove('hidden')"
                     class="flex items-center gap-2 px-5 py-2.5 bg-primary text-white rounded-lg text-sm font-semibold hover:shadow-lg hover:-translate-y-0.5 transition-all active:scale-95 shadow-sm">
                     <span class="material-symbols-outlined text-[18px]">add</span>
                     Register New Company
@@ -116,16 +117,17 @@
         <!-- Company Profiles Grid -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 
-            <!-- Card 1: Active, partial capacity -->
+            @forelse($companies as $company)
+            <!-- Dynamic Card -->
             <div class="bg-white rounded-2xl shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 border border-slate-200 overflow-hidden flex flex-col">
                 <div class="p-6 pb-4 flex justify-between items-start gap-4">
                     <div class="flex gap-4 items-center">
                         <div class="w-12 h-12 rounded-xl bg-purple-100 text-primary flex items-center justify-center font-bold text-lg flex-shrink-0">
-                            TN
+                            {{ substr(implode('', array_map(fn($w) => strtoupper($w[0] ?? ''), explode(' ', trim($company->name)))), 0, 2) }}
                         </div>
                         <div>
-                            <h3 class="font-bold text-slate-900 text-base leading-tight">TechNova Solutions</h3>
-                            <p class="text-xs text-slate-500 font-medium mt-0.5">Information Technology</p>
+                            <h3 class="font-bold text-slate-900 text-base leading-tight">{{ $company->name }}</h3>
+                            <p class="text-xs text-slate-500 font-medium mt-0.5">{{ $company->industry }}</p>
                         </div>
                     </div>
                     <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide bg-green-100 text-green-800 border border-green-200 flex-shrink-0">
@@ -135,214 +137,150 @@
                 <div class="px-6 pb-5 space-y-2.5">
                     <div class="flex items-start gap-3">
                         <span class="material-symbols-outlined text-[18px] text-slate-400 mt-0.5">location_on</span>
-                        <p class="text-sm text-slate-600">IT Park, Cebu City</p>
+                        <p class="text-sm text-slate-600">{{ $company->location }}</p>
                     </div>
                     <div class="flex items-start gap-3">
                         <span class="material-symbols-outlined text-[18px] text-slate-400 mt-0.5">person</span>
-                        <p class="text-sm text-slate-600">Mr. John Doe • 0912-345-6789</p>
+                        <p class="text-sm text-slate-600">{{ $company->contact_person }} • {{ $company->contact_number }}</p>
                     </div>
                 </div>
                 <div class="px-6 py-5 border-t border-slate-100 bg-slate-50/50 mt-auto">
                     <div class="flex justify-between items-center mb-2">
                         <span class="text-xs font-semibold text-slate-600">Allocation Slots</span>
-                        <span class="text-xs font-bold text-slate-900">2 / 5 Filled</span>
+                        <span class="text-xs font-bold text-slate-900">{{ $company->filled_slots ?? 0 }} / {{ $company->allocation_slots }} Filled</span>
                     </div>
                     <div class="h-2 w-full bg-slate-200 rounded-full overflow-hidden">
-                        <div class="h-full bg-primary rounded-full transition-all duration-500" style="width: 40%"></div>
+                        <div class="h-full bg-primary rounded-full transition-all duration-500" style="width: {{ $company->allocation_slots > 0 ? (($company->filled_slots ?? 0) / $company->allocation_slots) * 100 : 0 }}%"></div>
                     </div>
                 </div>
-                <div class="p-4 bg-white border-t border-slate-100 flex gap-3">
-                    <button class="flex-1 py-2.5 border border-slate-200 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+                <div class="p-4 bg-white border-t border-slate-100 flex gap-2">
+                    <button class="flex-1 py-2 border border-slate-200 rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
                         Edit
                     </button>
-                    <button class="flex-1 py-2.5 bg-purple-50 text-purple-700 rounded-xl text-sm font-semibold hover:bg-primary hover:text-white transition-colors">
-                        View Details
+                    <button onclick="openAddSupervisorModal({{ $company->id }}, '{{ addslashes($company->name) }}')" class="flex-1 py-2 bg-purple-50 text-purple-700 rounded-lg text-xs font-semibold hover:bg-primary hover:text-white transition-colors">
+                        + Supervisor
+                    </button>
+                    <button class="flex-1 py-2 bg-slate-50 text-slate-700 border border-slate-200 rounded-lg text-xs font-semibold hover:bg-slate-100 transition-colors">
+                        Details
                     </button>
                 </div>
             </div>
-
-            <!-- Card 2: Expired MOA -->
-            <div class="bg-white rounded-2xl shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 border border-slate-200 overflow-hidden flex flex-col">
-                <div class="p-6 pb-4 flex justify-between items-start gap-4">
-                    <div class="flex gap-4 items-center">
-                        <div class="w-12 h-12 rounded-xl bg-orange-100 text-orange-600 flex items-center justify-center font-bold text-lg flex-shrink-0">
-                            GF
-                        </div>
-                        <div>
-                            <h3 class="font-bold text-slate-900 text-base leading-tight">Global Finance</h3>
-                            <p class="text-xs text-slate-500 font-medium mt-0.5">Banking & Finance</p>
-                        </div>
-                    </div>
-                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide bg-red-100 text-red-700 border border-red-200 flex-shrink-0">
-                        MOA: Expired
-                    </span>
+            @empty
+            <div class="col-span-full py-12 flex flex-col items-center justify-center text-center bg-white rounded-2xl border border-slate-200 border-dashed">
+                <div class="w-16 h-16 bg-purple-50 text-primary rounded-full flex items-center justify-center mb-4">
+                    <span class="material-symbols-outlined text-3xl">apartment</span>
                 </div>
-                <div class="px-6 pb-5 space-y-2.5">
-                    <div class="flex items-start gap-3">
-                        <span class="material-symbols-outlined text-[18px] text-slate-400 mt-0.5">location_on</span>
-                        <p class="text-sm text-slate-600">Paseo de Roxas, Makati City</p>
-                    </div>
-                    <div class="flex items-start gap-3">
-                        <span class="material-symbols-outlined text-[18px] text-slate-400 mt-0.5">person</span>
-                        <p class="text-sm text-slate-600">Ms. Sarah Jenkins • 0998-123-4567</p>
-                    </div>
-                </div>
-                <div class="px-6 py-5 border-t border-slate-100 bg-slate-50/50 mt-auto opacity-75">
-                    <div class="flex justify-between items-center mb-2">
-                        <span class="text-xs font-semibold text-slate-600">Allocation Slots</span>
-                        <span class="text-xs font-bold text-slate-900">0 / 2 Filled</span>
-                    </div>
-                    <div class="h-2 w-full bg-slate-200 rounded-full overflow-hidden">
-                        <div class="h-full bg-slate-400 rounded-full transition-all duration-500" style="width: 0%"></div>
-                    </div>
-                </div>
-                <div class="p-4 bg-white border-t border-slate-100 flex gap-3">
-                    <button class="flex-1 py-2.5 border border-slate-200 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
-                        Edit
-                    </button>
-                    <button class="flex-1 py-2.5 bg-purple-50 text-purple-700 rounded-xl text-sm font-semibold hover:bg-primary hover:text-white transition-colors">
-                        View Details
-                    </button>
-                </div>
+                <h3 class="text-lg font-bold text-slate-900 mb-1">No Companies Registered</h3>
+                <p class="text-slate-500 text-sm max-w-md">You haven't added any partner companies yet. Click the "Register New Company" button to start building your directory.</p>
             </div>
-
-            <!-- Card 3: Active, Full Capacity -->
-            <div class="bg-white rounded-2xl shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 border border-slate-200 overflow-hidden flex flex-col">
-                <div class="p-6 pb-4 flex justify-between items-start gap-4">
-                    <div class="flex gap-4 items-center">
-                        <div class="w-12 h-12 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-lg flex-shrink-0">
-                            WS
-                        </div>
-                        <div>
-                            <h3 class="font-bold text-slate-900 text-base leading-tight">WebSystems Studio</h3>
-                            <p class="text-xs text-slate-500 font-medium mt-0.5">Software Development</p>
-                        </div>
-                    </div>
-                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide bg-green-100 text-green-800 border border-green-200 flex-shrink-0">
-                        MOA: Active
-                    </span>
-                </div>
-                <div class="px-6 pb-5 space-y-2.5">
-                    <div class="flex items-start gap-3">
-                        <span class="material-symbols-outlined text-[18px] text-slate-400 mt-0.5">location_on</span>
-                        <p class="text-sm text-slate-600">BGC, Taguig</p>
-                    </div>
-                    <div class="flex items-start gap-3">
-                        <span class="material-symbols-outlined text-[18px] text-slate-400 mt-0.5">person</span>
-                        <p class="text-sm text-slate-600">Engr. Robert Chen • 0917-888-9999</p>
-                    </div>
-                </div>
-                <div class="px-6 py-5 border-t border-slate-100 bg-amber-50 rounded-b-none mt-auto">
-                    <div class="flex justify-between items-center mb-2">
-                        <span class="text-xs font-bold text-amber-700">Allocation Slots</span>
-                        <span class="text-xs font-black text-amber-700">5 / 5 Filled</span>
-                    </div>
-                    <div class="h-2 w-full bg-slate-200 rounded-full overflow-hidden">
-                        <div class="h-full bg-amber-500 rounded-full transition-all duration-500" style="width: 100%"></div>
-                    </div>
-                </div>
-                <div class="p-4 bg-white border-t border-slate-100 flex gap-3">
-                    <button class="flex-1 py-2.5 border border-slate-200 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
-                        Edit
-                    </button>
-                    <button class="flex-1 py-2.5 bg-purple-50 text-purple-700 rounded-xl text-sm font-semibold hover:bg-primary hover:text-white transition-colors">
-                        View Details
-                    </button>
-                </div>
-            </div>
-
-            <!-- Card 4: Pending MOA -->
-            <div class="bg-white rounded-2xl shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 border border-slate-200 overflow-hidden flex flex-col">
-                <div class="p-6 pb-4 flex justify-between items-start gap-4">
-                    <div class="flex gap-4 items-center">
-                        <div class="w-12 h-12 rounded-xl bg-pink-100 text-pink-600 flex items-center justify-center font-bold text-lg flex-shrink-0">
-                            CS
-                        </div>
-                        <div>
-                            <h3 class="font-bold text-slate-900 text-base leading-tight">Creativ Studios</h3>
-                            <p class="text-xs text-slate-500 font-medium mt-0.5">Multimedia Arts</p>
-                        </div>
-                    </div>
-                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide bg-amber-100 text-amber-800 border border-amber-200 flex-shrink-0">
-                        MOA: Pending
-                    </span>
-                </div>
-                <div class="px-6 pb-5 space-y-2.5">
-                    <div class="flex items-start gap-3">
-                        <span class="material-symbols-outlined text-[18px] text-slate-400 mt-0.5">location_on</span>
-                        <p class="text-sm text-slate-600">Magallanes Village, Makati</p>
-                    </div>
-                    <div class="flex items-start gap-3">
-                        <span class="material-symbols-outlined text-[18px] text-slate-400 mt-0.5">person</span>
-                        <p class="text-sm text-slate-600">Ms. Emily Rivera • 0922-111-2222</p>
-                    </div>
-                </div>
-                <div class="px-6 py-5 border-t border-slate-100 bg-slate-50/50 mt-auto">
-                    <div class="flex justify-between items-center mb-2">
-                        <span class="text-xs font-semibold text-slate-600">Allocation Slots</span>
-                        <span class="text-xs font-bold text-slate-900">3 / 4 Filled</span>
-                    </div>
-                    <div class="h-2 w-full bg-slate-200 rounded-full overflow-hidden">
-                        <div class="h-full bg-primary rounded-full transition-all duration-500" style="width: 75%"></div>
-                    </div>
-                </div>
-                <div class="p-4 bg-white border-t border-slate-100 flex gap-3">
-                    <button class="flex-1 py-2.5 border border-slate-200 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
-                        Edit
-                    </button>
-                    <button class="flex-1 py-2.5 bg-purple-50 text-purple-700 rounded-xl text-sm font-semibold hover:bg-primary hover:text-white transition-colors">
-                        View Details
-                    </button>
-                </div>
-            </div>
-
-            <!-- Card 5: Active MOA, abundant space -->
-            <div class="bg-white rounded-2xl shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 border border-slate-200 overflow-hidden flex flex-col">
-                <div class="p-6 pb-4 flex justify-between items-start gap-4">
-                    <div class="flex gap-4 items-center">
-                        <div class="w-12 h-12 rounded-xl bg-teal-100 text-teal-600 flex items-center justify-center font-bold text-lg flex-shrink-0">
-                            ID
-                        </div>
-                        <div>
-                            <h3 class="font-bold text-slate-900 text-base leading-tight">InnoSys Dynamics</h3>
-                            <p class="text-xs text-slate-500 font-medium mt-0.5">Network Engineering</p>
-                        </div>
-                    </div>
-                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide bg-green-100 text-green-800 border border-green-200 flex-shrink-0">
-                        MOA: Active
-                    </span>
-                </div>
-                <div class="px-6 pb-5 space-y-2.5">
-                    <div class="flex items-start gap-3">
-                        <span class="material-symbols-outlined text-[18px] text-slate-400 mt-0.5">location_on</span>
-                        <p class="text-sm text-slate-600">Alabang, Muntinlupa</p>
-                    </div>
-                    <div class="flex items-start gap-3">
-                        <span class="material-symbols-outlined text-[18px] text-slate-400 mt-0.5">person</span>
-                        <p class="text-sm text-slate-600">Engr. Alex Torres • 0915-555-7777</p>
-                    </div>
-                </div>
-                <div class="px-6 py-5 border-t border-slate-100 bg-slate-50/50 mt-auto">
-                    <div class="flex justify-between items-center mb-2">
-                        <span class="text-xs font-semibold text-slate-600">Allocation Slots</span>
-                        <span class="text-xs font-bold text-slate-900">1 / 10 Filled</span>
-                    </div>
-                    <div class="h-2 w-full bg-slate-200 rounded-full overflow-hidden">
-                        <div class="h-full bg-primary rounded-full transition-all duration-500" style="width: 10%"></div>
-                    </div>
-                </div>
-                <div class="p-4 bg-white border-t border-slate-100 flex gap-3">
-                    <button class="flex-1 py-2.5 border border-slate-200 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
-                        Edit
-                    </button>
-                    <button class="flex-1 py-2.5 bg-purple-50 text-purple-700 rounded-xl text-sm font-semibold hover:bg-primary hover:text-white transition-colors">
-                        View Details
-                    </button>
-                </div>
-            </div>
+            @endforelse
 
         </div>
     </main>
+
+    <!-- REGISTER COMPANY MODAL -->
+    <div id="addCompanyModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm transition-opacity duration-300">
+        <div class="bg-white rounded-2xl shadow-2xl border border-purple-100 p-6 w-full max-w-md mx-4">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold font-headline text-[#300050]">Register New Company</h2>
+                <button onclick="document.getElementById('addCompanyModal').classList.add('hidden')" class="text-gray-400 hover:text-rose-500 transition">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            
+            <form method="POST" action="{{ route('coordinator.companies.store') }}">
+                @csrf
+                <div class="space-y-4 mb-8">
+                    <div>
+                        <label class="block text-sm font-bold text-[#300050] mb-1">Company Name</label>
+                        <input type="text" name="name" required class="w-full border border-purple-100 rounded-xl px-4 py-2.5 bg-purple-50/30 text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all" placeholder="e.g. TechNova Solutions">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-[#300050] mb-1">Industry</label>
+                        <input type="text" name="industry" class="w-full border border-purple-100 rounded-xl px-4 py-2.5 bg-purple-50/30 text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all" placeholder="e.g. Information Technology">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-[#300050] mb-1">Location</label>
+                        <input type="text" name="location" class="w-full border border-purple-100 rounded-xl px-4 py-2.5 bg-purple-50/30 text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all" placeholder="e.g. IT Park, Cebu City">
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-bold text-[#300050] mb-1">Contact Person</label>
+                            <input type="text" name="contact_person" class="w-full border border-purple-100 rounded-xl px-4 py-2.5 bg-purple-50/30 text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all" placeholder="e.g. Mr. John Doe">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-[#300050] mb-1">Contact Number</label>
+                            <input type="text" name="contact_number" class="w-full border border-purple-100 rounded-xl px-4 py-2.5 bg-purple-50/30 text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all" placeholder="e.g. 0912-345-6789">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-[#300050] mb-1">Allocation Slots</label>
+                        <input type="number" name="allocation_slots" value="5" min="0" required class="w-full border border-purple-100 rounded-xl px-4 py-2.5 bg-purple-50/30 text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all">
+                    </div>
+                </div>
+
+                <div class="flex gap-3">
+                    <button type="button" onclick="document.getElementById('addCompanyModal').classList.add('hidden')" class="flex-1 px-5 py-2.5 rounded-xl border border-gray-200 text-gray-600 text-sm font-bold hover:bg-gray-50 transition">
+                        Cancel
+                    </button>
+                    <button type="submit" class="flex-1 bg-purple-950 hover:bg-purple-900 text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-md transition">
+                        Save Company
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ADD SUPERVISOR MODAL -->
+    <div id="addSupervisorModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm transition-opacity duration-300">
+        <div class="bg-white rounded-2xl shadow-2xl border border-purple-100 p-6 w-full max-w-md mx-4">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold font-headline text-[#300050]">Add Supervisor</h2>
+                <button onclick="document.getElementById('addSupervisorModal').classList.add('hidden')" class="text-gray-400 hover:text-rose-500 transition">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            
+            <p class="text-sm text-gray-600 mb-6">Provisioning an account for: <span id="supervisor-company-name" class="font-bold text-purple-900"></span></p>
+
+            <form method="POST" action="{{ route('coordinator.supervisors.store') }}">
+                @csrf
+                <input type="hidden" name="company_id" id="supervisor-company-id" value="">
+                
+                <div class="space-y-4 mb-8">
+                    <div>
+                        <label class="block text-sm font-bold text-[#300050] mb-1">Full Name</label>
+                        <input type="text" name="name" required class="w-full border border-purple-100 rounded-xl px-4 py-2.5 bg-purple-50/30 text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all" placeholder="e.g. John Doe">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-[#300050] mb-1">Email Address</label>
+                        <input type="email" name="email" required class="w-full border border-purple-100 rounded-xl px-4 py-2.5 bg-purple-50/30 text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all" placeholder="e.g. john@company.com">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-[#300050] mb-1">Temporary Password</label>
+                        <input type="text" name="password" required value="Welcome123!" class="w-full border border-purple-100 rounded-xl px-4 py-2.5 bg-purple-50/30 text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all">
+                    </div>
+                </div>
+
+                <div class="flex gap-3">
+                    <button type="button" onclick="document.getElementById('addSupervisorModal').classList.add('hidden')" class="flex-1 px-5 py-2.5 rounded-xl border border-gray-200 text-gray-600 text-sm font-bold hover:bg-gray-50 transition">
+                        Cancel
+                    </button>
+                    <button type="submit" class="flex-1 bg-purple-950 hover:bg-purple-900 text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-md transition">
+                        Create Account
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function openAddSupervisorModal(companyId, companyName) {
+            document.getElementById('supervisor-company-id').value = companyId;
+            document.getElementById('supervisor-company-name').innerText = companyName;
+            document.getElementById('addSupervisorModal').classList.remove('hidden');
+        }
+    </script>
 </body>
 
 </html>

@@ -109,9 +109,9 @@
                     <span class="text-sm font-bold text-on-surface/60 uppercase tracking-widest">Hours Pending Review</span>
                 </div>
                 <div class="flex items-end justify-between">
-                    <h2 class="text-3xl font-extrabold font-headline text-warning">32.5 <span class="text-base font-semibold text-warning/70 font-body">hrs</span></h2>
+                    <h2 class="text-3xl font-extrabold font-headline text-warning">{{ $pendingLogs->sum('hours_rendered') }} <span class="text-base font-semibold text-warning/70 font-body">hrs</span></h2>
                     <span class="text-xs font-bold text-error flex items-center gap-1 bg-error/10 px-2 py-0.5 rounded border border-error/20">
-                        <span class="material-symbols-outlined text-[14px]">error</span> Action Required
+                        <span class="material-symbols-outlined text-[14px]">error</span> {{ $pendingLogs->count() }} Action(s) Required
                     </span>
                 </div>
             </div>

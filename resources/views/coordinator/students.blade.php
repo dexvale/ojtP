@@ -159,7 +159,11 @@
                                     </div>
                                 </div>
                             </td>
-                            <td class="px-6 py-4 text-right">
+                            <td class="px-6 py-4 text-right flex items-center justify-end gap-2">
+                                <button onclick="openAssignModal({{ $student->id }}, '{{ $student->first_name }} {{ $student->last_name }}')" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-purple-50 text-purple-700 text-xs font-bold rounded-lg hover:bg-primary hover:text-white transition-all focus:ring-2 focus:ring-primary/20">
+                                    <span class="material-symbols-outlined text-[16px]">apartment</span>
+                                    Assign Placement
+                                </button>
                                 <button class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-primary/30 text-primary text-xs font-semibold rounded-lg hover:bg-purple-50 hover:border-primary/50 transition-all focus:ring-2 focus:ring-primary/20">
                                     View Profile
                                     <span class="material-symbols-outlined text-[16px]">chevron_right</span>
@@ -185,6 +189,54 @@
             </div>
         </div>
     </main>
+
+    <!-- ASSIGN PLACEMENT MODAL -->
+    <div id="assign-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm transition-opacity duration-300">
+        <div class="bg-white rounded-2xl shadow-2xl border border-purple-100 p-6 w-full max-w-md mx-4">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold font-headline text-[#300050]">Assign Placement</h2>
+                <button onclick="closeAssignModal()" class="text-gray-400 hover:text-rose-500 transition">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            
+            <p class="text-sm text-gray-600 mb-6">Assigning company to: <span id="assign-student-name" class="font-bold text-purple-900"></span></p>
+
+            <form id="assign-form" method="POST" action="">
+                @csrf
+                <div class="mb-6">
+                    <label class="block text-sm font-bold text-[#300050] mb-2">Select Company</label>
+                    <select name="company_id" required class="w-full border border-purple-100 rounded-xl px-4 py-3 bg-purple-50/30 text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all">
+                        <option value="">-- Select Company --</option>
+                        @foreach($companies as $company)
+                            <option value="{{ $company->id }}">{{ $company->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div class="flex gap-3 mt-8">
+                    <button type="button" onclick="closeAssignModal()" class="flex-1 px-5 py-2.5 rounded-xl border border-gray-200 text-gray-600 text-sm font-bold hover:bg-gray-50 transition">
+                        Cancel
+                    </button>
+                    <button type="submit" class="flex-1 bg-purple-950 hover:bg-purple-900 text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-md transition">
+                        Save Assignment
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function openAssignModal(studentId, studentName) {
+            document.getElementById('assign-student-name').innerText = studentName;
+            document.getElementById('assign-form').action = '/coordinator/students/' + studentId + '/assign';
+            document.getElementById('assign-modal').classList.remove('hidden');
+        }
+
+        function closeAssignModal() {
+            document.getElementById('assign-modal').classList.add('hidden');
+        }
+    </script>
 </body>
 
 </html>

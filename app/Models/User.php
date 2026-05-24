@@ -10,10 +10,14 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-#[Fillable(['email', 'password', 'role'])]
+#[Fillable(['email', 'password', 'role', 'company_id'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
+    public function company()
+    {
+        return $this->belongsTo(Company::class);
+    }
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
 
@@ -51,5 +55,10 @@ class User extends Authenticatable
     public function advisedInternships()
     {
         return $this->hasMany(Internship::class, 'advisor_id');
+    }
+
+    public function ojtLogs()
+    {
+        return $this->hasMany(OjtLog::class);
     }
 }

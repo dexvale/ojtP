@@ -43,7 +43,8 @@ class DashboardController extends Controller
             }
             $student->approved_hours_count = $hours;
         });
+        $companies = \App\Models\Company::orderBy('name', 'asc')->get();
 
-        return view('coordinator.students', compact('students'));
+        return view('coordinator.students', compact('students', 'companies'));
     }
 }
