@@ -82,6 +82,40 @@
             </div>
         </div>
 
+        @if(session('flash_password'))
+            <div id="credential-flash-banner" class="bg-purple-50 border border-purple-200 rounded-xl p-5 mb-8 shadow-sm relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-1 h-full bg-purple-600"></div>
+                <button onclick="document.getElementById('credential-flash-banner').remove()" class="absolute top-4 right-4 text-purple-400 hover:text-purple-600 transition-colors">
+                    <span class="material-symbols-outlined text-[20px]">close</span>
+                </button>
+                
+                <h3 class="text-lg font-bold text-[#300050] mb-4 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-purple-600">key</span>
+                    Advisor Credentials Provisioned
+                </h3>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-5">
+                    <div class="bg-white p-3 rounded-lg border border-purple-100">
+                        <span class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Workplace</span>
+                        <span class="text-sm font-semibold text-slate-800">{{ session('flash_company') }}</span>
+                    </div>
+                    <div class="bg-white p-3 rounded-lg border border-purple-100">
+                        <span class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Login Email</span>
+                        <span class="text-sm font-semibold text-slate-800">{{ session('flash_email') }}</span>
+                    </div>
+                    <div class="bg-white p-3 rounded-lg border border-purple-100">
+                        <span class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Temporary Password</span>
+                        <span class="text-sm font-semibold text-slate-800 font-mono bg-purple-100/50 px-2 py-0.5 rounded text-purple-700">{{ session('flash_password') }}</span>
+                    </div>
+                </div>
+
+                <button onclick="navigator.clipboard.writeText('Email: {{ session('flash_email') }}\nPassword: {{ session('flash_password') }}'); alert('Credentials copied to clipboard!');" class="inline-flex items-center gap-2 px-4 py-2 bg-white text-purple-700 border border-purple-200 rounded-lg text-sm font-bold hover:bg-purple-100 transition-colors shadow-sm">
+                    <span class="material-symbols-outlined text-[18px]">content_copy</span>
+                    Copy Connection Details
+                </button>
+            </div>
+        @endif
+
         <!-- Top Control Bar -->
         <div class="flex flex-col md:flex-row gap-4 mb-8 border border-slate-200 bg-white p-4 rounded-xl shadow-sm">
             <!-- Search Bar -->
@@ -153,16 +187,31 @@
                         <div class="h-full bg-primary rounded-full transition-all duration-500" style="width: {{ $company->allocation_slots > 0 ? (($company->filled_slots ?? 0) / $company->allocation_slots) * 100 : 0 }}%"></div>
                     </div>
                 </div>
-                <div class="p-4 bg-white border-t border-slate-100 flex gap-2">
-                    <button class="flex-1 py-2 border border-slate-200 rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+                <!-- Action Buttons Row -->
+                <div class="grid grid-cols-3 gap-2 mt-5 pt-4 border-t border-gray-100 p-3 bg-white">
+                    
+                    <!-- Edit Button -->
+                    <button onclick="openEditModal({{ $company }})" class="flex items-center justify-center gap-1 py-2 text-xs font-medium text-gray-600 transition-colors bg-white border border-gray-200 rounded-md hover:bg-gray-50">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
                         Edit
                     </button>
-                    <button onclick="openAddSupervisorModal({{ $company->id }}, '{{ addslashes($company->name) }}')" class="flex-1 py-2 bg-purple-50 text-purple-700 rounded-lg text-xs font-semibold hover:bg-primary hover:text-white transition-colors">
-                        + Supervisor
-                    </button>
-                    <button class="flex-1 py-2 bg-slate-50 text-slate-700 border border-slate-200 rounded-lg text-xs font-semibold hover:bg-slate-100 transition-colors">
-                        Details
-                    </button>
+
+                    <!-- Info Button -->
+                    <a href="{{ route('coordinator.companies.show', $company->id) }}" class="flex items-center justify-center gap-1 py-2 text-xs font-medium text-gray-600 transition-colors bg-white border border-gray-200 rounded-md hover:bg-gray-50">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                        Info
+                    </a>
+
+                    <!-- Delete Form -->
+                    <form action="{{ route('coordinator.companies.destroy', $company->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this company?');" class="w-full">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="flex items-center justify-center w-full gap-1 py-2 text-xs font-medium text-red-600 transition-colors bg-red-50 border border-red-100 rounded-md hover:bg-red-100">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                            Del
+                        </button>
+                    </form>
+
                 </div>
             </div>
             @empty
@@ -178,9 +227,9 @@
         </div>
     </main>
 
-    <!-- REGISTER COMPANY MODAL -->
-    <div id="addCompanyModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm transition-opacity duration-300">
-        <div class="bg-white rounded-2xl shadow-2xl border border-purple-100 p-6 w-full max-w-md mx-4">
+    <!-- ADD COMPANY MODAL -->
+    <div id="addCompanyModal" class="{{ $errors->any() ? '' : 'hidden' }} fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm transition-opacity duration-300">
+        <div class="bg-white rounded-2xl shadow-2xl border border-purple-100 p-6 w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
             <div class="flex justify-between items-center mb-6">
                 <h2 class="text-2xl font-bold font-headline text-[#300050]">Register New Company</h2>
                 <button onclick="document.getElementById('addCompanyModal').classList.add('hidden')" class="text-gray-400 hover:text-rose-500 transition">
@@ -188,34 +237,59 @@
                 </button>
             </div>
             
+            @if($errors->any())
+                <div class="bg-red-50 text-red-700 p-4 rounded-xl mb-6 text-sm border border-red-100">
+                    <div class="font-bold mb-1">Please fix the following errors:</div>
+                    <ul class="list-disc list-inside">
+                        @foreach($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+
             <form method="POST" action="{{ route('coordinator.companies.store') }}">
                 @csrf
                 <div class="space-y-4 mb-8">
                     <div>
                         <label class="block text-sm font-bold text-[#300050] mb-1">Company Name</label>
-                        <input type="text" name="name" required class="w-full border border-purple-100 rounded-xl px-4 py-2.5 bg-purple-50/30 text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all" placeholder="e.g. TechNova Solutions">
+                        <input type="text" name="name" value="{{ old('name') }}" required class="w-full border border-purple-100 rounded-xl px-4 py-2.5 bg-purple-50/30 text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all" placeholder="e.g. TechNova Solutions">
                     </div>
                     <div>
                         <label class="block text-sm font-bold text-[#300050] mb-1">Industry</label>
-                        <input type="text" name="industry" class="w-full border border-purple-100 rounded-xl px-4 py-2.5 bg-purple-50/30 text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all" placeholder="e.g. Information Technology">
+                        <input type="text" name="industry" value="{{ old('industry') }}" class="w-full border border-purple-100 rounded-xl px-4 py-2.5 bg-purple-50/30 text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all" placeholder="e.g. Information Technology">
                     </div>
                     <div>
                         <label class="block text-sm font-bold text-[#300050] mb-1">Location</label>
-                        <input type="text" name="location" class="w-full border border-purple-100 rounded-xl px-4 py-2.5 bg-purple-50/30 text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all" placeholder="e.g. IT Park, Cebu City">
+                        <input type="text" name="location" value="{{ old('location') }}" class="w-full border border-purple-100 rounded-xl px-4 py-2.5 bg-purple-50/30 text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all" placeholder="e.g. IT Park, Cebu City">
                     </div>
                     <div class="grid grid-cols-2 gap-4">
                         <div>
                             <label class="block text-sm font-bold text-[#300050] mb-1">Contact Person</label>
-                            <input type="text" name="contact_person" class="w-full border border-purple-100 rounded-xl px-4 py-2.5 bg-purple-50/30 text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all" placeholder="e.g. Mr. John Doe">
+                            <input type="text" name="contact_person" value="{{ old('contact_person') }}" class="w-full border border-purple-100 rounded-xl px-4 py-2.5 bg-purple-50/30 text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all" placeholder="e.g. Mr. John Doe">
                         </div>
                         <div>
                             <label class="block text-sm font-bold text-[#300050] mb-1">Contact Number</label>
-                            <input type="text" name="contact_number" class="w-full border border-purple-100 rounded-xl px-4 py-2.5 bg-purple-50/30 text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all" placeholder="e.g. 0912-345-6789">
+                            <input type="text" name="contact_number" value="{{ old('contact_number') }}" class="w-full border border-purple-100 rounded-xl px-4 py-2.5 bg-purple-50/30 text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all" placeholder="e.g. 0912-345-6789">
                         </div>
                     </div>
                     <div>
                         <label class="block text-sm font-bold text-[#300050] mb-1">Allocation Slots</label>
-                        <input type="number" name="allocation_slots" value="5" min="0" required class="w-full border border-purple-100 rounded-xl px-4 py-2.5 bg-purple-50/30 text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all">
+                        <input type="number" name="allocation_slots" value="{{ old('allocation_slots', 5) }}" min="0" required class="w-full border border-purple-100 rounded-xl px-4 py-2.5 bg-purple-50/30 text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all">
+                    </div>
+                </div>
+
+                <hr class="my-4 border-gray-100">
+                <h3 class="text-sm font-bold text-[#300050] mb-4">🔑 Initial Advisor Account (Optional)</h3>
+                
+                <div class="space-y-4 mb-8">
+                    <div>
+                        <label class="block text-sm font-bold text-[#300050] mb-1">Advisor Email Address</label>
+                        <input type="email" name="advisor_email" value="{{ old('advisor_email') }}" placeholder="e.g. advisor@company.com" class="w-full border border-purple-100 rounded-xl px-4 py-2.5 bg-purple-50/30 text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-[#300050] mb-1">Initial Password</label>
+                        <input type="text" name="advisor_password" placeholder="Set initial temporary password (min 8 chars)" class="w-full border border-purple-100 rounded-xl px-4 py-2.5 bg-purple-50/30 text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all">
                     </div>
                 </div>
 
@@ -231,43 +305,54 @@
         </div>
     </div>
 
-    <!-- ADD SUPERVISOR MODAL -->
-    <div id="addSupervisorModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm transition-opacity duration-300">
+    <!-- EDIT COMPANY MODAL -->
+    <div id="editCompanyModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm transition-opacity duration-300">
         <div class="bg-white rounded-2xl shadow-2xl border border-purple-100 p-6 w-full max-w-md mx-4">
             <div class="flex justify-between items-center mb-6">
-                <h2 class="text-2xl font-bold font-headline text-[#300050]">Add Supervisor</h2>
-                <button onclick="document.getElementById('addSupervisorModal').classList.add('hidden')" class="text-gray-400 hover:text-rose-500 transition">
+                <h2 class="text-2xl font-bold font-headline text-[#300050]">Edit Company</h2>
+                <button onclick="document.getElementById('editCompanyModal').classList.add('hidden')" class="text-gray-400 hover:text-rose-500 transition">
                     <span class="material-symbols-outlined">close</span>
                 </button>
             </div>
             
-            <p class="text-sm text-gray-600 mb-6">Provisioning an account for: <span id="supervisor-company-name" class="font-bold text-purple-900"></span></p>
-
-            <form method="POST" action="{{ route('coordinator.supervisors.store') }}">
+            <form id="editCompanyForm" method="POST" action="">
                 @csrf
-                <input type="hidden" name="company_id" id="supervisor-company-id" value="">
-                
+                @method('PUT')
                 <div class="space-y-4 mb-8">
                     <div>
-                        <label class="block text-sm font-bold text-[#300050] mb-1">Full Name</label>
-                        <input type="text" name="name" required class="w-full border border-purple-100 rounded-xl px-4 py-2.5 bg-purple-50/30 text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all" placeholder="e.g. John Doe">
+                        <label class="block text-sm font-bold text-[#300050] mb-1">Company Name</label>
+                        <input type="text" name="name" id="edit_name" required class="w-full border border-purple-100 rounded-xl px-4 py-2.5 bg-purple-50/30 text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all">
                     </div>
                     <div>
-                        <label class="block text-sm font-bold text-[#300050] mb-1">Email Address</label>
-                        <input type="email" name="email" required class="w-full border border-purple-100 rounded-xl px-4 py-2.5 bg-purple-50/30 text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all" placeholder="e.g. john@company.com">
+                        <label class="block text-sm font-bold text-[#300050] mb-1">Industry</label>
+                        <input type="text" name="industry" id="edit_industry" class="w-full border border-purple-100 rounded-xl px-4 py-2.5 bg-purple-50/30 text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all">
                     </div>
                     <div>
-                        <label class="block text-sm font-bold text-[#300050] mb-1">Temporary Password</label>
-                        <input type="text" name="password" required value="Welcome123!" class="w-full border border-purple-100 rounded-xl px-4 py-2.5 bg-purple-50/30 text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all">
+                        <label class="block text-sm font-bold text-[#300050] mb-1">Location</label>
+                        <input type="text" name="location" id="edit_location" class="w-full border border-purple-100 rounded-xl px-4 py-2.5 bg-purple-50/30 text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all">
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-bold text-[#300050] mb-1">Contact Person</label>
+                            <input type="text" name="contact_person" id="edit_contact_person" class="w-full border border-purple-100 rounded-xl px-4 py-2.5 bg-purple-50/30 text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-[#300050] mb-1">Contact Number</label>
+                            <input type="text" name="contact_number" id="edit_contact_number" class="w-full border border-purple-100 rounded-xl px-4 py-2.5 bg-purple-50/30 text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-[#300050] mb-1">Allocation Slots</label>
+                        <input type="number" name="allocation_slots" id="edit_allocation_slots" min="0" required class="w-full border border-purple-100 rounded-xl px-4 py-2.5 bg-purple-50/30 text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all">
                     </div>
                 </div>
 
                 <div class="flex gap-3">
-                    <button type="button" onclick="document.getElementById('addSupervisorModal').classList.add('hidden')" class="flex-1 px-5 py-2.5 rounded-xl border border-gray-200 text-gray-600 text-sm font-bold hover:bg-gray-50 transition">
+                    <button type="button" onclick="document.getElementById('editCompanyModal').classList.add('hidden')" class="flex-1 px-5 py-2.5 rounded-xl border border-gray-200 text-gray-600 text-sm font-bold hover:bg-gray-50 transition">
                         Cancel
                     </button>
                     <button type="submit" class="flex-1 bg-purple-950 hover:bg-purple-900 text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-md transition">
-                        Create Account
+                        Update Details
                     </button>
                 </div>
             </form>
@@ -275,10 +360,15 @@
     </div>
 
     <script>
-        function openAddSupervisorModal(companyId, companyName) {
-            document.getElementById('supervisor-company-id').value = companyId;
-            document.getElementById('supervisor-company-name').innerText = companyName;
-            document.getElementById('addSupervisorModal').classList.remove('hidden');
+        function openEditModal(company) {
+            document.getElementById('editCompanyForm').action = `/coordinator/companies/${company.id}`;
+            document.getElementById('edit_name').value = company.name || '';
+            document.getElementById('edit_industry').value = company.industry || '';
+            document.getElementById('edit_location').value = company.location || '';
+            document.getElementById('edit_contact_person').value = company.contact_person || '';
+            document.getElementById('edit_contact_number').value = company.contact_number || '';
+            document.getElementById('edit_allocation_slots').value = company.allocation_slots || 0;
+            document.getElementById('editCompanyModal').classList.remove('hidden');
         }
     </script>
 </body>

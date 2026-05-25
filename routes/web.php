@@ -40,6 +40,9 @@ Route::middleware(['auth', 'no.cache', 'role:Admin,coordinator'])->group(functio
 
     Route::get('/coordinator/companies', [\App\Http\Controllers\Coordinator\CompanyController::class, 'index'])->name('coordinator.companies');
     Route::post('/coordinator/companies', [\App\Http\Controllers\Coordinator\CompanyController::class, 'store'])->name('coordinator.companies.store');
+    Route::get('/coordinator/companies/{company}', [\App\Http\Controllers\Coordinator\CompanyController::class, 'show'])->name('coordinator.companies.show');
+    Route::put('/coordinator/companies/{company}', [\App\Http\Controllers\Coordinator\CompanyController::class, 'update'])->name('coordinator.companies.update');
+    Route::delete('/coordinator/companies/{company}', [\App\Http\Controllers\Coordinator\CompanyController::class, 'destroy'])->name('coordinator.companies.destroy');
     Route::post('/coordinator/supervisors/store', [\App\Http\Controllers\Coordinator\CompanyController::class, 'storeSupervisor'])->name('coordinator.supervisors.store');
 
     Route::resource('coordinator/courses', \App\Http\Controllers\Coordinator\CourseController::class)

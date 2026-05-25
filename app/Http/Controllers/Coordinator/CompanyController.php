@@ -24,30 +24,103 @@ class CompanyController extends Controller
             'location' => 'nullable|string|max:255',
             'contact_person' => 'nullable|string|max:255',
             'contact_number' => 'nullable|string|max:255',
+            'allocation_slots' => 'required|integer|min:0',
+            'advisor_email' => 'nullable|string|email|max:255|unique:users,email',
+            'advisor_password' => 'nullable|string|min:8'
+        ]);
+
+        $company = Company::create([
+            'name' => $validated['name'],
+            'industry' => $validated['industry'] ?? null,
+            'location' => $validated['location'] ?? null,
+            'contact_person' => $validated['contact_person'] ?? null,
+            'contact_number' => $validated['contact_number'] ?? null,
+            'allocation_slots' => $validated['allocation_slots'],
+        ]);
+
+        if ($request->filled('advisor_email') && $request->filled('advisor_password')) {
+            $plainPassword = $request->advisor_password;
+
+            $user = User::create([
+                'email' => $request->advisor_email,
+                'password' => Hash::make($plainPassword),
+                'role' => 'Advisor', 
+                'company_id' => $company->id,
+            ]);
+
+            $user->notify(new \App\Notifications\WelcomeAdvisorNotification($plainPassword));
+
+            return redirect()->back()->with([
+                'success' => 'Company registered and Advisor account provisioned successfully!',
+                'flash_email' => $user->email,
+                'flash_password' => $plainPassword,
+                'flash_company' => $company->name
+            ]);
+        }
+
+        return redirect()->back()->with('success', 'Company registered successfully!');
+    }
+
+    public function show(Company $company)
+    {
+        $company->load(['studentProfiles.user', 'users' => function($query) {
+            $query->where('role', 'Advisor');
+        }]);
+
+        return view('coordinator.company_show', compact('company'));
+    }
+
+    public function update(Request $request, Company $company)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'industry' => 'nullable|string|max:255',
+            'location' => 'nullable|string|max:255',
+            'contact_person' => 'nullable|string|max:255',
+            'contact_number' => 'nullable|string|max:255',
             'allocation_slots' => 'required|integer|min:0'
         ]);
 
-        Company::create($validated);
+        $company->update($validated);
 
-        return redirect()->back()->with('success', 'Company registered successfully.');
+        return redirect()->back()->with('success', 'Company details updated successfully.');
+    }
+
+    public function destroy(Company $company)
+    {
+        // 1. Delete all user accounts with the 'Advisor' role that belong to this company
+        $company->users()->where('role', 'Advisor')->delete();
+
+        // 2. Delete the company record itself
+        $company->delete();
+
+        return redirect()->route('coordinator.companies')->with('success', 'Company and its associated advisor accounts have been cleanly removed together.');
     }
 
     public function storeSupervisor(Request $request)
     {
         $request->validate([
-            'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8',
             'company_id' => 'required|exists:companies,id'
         ]);
 
+        $plainPassword = $request->password;
+
         $user = User::create([
             'email' => $request->email,
-            'password' => Hash::make($request->password),
-            'role' => 'Supervisor',
+            'password' => Hash::make($plainPassword),
+            'role' => 'Advisor', 
             'company_id' => $request->company_id,
         ]);
 
-        return redirect()->back()->with('success', 'Supervisor account provisioned successfully! You can now share these credentials with them.');
+        $user->notify(new \App\Notifications\WelcomeAdvisorNotification($plainPassword));
+
+        return redirect()->back()->with([
+            'success' => 'Advisor account provisioned successfully!',
+            'flash_email' => $user->email,
+            'flash_password' => $plainPassword,
+            'flash_company' => $user->company->name
+        ]);
     }
 }
