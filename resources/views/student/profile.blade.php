@@ -103,7 +103,7 @@
         </header>
 
         <!-- ── Profile Form ── -->
-        <form method="POST" action="#" id="profile-form">
+        <form method="POST" action="{{ route('student.profile.update') }}" id="profile-form">
             @csrf
             @method('PUT')
 
@@ -122,21 +122,21 @@
                                 <label class="block text-[10px] font-bold text-outline uppercase tracking-widest mb-1.5">
                                     First Name <span class="text-error">*</span>
                                 </label>
-                                <input type="text" name="first_name" value="Jlou" disabled
+                                <input type="text" name="first_name" value="{{ old('first_name', $user->studentProfile->first_name ?? '') }}" disabled
                                        class="profile-input w-full bg-surface-container rounded-lg px-3.5 py-2.5 text-sm font-medium text-on-surface border border-surface-variant/30 focus:ring-2 focus:ring-primary/40 focus:border-transparent transition-all disabled:opacity-60 disabled:cursor-not-allowed"/>
                             </div>
                             <div>
                                 <label class="block text-[10px] font-bold text-outline uppercase tracking-widest mb-1.5">
                                     Middle Name <span class="text-error">*</span>
                                 </label>
-                                <input type="text" name="middle_name" value="Balane" disabled
+                                <input type="text" name="middle_name" value="{{ old('middle_name', $user->studentProfile->middle_name ?? '') }}" disabled
                                        class="profile-input w-full bg-surface-container rounded-lg px-3.5 py-2.5 text-sm font-medium text-on-surface border border-surface-variant/30 focus:ring-2 focus:ring-primary/40 focus:border-transparent transition-all disabled:opacity-60 disabled:cursor-not-allowed"/>
                             </div>
                             <div>
                                 <label class="block text-[10px] font-bold text-outline uppercase tracking-widest mb-1.5">
                                     Last Name <span class="text-error">*</span>
                                 </label>
-                                <input type="text" name="last_name" value="Espigadera" disabled
+                                <input type="text" name="last_name" value="{{ old('last_name', $user->studentProfile->last_name ?? '') }}" disabled
                                        class="profile-input w-full bg-surface-container rounded-lg px-3.5 py-2.5 text-sm font-medium text-on-surface border border-surface-variant/30 focus:ring-2 focus:ring-primary/40 focus:border-transparent transition-all disabled:opacity-60 disabled:cursor-not-allowed"/>
                             </div>
                         </div>
@@ -146,21 +146,21 @@
                                 <label class="block text-[10px] font-bold text-outline uppercase tracking-widest mb-1.5">
                                     Contact Address <span class="text-error">*</span>
                                 </label>
-                                <input type="text" name="address" placeholder="Contact Address" disabled
+                                <input type="text" name="contact_address" value="{{ old('contact_address', $user->studentProfile->contact_address ?? '') }}" placeholder="Contact Address" disabled
                                        class="profile-input w-full bg-surface-container rounded-lg px-3.5 py-2.5 text-sm font-medium text-on-surface border border-surface-variant/30 focus:ring-2 focus:ring-primary/40 focus:border-transparent transition-all disabled:opacity-60 disabled:cursor-not-allowed"/>
                             </div>
                             <div>
                                 <label class="block text-[10px] font-bold text-outline uppercase tracking-widest mb-1.5">
                                     Contact Number <span class="text-error">*</span>
                                 </label>
-                                <input type="tel" name="contact_number" value="09317987613" disabled
+                                <input type="tel" name="contact_number" value="{{ old('contact_number', $user->studentProfile->contact_number ?? '') }}" disabled
                                        class="profile-input w-full bg-surface-container rounded-lg px-3.5 py-2.5 text-sm font-medium text-on-surface border border-surface-variant/30 focus:ring-2 focus:ring-primary/40 focus:border-transparent transition-all disabled:opacity-60 disabled:cursor-not-allowed"/>
                             </div>
                             <div>
                                 <label class="block text-[10px] font-bold text-outline uppercase tracking-widest mb-1.5">
                                     Email Address <span class="text-error">*</span>
                                 </label>
-                                <input type="email" name="email" value="jlou@gmail.com" disabled
+                                <input type="email" name="email" value="{{ old('email', $user->email) }}" disabled
                                        class="profile-input w-full bg-surface-container rounded-lg px-3.5 py-2.5 text-sm font-medium text-on-surface border border-surface-variant/30 focus:ring-2 focus:ring-primary/40 focus:border-transparent transition-all disabled:opacity-60 disabled:cursor-not-allowed"/>
                             </div>
                         </div>
@@ -180,14 +180,14 @@
                                 <label class="block text-[10px] font-bold text-outline uppercase tracking-widest mb-1.5">
                                     Father's Name <span class="text-error">*</span>
                                 </label>
-                                <input type="text" name="father_name" placeholder="Father's Name" disabled
+                                <input type="text" name="father_name" value="{{ old('father_name', $user->studentProfile->father_name ?? '') }}" placeholder="Father's Name" disabled
                                        class="profile-input w-full bg-surface-container rounded-lg px-3.5 py-2.5 text-sm font-medium text-on-surface border border-surface-variant/30 focus:ring-2 focus:ring-primary/40 focus:border-transparent transition-all disabled:opacity-60 disabled:cursor-not-allowed"/>
                             </div>
                             <div>
                                 <label class="block text-[10px] font-bold text-outline uppercase tracking-widest mb-1.5">
                                     Mother's Name <span class="text-error">*</span>
                                 </label>
-                                <input type="text" name="mother_name" placeholder="Mother's Name" disabled
+                                <input type="text" name="mother_name" value="{{ old('mother_name', $user->studentProfile->mother_name ?? '') }}" placeholder="Mother's Name" disabled
                                        class="profile-input w-full bg-surface-container rounded-lg px-3.5 py-2.5 text-sm font-medium text-on-surface border border-surface-variant/30 focus:ring-2 focus:ring-primary/40 focus:border-transparent transition-all disabled:opacity-60 disabled:cursor-not-allowed"/>
                             </div>
                         </div>
@@ -197,14 +197,14 @@
                                 <label class="block text-[10px] font-bold text-outline uppercase tracking-widest mb-1.5">
                                     Emergency Contact Person <span class="text-error">*</span>
                                 </label>
-                                <input type="text" name="emergency_contact_person" placeholder="Emergency contact person" disabled
+                                <input type="text" name="emergency_contact_person" value="{{ old('emergency_contact_person', $user->studentProfile->emergency_contact_person ?? '') }}" placeholder="Emergency contact person" disabled
                                        class="profile-input w-full bg-surface-container rounded-lg px-3.5 py-2.5 text-sm font-medium text-on-surface border border-surface-variant/30 focus:ring-2 focus:ring-primary/40 focus:border-transparent transition-all disabled:opacity-60 disabled:cursor-not-allowed"/>
                             </div>
                             <div>
                                 <label class="block text-[10px] font-bold text-outline uppercase tracking-widest mb-1.5">
                                     Emergency Contact Number <span class="text-error">*</span>
                                 </label>
-                                <input type="tel" name="emergency_contact_number" placeholder="Emergency contact number" disabled
+                                <input type="tel" name="emergency_contact_number" value="{{ old('emergency_contact_number', $user->studentProfile->emergency_contact_number ?? '') }}" placeholder="Emergency contact number" disabled
                                        class="profile-input w-full bg-surface-container rounded-lg px-3.5 py-2.5 text-sm font-medium text-on-surface border border-surface-variant/30 focus:ring-2 focus:ring-primary/40 focus:border-transparent transition-all disabled:opacity-60 disabled:cursor-not-allowed"/>
                             </div>
                         </div>
@@ -224,22 +224,15 @@
                                 <label class="block text-[10px] font-bold text-outline uppercase tracking-widest mb-1.5">
                                     Student ID <span class="text-error">*</span>
                                 </label>
-                                <input type="text" name="student_id" value="098765" disabled
-                                       class="profile-input w-full bg-surface-container rounded-lg px-3.5 py-2.5 text-sm font-medium text-on-surface border border-surface-variant/30 focus:ring-2 focus:ring-primary/40 focus:border-transparent transition-all disabled:opacity-60 disabled:cursor-not-allowed"/>
+                                <input type="text" name="student_id" value="{{ $user->studentProfile->student_id_number ?? '' }}" readonly
+                                       class="w-full bg-slate-50 text-gray-500 rounded-lg px-3.5 py-2.5 text-sm font-medium border border-surface-variant/30 cursor-not-allowed"/>
                             </div>
                             <div>
                                 <label class="block text-[10px] font-bold text-outline uppercase tracking-widest mb-1.5">
                                     Company <span class="text-error">*</span>
                                 </label>
-                                <select name="company" disabled
-                                        class="profile-input w-full bg-surface-container rounded-lg px-3.5 py-2.5 text-sm font-medium text-on-surface border border-surface-variant/30 focus:ring-2 focus:ring-primary/40 focus:border-transparent transition-all disabled:opacity-60 disabled:cursor-not-allowed appearance-none">
-                                    <option value="BISU-BC" selected>BISU-BC</option>
-                                    <option value="other">Other Company</option>
-                                </select>
-                                <p class="text-[11px] text-secondary mt-1.5 flex items-center gap-1 cursor-pointer hover:underline underline-offset-2">
-                                    <span class="material-symbols-outlined text-sm">add_circle</span>
-                                    Would you like to add a company to the list?
-                                </p>
+                                <input type="text" name="company" value="{{ $user->studentProfile->company->name ?? 'None' }}" readonly
+                                        class="w-full bg-slate-50 text-gray-500 rounded-lg px-3.5 py-2.5 text-sm font-medium border border-surface-variant/30 cursor-not-allowed"/>
                             </div>
                         </div>
                         {{-- Row 2: Internship Start Date --}}
@@ -249,8 +242,8 @@
                                     Internship Start <span class="text-error">*</span>
                                 </label>
                                 <div class="relative">
-                                    <input type="date" name="internship_start" value="2023-02-17" disabled
-                                           class="profile-input w-full bg-surface-container rounded-lg px-3.5 py-2.5 pr-10 text-sm font-medium text-on-surface border border-surface-variant/30 focus:ring-2 focus:ring-primary/40 focus:border-transparent transition-all disabled:opacity-60 disabled:cursor-not-allowed"/>
+                                    <input type="date" name="internship_start" value="{{ $user->studentProfile->internship_start ?? '' }}" readonly
+                                           class="w-full bg-slate-50 text-gray-500 rounded-lg px-3.5 py-2.5 pr-10 text-sm font-medium border border-surface-variant/30 cursor-not-allowed"/>
                                     <span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-outline text-[18px] pointer-events-none">calendar_today</span>
                                 </div>
                             </div>
@@ -281,7 +274,7 @@
         <span class="material-symbols-outlined text-xl">dashboard</span>
         <span class="text-[10px] font-bold">Home</span>
     </a>
-    <a href="{{ route('student.logs') }}" class="flex flex-col items-center gap-0.5 text-outline px-3 py-1">
+    <a href="{{ route('student.logs.index') }}" class="flex flex-col items-center gap-0.5 text-outline px-3 py-1">
         <span class="material-symbols-outlined text-xl">description</span>
         <span class="text-[10px] font-bold">Logs</span>
     </a>

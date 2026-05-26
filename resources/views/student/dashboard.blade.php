@@ -204,8 +204,18 @@
                  LOG OJT SHIFT  (8 cols)
             ──────────────────────────────── -->
             <section class="col-span-12 lg:col-span-8 bg-surface-container-lowest rounded-xl shadow-sm border border-surface-variant/20 overflow-hidden">
-                <form method="POST" action="{{ route('student.logs.store') }}" id="shift-form">
+                <form method="POST" action="{{ route('student.logs.store') }}" id="shift-form" enctype="multipart/form-data">
                     @csrf
+
+                    @if($errors->any())
+                        <div class="bg-error/10 text-error p-4 text-sm border-b border-error/20">
+                            <ul class="list-disc list-inside">
+                                @foreach($errors->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
 
                     {{-- ── Card Header ── --}}
                     <div class="flex items-center justify-between px-6 pt-6 pb-4">
@@ -215,9 +225,14 @@
                             </div>
                             <h2 class="text-2xl font-bold font-headline text-primary">Log OJT Shift</h2>
                         </div>
-                        <div class="flex items-center gap-1.5 bg-surface-container px-3 py-1.5 rounded-lg border border-outline/10 text-on-surface-variant text-sm font-medium">
-                            <span class="material-symbols-outlined text-[16px]">calendar_today</span>
-                            <span id="shift-date">Feb 21, 2026</span>
+                        <div class="flex items-center gap-2 bg-purple-50 border border-purple-100 rounded-lg px-3 py-1.5">
+                            <span class="material-symbols-outlined text-purple-700 text-sm">calendar_month</span>
+                            <input type="date" 
+                                   name="log_date" 
+                                   id="log_date" 
+                                   value="{{ old('log_date', date('Y-m-d')) }}" 
+                                   max="{{ date('Y-m-d') }}" 
+                                   class="bg-transparent text-sm font-medium text-purple-900 border-none focus:ring-0 p-0 cursor-pointer">
                         </div>
                     </div>
 
@@ -234,23 +249,23 @@
                                 <div>
                                     <label class="block text-[10px] font-semibold text-outline uppercase tracking-wide mb-1.5">Clock In</label>
                                     <div class="relative">
-                                        <input type="time" name="morning_in" id="morning_in" value="08:00"
-                                               class="w-full bg-surface-container-highest border-none rounded-lg py-2.5 pl-3 pr-9 text-sm font-bold text-on-surface focus:ring-2 focus:ring-primary/40 transition-all appearance-none"/>
+                                        <input type="time" name="am_clock_in" id="am_clock_in"
+                                               class="w-full bg-surface-container-highest border-none rounded-lg py-2.5 pl-3 pr-9 text-sm font-bold text-on-surface focus:ring-2 focus:ring-primary/40 transition-all appearance-none time-input"/>
                                         <span class="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 text-[18px] text-outline pointer-events-none">schedule</span>
                                     </div>
                                 </div>
                                 <div>
                                     <label class="block text-[10px] font-semibold text-outline uppercase tracking-wide mb-1.5">Clock Out</label>
                                     <div class="relative">
-                                        <input type="time" name="morning_out" id="morning_out" value="12:00"
-                                               class="w-full bg-surface-container-highest border-none rounded-lg py-2.5 pl-3 pr-9 text-sm font-bold text-on-surface focus:ring-2 focus:ring-primary/40 transition-all appearance-none"/>
+                                        <input type="time" name="am_clock_out" id="am_clock_out"
+                                               class="w-full bg-surface-container-highest border-none rounded-lg py-2.5 pl-3 pr-9 text-sm font-bold text-on-surface focus:ring-2 focus:ring-primary/40 transition-all appearance-none time-input"/>
                                         <span class="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 text-[18px] text-outline pointer-events-none">schedule</span>
                                     </div>
                                 </div>
                             </div>
                             <div class="flex items-center justify-between pt-3 border-t border-surface-variant/20">
                                 <span class="text-xs text-on-surface-variant font-medium">Duration</span>
-                                <span id="morning-duration" class="text-sm font-extrabold font-headline text-primary">4.00 Hours</span>
+                                <span id="morning-duration" class="text-sm font-extrabold font-headline text-primary">0.00 Hours</span>
                             </div>
                         </div>
 
@@ -264,23 +279,23 @@
                                 <div>
                                     <label class="block text-[10px] font-semibold text-outline uppercase tracking-wide mb-1.5">Clock In</label>
                                     <div class="relative">
-                                        <input type="time" name="afternoon_in" id="afternoon_in" value="13:00"
-                                               class="w-full bg-surface-container-highest border-none rounded-lg py-2.5 pl-3 pr-9 text-sm font-bold text-on-surface focus:ring-2 focus:ring-primary/40 transition-all appearance-none"/>
+                                        <input type="time" name="pm_clock_in" id="pm_clock_in"
+                                               class="w-full bg-surface-container-highest border-none rounded-lg py-2.5 pl-3 pr-9 text-sm font-bold text-on-surface focus:ring-2 focus:ring-primary/40 transition-all appearance-none time-input"/>
                                         <span class="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 text-[18px] text-outline pointer-events-none">schedule</span>
                                     </div>
                                 </div>
                                 <div>
                                     <label class="block text-[10px] font-semibold text-outline uppercase tracking-wide mb-1.5">Clock Out</label>
                                     <div class="relative">
-                                        <input type="time" name="afternoon_out" id="afternoon_out" value="17:00"
-                                               class="w-full bg-surface-container-highest border-none rounded-lg py-2.5 pl-3 pr-9 text-sm font-bold text-on-surface focus:ring-2 focus:ring-primary/40 transition-all appearance-none"/>
+                                        <input type="time" name="pm_clock_out" id="pm_clock_out"
+                                               class="w-full bg-surface-container-highest border-none rounded-lg py-2.5 pl-3 pr-9 text-sm font-bold text-on-surface focus:ring-2 focus:ring-primary/40 transition-all appearance-none time-input"/>
                                         <span class="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 text-[18px] text-outline pointer-events-none">schedule</span>
                                     </div>
                                 </div>
                             </div>
                             <div class="flex items-center justify-between pt-3 border-t border-surface-variant/20">
                                 <span class="text-xs text-on-surface-variant font-medium">Duration</span>
-                                <span id="afternoon-duration" class="text-sm font-extrabold font-headline text-primary">4.00 Hours</span>
+                                <span id="afternoon-duration" class="text-sm font-extrabold font-headline text-primary">0.00 Hours</span>
                             </div>
                         </div>
                     </div>
@@ -292,12 +307,12 @@
                         
                         <!-- Photo Upload Zone -->
                         <div class="mt-4 border-2 border-dashed border-outline/40 hover:bg-gray-50 hover:border-outline/60 transition-all rounded-xl p-8 flex flex-col items-center justify-center cursor-pointer group relative">
-                            <input type="file" name="workspace_photo" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" accept="image/*" title="Drag & Drop photo here">
+                            <input type="file" name="photo_attachment" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" accept="image/png, image/jpeg, image/jpg" title="Drag & Drop photo here">
                             <div class="w-12 h-12 bg-primary/10 text-primary rounded-full flex items-center justify-center mb-3 group-hover:scale-110 group-hover:bg-primary/20 transition-all duration-300 pointer-events-none">
                                 <span class="material-symbols-outlined text-2xl">cloud_upload</span>
                             </div>
                             <p class="text-sm font-bold text-on-surface mb-1 pointer-events-none">Drag & Drop photo here</p>
-                            <p class="text-[11px] text-on-surface-variant mb-4 pointer-events-none">Capture your workspace. Max 5MB.</p>
+                            <p class="text-[11px] text-on-surface-variant mb-4 pointer-events-none">Capture your workspace. Max 5MB (JPG/PNG).</p>
                             <button type="button" class="bg-blue-100 text-blue-700 group-hover:bg-blue-200 transition-colors px-6 py-2 rounded-lg text-sm font-bold pointer-events-none shadow-sm">
                                 Browse Files
                             </button>
@@ -332,15 +347,14 @@
                     <div class="flex items-center justify-between px-6 py-4 border-t border-surface-variant/20 bg-surface-container-lowest">
                         <div>
                             <p class="text-xs text-on-surface-variant font-medium mb-0.5">Total Shift Duration:</p>
-                            <p id="total-duration" class="text-3xl font-extrabold font-headline text-primary leading-none">8.00 <span class="text-lg font-bold text-on-surface-variant">hours</span></p>
+                            <p id="total-duration" class="text-3xl font-extrabold font-headline text-primary leading-none">0.00 <span class="text-lg font-bold text-on-surface-variant">hours</span></p>
                         </div>
-                        <button type="submit"
-                                class="flex items-center gap-2 bg-primary text-on-primary px-6 py-3 rounded-xl font-bold text-sm shadow-lg shadow-primary/25 hover:opacity-90 active:scale-95 transition-all">
+                        <button type="submit" id="save-shift-btn"
+                                class="flex items-center gap-2 bg-primary text-on-primary px-6 py-3 rounded-xl font-bold text-sm shadow-lg shadow-primary/25 hover:opacity-90 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
                             <span class="material-symbols-outlined text-lg" style="font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24;">save</span>
                             Save Shift
                         </button>
                     </div>
-
                 </form>
             </section>
 
@@ -372,13 +386,24 @@
                         <div class="w-12 h-12 rounded-full bg-surface-container-highest flex items-center justify-center flex-shrink-0 border border-surface-variant/30">
                             <span class="material-symbols-outlined text-2xl text-on-surface-variant" style='font-variation-settings:"FILL" 1,"wght" 400,"GRAD" 0,"opsz" 24;'>person</span>
                         </div>
-                        <div class="min-w-0">
-                            <p class="font-bold text-on-surface text-sm">{{ auth()->user()->studentProfile->supervisor->name ?? 'Not Assigned' }}</p>
-                            <p class="text-[11px] text-on-surface-variant truncate">{{ auth()->user()->studentProfile->supervisor->email ?? 'Pending assignment' }}</p>
-                        </div>
-                        <button class="ml-auto p-2 bg-surface-container rounded-lg text-primary hover:bg-primary/10 transition-colors flex-shrink-0" aria-label="Send email">
-                            <span class="material-symbols-outlined text-xl">mail</span>
-                        </button>
+                        @if(auth()->user()->company && auth()->user()->company->users->where('role', 'Advisor')->first())
+                            @php $advisor = auth()->user()->company->users->where('role', 'Advisor')->first(); @endphp
+                            <div class="min-w-0">
+                                <p class="font-bold text-on-surface text-sm">{{ $advisor->name }}</p>
+                                <p class="text-[11px] text-on-surface-variant truncate">{{ $advisor->email }}</p>
+                            </div>
+                            <a href="mailto:{{ $advisor->email }}" class="ml-auto p-2 bg-surface-container rounded-lg text-primary hover:bg-primary/10 transition-colors flex-shrink-0" aria-label="Send email">
+                                <span class="material-symbols-outlined text-xl">mail</span>
+                            </a>
+                        @else
+                            <div class="min-w-0">
+                                <p class="font-bold text-on-surface text-sm">Not Assigned</p>
+                                <p class="text-[11px] text-on-surface-variant truncate">Pending assignment</p>
+                            </div>
+                            <button class="ml-auto p-2 bg-surface-container rounded-lg text-primary hover:bg-primary/10 transition-colors flex-shrink-0" aria-label="Send email" disabled>
+                                <span class="material-symbols-outlined text-xl">mail</span>
+                            </button>
+                        @endif
                     </div>
                 </div>
             </section>
@@ -389,7 +414,7 @@
             <section class="col-span-12 bg-surface-container-lowest rounded-xl p-6 lg:p-8 shadow-sm border border-surface-variant/20">
                 <div class="flex items-center justify-between mb-6">
                     <h2 class="text-2xl font-bold font-headline text-primary">Recent Daily Submissions</h2>
-                    <a href="{{ route('student.logs') }}" class="text-sm font-bold text-secondary flex items-center gap-1 hover:underline underline-offset-4 transition-all">
+                    <a href="{{ route('student.logs.index') }}" class="text-sm font-bold text-secondary flex items-center gap-1 hover:underline underline-offset-4 transition-all">
                         View All History
                         <span class="material-symbols-outlined text-base">arrow_forward</span>
                     </a>
@@ -452,7 +477,7 @@
         <span class="material-symbols-outlined text-xl" style='font-variation-settings:"FILL" 1,"wght" 400,"GRAD" 0,"opsz" 24;'>dashboard</span>
         <span class="text-[10px] font-bold">Home</span>
     </button>
-    <a href="{{ route('student.logs') }}" class="flex flex-col items-center gap-0.5 text-outline px-3 py-1">
+    <a href="{{ route('student.logs.index') }}" class="flex flex-col items-center gap-0.5 text-outline px-3 py-1">
         <span class="material-symbols-outlined text-xl">description</span>
         <span class="text-[10px] font-bold">Logs</span>
     </a>
@@ -477,35 +502,87 @@
         shiftDateEl.textContent = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
     }
 
-    // ── Duration calculator ──
+    // ── Duration calculator & Strict Validation ──
+    const saveBtn = document.getElementById('save-shift-btn');
+    const form = document.getElementById('shift-form');
+
     function parseTime(val) {
         if (!val) return null;
         const [h, m] = val.split(':').map(Number);
         return h * 60 + m;
     }
 
-    function calcHours(inId, outId) {
-        const inVal  = parseTime(document.getElementById(inId)?.value);
-        const outVal = parseTime(document.getElementById(outId)?.value);
-        if (inVal === null || outVal === null) return 0;
-        const diff = outVal - inVal;
-        return diff > 0 ? diff / 60 : 0;
+    function checkSession(inId, outId) {
+        const inEl = document.getElementById(inId);
+        const outEl = document.getElementById(outId);
+        if(!inEl || !outEl) return { mins: 0, valid: true };
+
+        const inVal = parseTime(inEl.value);
+        const outVal = parseTime(outEl.value);
+
+        if (inVal !== null && outVal !== null) {
+            if (outVal <= inVal) {
+                outEl.classList.add('ring-2', 'ring-error', 'text-error');
+                return { mins: 0, valid: false };
+            } else {
+                outEl.classList.remove('ring-2', 'ring-error', 'text-error');
+                return { mins: outVal - inVal, valid: true };
+            }
+        }
+        
+        outEl.classList.remove('ring-2', 'ring-error', 'text-error');
+        return { mins: 0, valid: true };
     }
 
     function updateDurations() {
-        const morning   = calcHours('morning_in',   'morning_out');
-        const afternoon = calcHours('afternoon_in', 'afternoon_out');
-        const total     = morning + afternoon;
+        const amData = checkSession('am_clock_in', 'am_clock_out');
+        const pmData = checkSession('pm_clock_in', 'pm_clock_out');
+        
+        // Cross-session check
+        let crossValid = true;
+        const amOutEl = document.getElementById('am_clock_out');
+        const pmInEl = document.getElementById('pm_clock_in');
+        if (amOutEl && pmInEl && amOutEl.value && pmInEl.value) {
+            const amOutVal = parseTime(amOutEl.value);
+            const pmInVal = parseTime(pmInEl.value);
+            if (pmInVal <= amOutVal) {
+                pmInEl.classList.add('ring-2', 'ring-error', 'text-error');
+                crossValid = false;
+            } else {
+                pmInEl.classList.remove('ring-2', 'ring-error', 'text-error');
+            }
+        }
 
-        document.getElementById('morning-duration').textContent   = morning.toFixed(2)   + ' Hours';
-        document.getElementById('afternoon-duration').textContent = afternoon.toFixed(2) + ' Hours';
+        const amHours = amData.mins / 60;
+        const pmHours = pmData.mins / 60;
+        const totalHours = amHours + pmHours;
+        const isValid = amData.valid && pmData.valid && crossValid;
+
+        document.getElementById('morning-duration').textContent = amHours.toFixed(2) + ' Hours';
+        document.getElementById('afternoon-duration').textContent = pmHours.toFixed(2) + ' Hours';
         document.getElementById('total-duration').innerHTML =
-            total.toFixed(2) + ' <span class="text-lg font-bold text-on-surface-variant">hours</span>';
+            totalHours.toFixed(2) + ' <span class="text-lg font-bold text-on-surface-variant">hours</span>';
+
+        if (!isValid || totalHours === 0) {
+            if(saveBtn) saveBtn.disabled = true;
+        } else {
+            if(saveBtn) saveBtn.disabled = false;
+        }
     }
 
-    ['morning_in','morning_out','afternoon_in','afternoon_out'].forEach(id => {
+    ['am_clock_in','am_clock_out','pm_clock_in','pm_clock_out'].forEach(id => {
         document.getElementById(id)?.addEventListener('change', updateDurations);
     });
+
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            updateDurations(); // final check
+            if (saveBtn && saveBtn.disabled) {
+                e.preventDefault();
+                alert('Invalid time sequence detected. Please ensure your Clock Out time is logically after your Clock In time, and that you have valid hours rendered.');
+            }
+        });
+    }
 
     // Run once on load to reflect default values
     updateDurations();

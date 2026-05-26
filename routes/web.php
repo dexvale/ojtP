@@ -21,10 +21,12 @@ Route::post('/register', [RegisterController::class, 'register']);
 // Student Routes
 Route::middleware(['auth', 'no.cache'])->group(function () {
     Route::get('/student/dashboard', [StudentDashboard::class, 'index'])->name('student.dashboard');
-    Route::get('/student/profile', [StudentDashboard::class, 'profile'])->name('student.profile');
-    Route::get('/student/logs', [StudentDashboard::class, 'logs'])->name('student.logs');
+    Route::post('/student/logs/store', [\App\Http\Controllers\Student\OjtLogController::class, 'store'])->name('student.logs.store');
+    Route::get('/student/profile', [\App\Http\Controllers\Student\ProfileController::class, 'edit'])->name('student.profile');
+    Route::put('/student/profile', [\App\Http\Controllers\Student\ProfileController::class, 'update'])->name('student.profile.update');
     
-    Route::post('/student/logs/store', [\App\Http\Controllers\OjtLogController::class, 'store'])->name('student.logs.store');
+    Route::get('/student/logs', [\App\Http\Controllers\Student\OjtLogController::class, 'index'])->name('student.logs.index');
+    Route::delete('/student/logs/{ojtLog}', [\App\Http\Controllers\Student\OjtLogController::class, 'destroy'])->name('student.logs.destroy');
 });
 
 // Coordinator Routes

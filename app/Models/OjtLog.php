@@ -16,7 +16,8 @@ class OjtLog extends Model
         'tasks_performed',
         'hours_rendered',
         'status',
-        'has_overtime'
+        'has_overtime',
+        'photo_path'
     ];
 
     protected function casts(): array

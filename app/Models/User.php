@@ -16,7 +16,14 @@ class User extends Authenticatable
 {
     public function company()
     {
-        return $this->belongsTo(Company::class);
+        return $this->hasOneThrough(
+            Company::class,
+            StudentProfile::class,
+            'user_id',    // Foreign key on student_profiles table...
+            'id',         // Foreign key on companies table...
+            'id',         // Local key on users table...
+            'company_id'  // Local key on student_profiles table...
+        );
     }
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;

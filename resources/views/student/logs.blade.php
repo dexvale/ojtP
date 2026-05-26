@@ -116,121 +116,69 @@
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-surface-variant/10">
-                        {{-- Row 1 --}}
+                        @forelse($logs as $log)
                         <tr class="hover:bg-surface-container-low/50 transition-colors group">
-                            <td class="py-4 pl-6 pr-4 font-bold text-sm whitespace-nowrap text-on-surface">Oct 23, 2024</td>
-                            <td class="py-4 px-4 text-sm text-on-surface-variant whitespace-nowrap">08:00 AM - 05:00 PM</td>
-                            <td class="py-4 px-4 text-sm text-on-surface-variant max-w-sm">
-                                <span class="line-clamp-1">Implemented responsive grid system using Tailwind CSS for the client dashboard...</span>
+                            <td class="py-4 pl-6 pr-4 font-bold text-sm whitespace-nowrap text-on-surface">
+                                {{ \Carbon\Carbon::parse($log->log_date)->format('M d, Y') }}
                             </td>
-                            <td class="py-4 px-4 text-sm font-bold text-on-surface whitespace-nowrap">8.0 hrs</td>
+                            <td class="py-4 px-4 text-sm text-on-surface-variant whitespace-nowrap">
+                                @if($log->morning_in && $log->morning_out)
+                                    {{ \Carbon\Carbon::parse($log->morning_in)->format('h:i A') }} - {{ \Carbon\Carbon::parse($log->morning_out)->format('h:i A') }}<br>
+                                @endif
+                                @if($log->afternoon_in && $log->afternoon_out)
+                                    {{ \Carbon\Carbon::parse($log->afternoon_in)->format('h:i A') }} - {{ \Carbon\Carbon::parse($log->afternoon_out)->format('h:i A') }}
+                                @endif
+                            </td>
+                            <td class="py-4 px-4 text-sm text-on-surface-variant max-w-sm">
+                                <span class="line-clamp-2">{{ $log->tasks_performed }}</span>
+                            </td>
+                            <td class="py-4 px-4 text-sm font-bold text-on-surface whitespace-nowrap">
+                                {{ number_format($log->hours_rendered, 1) }} hrs
+                            </td>
                             <td class="py-4 px-4">
-                                <span class="px-2.5 py-1 bg-[#b0f2c1] text-[#2e6a44] text-[10px] font-bold rounded-lg uppercase tracking-wide inline-flex items-center gap-1">
-                                    Approved
-                                </span>
+                                @if(strtoupper($log->status) === 'APPROVED')
+                                    <span class="px-2.5 py-1 bg-[#b0f2c1] text-[#2e6a44] text-[10px] font-bold rounded-lg uppercase tracking-wide inline-flex items-center gap-1">
+                                        Approved
+                                    </span>
+                                @elseif(strtoupper($log->status) === 'REJECTED')
+                                    <span class="px-2.5 py-1 bg-[#ffdad6] text-[#ba1a1a] text-[10px] font-bold rounded-lg uppercase tracking-wide inline-flex items-center gap-1">
+                                        Rejected
+                                    </span>
+                                @else
+                                    <span class="px-2.5 py-1 bg-[#e8dfe6] text-[#4d444e] text-[10px] font-bold rounded-lg uppercase tracking-wide inline-flex items-center gap-1">
+                                        Pending
+                                    </span>
+                                @endif
                             </td>
                             <td class="py-4 pr-6 pl-4 text-right whitespace-nowrap">
-                                <button class="text-secondary text-xs font-bold hover:underline underline-offset-4 flex items-center justify-end gap-1 ml-auto">
-                                    View Entry
-                                </button>
+                                <div class="flex items-center justify-end gap-3">
+                                    <button class="text-secondary text-xs font-bold hover:underline underline-offset-4 flex items-center gap-1">
+                                        View Entry
+                                    </button>
+                                    @if(strtoupper($log->status) === 'PENDING')
+                                        <form action="{{ route('student.logs.destroy', $log->id) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to delete this pending log?');">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="text-xs font-semibold text-red-600 hover:text-red-900">Delete</button>
+                                        </form>
+                                    @endif
+                                </div>
                             </td>
                         </tr>
-
-                        {{-- Row 2 --}}
-                        <tr class="hover:bg-surface-container-low/50 transition-colors group">
-                            <td class="py-4 pl-6 pr-4 font-bold text-sm whitespace-nowrap text-on-surface">Oct 22, 2024</td>
-                            <td class="py-4 px-4 text-sm text-on-surface-variant whitespace-nowrap">08:00 AM - 05:00 PM</td>
-                            <td class="py-4 px-4 text-sm text-on-surface-variant max-w-sm">
-                                <span class="line-clamp-1">Debugged API authentication middleware and optimized token refresh logic...</span>
-                            </td>
-                            <td class="py-4 px-4 text-sm font-bold text-on-surface whitespace-nowrap">8.0 hrs</td>
-                            <td class="py-4 px-4">
-                                <span class="px-2.5 py-1 bg-[#b0f2c1] text-[#2e6a44] text-[10px] font-bold rounded-lg uppercase tracking-wide inline-flex items-center gap-1">
-                                    Approved
-                                </span>
-                            </td>
-                            <td class="py-4 pr-6 pl-4 text-right whitespace-nowrap">
-                                <button class="text-secondary text-xs font-bold hover:underline underline-offset-4 flex items-center justify-end gap-1 ml-auto">
-                                    View Entry
-                                </button>
+                        @empty
+                        <tr>
+                            <td colspan="6" class="py-8 text-center text-sm text-on-surface-variant">
+                                No logs found. Start logging your shifts!
                             </td>
                         </tr>
-
-                        {{-- Row 3 --}}
-                        <tr class="hover:bg-surface-container-low/50 transition-colors group">
-                            <td class="py-4 pl-6 pr-4 font-bold text-sm whitespace-nowrap text-on-surface">Oct 21, 2024</td>
-                            <td class="py-4 px-4 text-sm text-on-surface-variant whitespace-nowrap">08:30 AM - 05:00 PM</td>
-                            <td class="py-4 px-4 text-sm text-on-surface-variant max-w-sm">
-                                <span class="line-clamp-1">Attended weekly sprint planning meeting and presented progress on UI/UX mockups...</span>
-                            </td>
-                            <td class="py-4 px-4 text-sm font-bold text-on-surface whitespace-nowrap">7.5 hrs</td>
-                            <td class="py-4 px-4">
-                                <span class="px-2.5 py-1 bg-[#e8dfe6] text-[#4d444e] text-[10px] font-bold rounded-lg uppercase tracking-wide inline-flex items-center gap-1">
-                                    Pending
-                                </span>
-                            </td>
-                            <td class="py-4 pr-6 pl-4 text-right whitespace-nowrap">
-                                <button class="text-secondary text-xs font-bold hover:underline underline-offset-4 flex items-center justify-end gap-1 ml-auto">
-                                    <span class="material-symbols-outlined text-[14px]">edit</span>
-                                    View Entry
-                                </button>
-                            </td>
-                        </tr>
-
-                        {{-- Row 4 --}}
-                        <tr class="hover:bg-surface-container-low/50 transition-colors group">
-                            <td class="py-4 pl-6 pr-4 font-bold text-sm whitespace-nowrap text-on-surface">Oct 20, 2024</td>
-                            <td class="py-4 px-4 text-sm text-on-surface-variant whitespace-nowrap">08:00 AM - 05:00 PM</td>
-                            <td class="py-4 px-4 text-sm text-on-surface-variant max-w-sm">
-                                <span class="line-clamp-1">Worked on finalizing the database schema and created initial migrations...</span>
-                            </td>
-                            <td class="py-4 px-4 text-sm font-bold text-on-surface whitespace-nowrap">8.0 hrs</td>
-                            <td class="py-4 px-4">
-                                <span class="px-2.5 py-1 bg-[#ffdad6] text-[#ba1a1a] text-[10px] font-bold rounded-lg uppercase tracking-wide inline-flex items-center gap-1">
-                                    Rejected
-                                </span>
-                            </td>
-                            <td class="py-4 pr-6 pl-4 text-right whitespace-nowrap">
-                                <button class="text-secondary text-xs font-bold hover:underline underline-offset-4 flex items-center justify-end gap-1 ml-auto">
-                                    View Entry
-                                </button>
-                            </td>
-                        </tr>
-
-                        {{-- Row 5 --}}
-                        <tr class="hover:bg-surface-container-low/50 transition-colors group">
-                            <td class="py-4 pl-6 pr-4 font-bold text-sm whitespace-nowrap text-on-surface">Oct 19, 2024</td>
-                            <td class="py-4 px-4 text-sm text-on-surface-variant whitespace-nowrap">08:00 AM - 12:00 PM</td>
-                            <td class="py-4 px-4 text-sm text-on-surface-variant max-w-sm">
-                                <span class="line-clamp-1">Half-day shift. Conducted user interviews for the upcoming feature...</span>
-                            </td>
-                            <td class="py-4 px-4 text-sm font-bold text-on-surface whitespace-nowrap">4.0 hrs</td>
-                            <td class="py-4 px-4">
-                                <span class="px-2.5 py-1 bg-[#b0f2c1] text-[#2e6a44] text-[10px] font-bold rounded-lg uppercase tracking-wide inline-flex items-center gap-1">
-                                    Approved
-                                </span>
-                            </td>
-                            <td class="py-4 pr-6 pl-4 text-right whitespace-nowrap">
-                                <button class="text-secondary text-xs font-bold hover:underline underline-offset-4 flex items-center justify-end gap-1 ml-auto">
-                                    View Entry
-                                </button>
-                            </td>
-                        </tr>
+                        @endforelse
                     </tbody>
                 </table>
             </div>
             
             <!-- Pagination -->
-            <div class="px-6 py-4 flex items-center justify-between border-t border-surface-variant/20 bg-surface-container-low/30">
-                <p class="text-sm text-on-surface-variant">Showing 1 to 5 of 45 entries</p>
-                <div class="flex items-center gap-1 shadow-sm rounded-lg overflow-hidden border border-surface-variant/30">
-                    <button class="px-3 py-1.5 bg-surface-container-lowest text-on-surface-variant text-sm font-semibold hover:bg-surface-container transition-colors disabled:opacity-50">Previous</button>
-                    <button class="px-3 py-1.5 bg-primary text-white text-sm font-bold">1</button>
-                    <button class="px-3 py-1.5 bg-surface-container-lowest text-on-surface-variant hover:bg-surface-container transition-colors text-sm font-semibold">2</button>
-                    <button class="px-3 py-1.5 bg-surface-container-lowest text-on-surface-variant hover:bg-surface-container transition-colors text-sm font-semibold">3</button>
-                    <span class="px-2 py-1.5 bg-surface-container-lowest text-outline text-sm">...</span>
-                    <button class="px-3 py-1.5 bg-surface-container-lowest text-on-surface-variant text-sm font-semibold hover:bg-surface-container transition-colors">Next</button>
-                </div>
+            <div class="px-6 py-4 border-t border-surface-variant/20 bg-surface-container-low/30">
+                {{ $logs->links() }}
             </div>
         </section>
 
@@ -245,7 +193,7 @@
         <span class="material-symbols-outlined text-xl">dashboard</span>
         <span class="text-[10px] font-bold">Home</span>
     </a>
-    <a href="{{ route('student.logs') }}" class="flex flex-col items-center gap-0.5 text-primary px-3 py-1">
+    <a href="{{ route('student.logs.index') }}" class="flex flex-col items-center gap-0.5 text-primary px-3 py-1">
         <span class="material-symbols-outlined text-xl" style="font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24;">description</span>
         <span class="text-[10px] font-bold">Logs</span>
     </a>
