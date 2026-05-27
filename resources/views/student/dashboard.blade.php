@@ -25,6 +25,21 @@
     }
     /* Smooth sidebar link transitions */
     aside nav a { transition: all 0.2s ease; }
+
+    /* Hide native time picker indicator and stretch to cover input */
+    input[type="time"]::-webkit-calendar-picker-indicator {
+        background: transparent;
+        bottom: 0;
+        color: transparent;
+        cursor: pointer;
+        height: auto;
+        left: 0;
+        position: absolute;
+        right: 0;
+        top: 0;
+        width: auto;
+        z-index: 10;
+    }
 </style>
 </head>
 <body class="bg-surface font-body text-on-surface antialiased" data-theme="student">
@@ -306,16 +321,26 @@
                         <textarea name="activity_summary" rows="3" placeholder="What did you work on today? Briefly describe your tasks and accomplishments..." class="w-full bg-surface-container-highest border-none rounded-xl p-4 text-sm font-medium text-on-surface focus:ring-2 focus:ring-primary/40 transition-all resize-none"></textarea>
                         
                         <!-- Photo Upload Zone -->
-                        <div class="mt-4 border-2 border-dashed border-outline/40 hover:bg-gray-50 hover:border-outline/60 transition-all rounded-xl p-8 flex flex-col items-center justify-center cursor-pointer group relative">
-                            <input type="file" name="photo_attachment" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" accept="image/png, image/jpeg, image/jpg" title="Drag & Drop photo here">
-                            <div class="w-12 h-12 bg-primary/10 text-primary rounded-full flex items-center justify-center mb-3 group-hover:scale-110 group-hover:bg-primary/20 transition-all duration-300 pointer-events-none">
-                                <span class="material-symbols-outlined text-2xl">cloud_upload</span>
+                        <div id="photo_drop_zone" class="mt-4 border-2 border-dashed border-outline/40 hover:bg-gray-50 hover:border-outline/60 transition-all rounded-xl p-8 flex flex-col items-center justify-center cursor-pointer group relative">
+                            <input type="file" id="photo_attachment" name="photo_attachment" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" accept="image/png, image/jpeg, image/jpg" title="Drag & Drop photo here">
+                            <div id="photo_placeholder" class="flex flex-col items-center pointer-events-none w-full">
+                                <div class="w-12 h-12 bg-primary/10 text-primary rounded-full flex items-center justify-center mb-3 group-hover:scale-110 group-hover:bg-primary/20 transition-all duration-300">
+                                    <span class="material-symbols-outlined text-2xl">cloud_upload</span>
+                                </div>
+                                <p class="text-sm font-bold text-on-surface mb-1">Drag & Drop photo here</p>
+                                <p class="text-[11px] text-on-surface-variant mb-4">Capture your workspace. Max 5MB (JPG/PNG).</p>
+                                <button type="button" class="bg-blue-100 text-blue-700 group-hover:bg-blue-200 transition-colors px-6 py-2 rounded-lg text-sm font-bold shadow-sm">
+                                    Browse Files
+                                </button>
                             </div>
-                            <p class="text-sm font-bold text-on-surface mb-1 pointer-events-none">Drag & Drop photo here</p>
-                            <p class="text-[11px] text-on-surface-variant mb-4 pointer-events-none">Capture your workspace. Max 5MB (JPG/PNG).</p>
-                            <button type="button" class="bg-blue-100 text-blue-700 group-hover:bg-blue-200 transition-colors px-6 py-2 rounded-lg text-sm font-bold pointer-events-none shadow-sm">
-                                Browse Files
-                            </button>
+                            <div id="photo_preview_container" class="hidden w-full relative group">
+                                <img id="photo_preview" src="#" alt="Preview" class="max-h-48 object-contain rounded-lg mx-auto shadow-sm">
+                                <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center z-20">
+                                    <button type="button" id="remove_photo_btn" class="bg-red-500 text-white px-4 py-2 rounded-lg text-sm font-bold shadow-md hover:bg-red-600 transition-colors flex items-center gap-2 relative z-30">
+                                        <span class="material-symbols-outlined text-sm">delete</span> Remove Photo
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -332,7 +357,7 @@
                         </div>
                         {{-- Toggle Switch --}}
                         <label class="relative inline-flex items-center cursor-pointer flex-shrink-0 ml-4">
-                            <input type="checkbox" id="overtime-toggle" name="has_overtime" class="sr-only peer"/>
+                            <input type="checkbox" id="overtime_toggle" name="has_overtime" class="hidden peer"/>
                             <div class="w-11 h-6 bg-surface-container-highest rounded-full peer
                                         peer-checked:bg-primary
                                         after:content-[''] after:absolute after:top-0.5 after:left-0.5
@@ -341,6 +366,32 @@
                                         peer-checked:after:translate-x-5 transition-colors duration-200">
                             </div>
                         </label>
+                    </div>
+
+                    {{-- ── Overtime Container ── --}}
+                    <div id="overtime_inputs_container" class="hidden transition-all duration-300 bg-purple-50/50 border border-purple-100 rounded-xl p-4 mt-3 mx-6 mb-5">
+                        <h4 class="text-sm font-semibold text-purple-900 mb-3 flex items-center gap-2">
+                            <span class="material-symbols-outlined text-sm text-purple-700">more_time</span> Overtime Session
+                        </h4>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1">Clock In</label>
+                                <div class="relative w-full">
+                                    <input type="time" name="ot_clock_in" id="ot_clock_in" class="w-full bg-white border border-gray-200 rounded-lg p-2.5 text-sm focus:ring-purple-500 focus:border-purple-500 transition-all">
+                                    <span class="absolute right-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-purple-400 pointer-events-none text-base">schedule</span>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1">Clock Out</label>
+                                <div class="relative w-full">
+                                    <input type="time" name="ot_clock_out" id="ot_clock_out" class="w-full bg-white border border-gray-200 rounded-lg p-2.5 text-sm focus:ring-purple-500 focus:border-purple-500 transition-all">
+                                    <span class="absolute right-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-purple-400 pointer-events-none text-base">schedule</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="text-right mt-2 text-xs font-semibold text-purple-900">
+                            Duration: <span id="ot_duration_display">0.00 Hours</span>
+                        </div>
                     </div>
 
                     {{-- ── Footer ── --}}
@@ -412,44 +463,42 @@
                  RECENT SUBMISSIONS TABLE (full)
             ──────────────────────────────── -->
             <section class="col-span-12 bg-surface-container-lowest rounded-xl p-6 lg:p-8 shadow-sm border border-surface-variant/20">
-                <div class="flex items-center justify-between mb-6">
-                    <h2 class="text-2xl font-bold font-headline text-primary">Recent Daily Submissions</h2>
-                    <a href="{{ route('student.logs.index') }}" class="text-sm font-bold text-secondary flex items-center gap-1 hover:underline underline-offset-4 transition-all">
+                <div class="flex items-center justify-between border-b border-gray-100 pb-4 mb-4">
+                    <h3 class="text-lg font-bold text-purple-900">Recent Daily Submissions</h3>
+                    <a href="{{ route('student.logs.index') }}" class="group flex items-center gap-1.5 text-xs font-bold text-amber-700 hover:text-amber-900 transition-colors duration-200">
                         View All History
-                        <span class="material-symbols-outlined text-base">arrow_forward</span>
+                        <span class="material-symbols-outlined text-sm transform group-hover:translate-x-1 transition-transform duration-200">arrow_forward</span>
                     </a>
                 </div>
                 <div class="overflow-x-auto -mx-2 px-2">
                     <table class="w-full text-left border-collapse min-w-[560px]">
-                        <thead>
-                            <tr class="text-[10px] font-bold text-outline uppercase tracking-wider border-b border-surface-variant/20">
-                                <th class="pb-4 pl-4 font-bold">Date</th>
-                                <th class="pb-4 font-bold">Activity Summary</th>
-                                <th class="pb-4 font-bold">Hours</th>
-                                <th class="pb-4 font-bold">Status</th>
-                                <th class="pb-4 text-right pr-4 font-bold">Action</th>
+                        <thead class="bg-gray-50/50">
+                            <tr>
+                                <th class="text-[10px] font-bold text-gray-400 uppercase tracking-wider py-3 px-4 text-left">Date</th>
+                                <th class="text-[10px] font-bold text-gray-400 uppercase tracking-wider py-3 px-4 text-left">Activity Summary</th>
+                                <th class="text-[10px] font-bold text-gray-400 uppercase tracking-wider py-3 px-4 text-left">Hours</th>
+                                <th class="text-[10px] font-bold text-gray-400 uppercase tracking-wider py-3 px-4 text-left">Status</th>
+                                <th class="text-[10px] font-bold text-gray-400 uppercase tracking-wider py-3 px-4 text-right">Action</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-surface-variant/10">
+                        <tbody>
                             @forelse($recentLogs as $log)
-                            <tr class="hover:bg-surface-container-low transition-colors group">
-                                <td class="py-4 pl-4 font-bold text-sm whitespace-nowrap">{{ $log->log_date->format('M d, Y') }}</td>
-                                <td class="py-4 text-sm text-on-surface-variant max-w-xs lg:max-w-md">
+                            <tr class="hover:bg-purple-50/30 transition-colors duration-150 border-b border-gray-50 last:border-0 group">
+                                <td class="py-4 px-4 font-bold text-sm whitespace-nowrap">{{ $log->log_date->format('M d, Y') }}</td>
+                                <td class="py-4 px-4 text-sm text-on-surface-variant max-w-xs lg:max-w-md">
                                     <span class="line-clamp-1">{{ Str::limit($log->tasks_performed, 70) }}</span>
                                 </td>
-                                <td class="py-4 text-sm font-bold text-on-surface whitespace-nowrap">{{ number_format($log->hours_rendered, 1) }} hrs</td>
-                                <td class="py-4">
-                                    @if($log->status === 'Approved')
-                                    <span class="px-2.5 py-1 bg-tertiary-container text-on-tertiary-container text-[10px] font-bold rounded-lg uppercase tracking-wide">Approved</span>
-                                    @elseif($log->status === 'Rejected')
-                                    <span class="px-2.5 py-1 bg-error/10 text-error text-[10px] font-bold rounded-lg uppercase tracking-wide">Rejected</span>
+                                <td class="py-4 px-4 text-sm font-bold text-on-surface whitespace-nowrap">{{ number_format($log->hours_rendered, 1) }} hrs</td>
+                                <td class="py-4 px-4">
+                                    @if($log->status === 'Pending')
+                                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-amber-50 text-amber-700 border border-amber-100">Pending</span>
+                                    @elseif($log->status === 'Approved')
+                                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-100">Approved</span>
                                     @else
-                                    <span class="px-2.5 py-1 text-xs font-bold rounded-full bg-amber-50 text-amber-700 border border-amber-200">
-                                        Pending
-                                    </span>
+                                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-rose-50 text-rose-700 border border-rose-100">Rejected</span>
                                     @endif
                                 </td>
-                                <td class="py-4 text-right pr-4">
+                                <td class="py-4 px-4 text-right">
                                     <button class="text-secondary text-xs font-bold hover:underline underline-offset-4">View Entry</button>
                                 </td>
                             </tr>
@@ -537,6 +586,7 @@
     function updateDurations() {
         const amData = checkSession('am_clock_in', 'am_clock_out');
         const pmData = checkSession('pm_clock_in', 'pm_clock_out');
+        const otData = checkSession('ot_clock_in', 'ot_clock_out');
         
         // Cross-session check
         let crossValid = true;
@@ -553,15 +603,45 @@
             }
         }
 
+        // Cross-session check OT
+        const pmOutEl = document.getElementById('pm_clock_out');
+        const otInEl = document.getElementById('ot_clock_in');
+        const otToggle = document.getElementById('overtime_toggle');
+        if (pmOutEl && otInEl && pmOutEl.value && otInEl.value && otToggle && otToggle.checked) {
+            const pmOutVal = parseTime(pmOutEl.value);
+            const otInVal = parseTime(otInEl.value);
+            if (otInVal <= pmOutVal) {
+                otInEl.classList.add('ring-2', 'ring-error', 'text-error');
+                crossValid = false;
+            } else {
+                otInEl.classList.remove('ring-2', 'ring-error', 'text-error');
+            }
+        }
+
         const amHours = amData.mins / 60;
         const pmHours = pmData.mins / 60;
-        const totalHours = amHours + pmHours;
-        const isValid = amData.valid && pmData.valid && crossValid;
+        let otHours = 0;
+        
+        if (otToggle && otToggle.checked) {
+            otHours = otData.mins / 60;
+        }
 
-        document.getElementById('morning-duration').textContent = amHours.toFixed(2) + ' Hours';
-        document.getElementById('afternoon-duration').textContent = pmHours.toFixed(2) + ' Hours';
-        document.getElementById('total-duration').innerHTML =
-            totalHours.toFixed(2) + ' <span class="text-lg font-bold text-on-surface-variant">hours</span>';
+        const totalHours = amHours + pmHours + otHours;
+        const isValid = amData.valid && pmData.valid && (!otToggle || !otToggle.checked || otData.valid) && crossValid;
+
+        const morningDurationEl = document.getElementById('morning-duration');
+        if (morningDurationEl) morningDurationEl.textContent = amHours.toFixed(2) + ' Hours';
+        
+        const afternoonDurationEl = document.getElementById('afternoon-duration');
+        if (afternoonDurationEl) afternoonDurationEl.textContent = pmHours.toFixed(2) + ' Hours';
+
+        const otDurationEl = document.getElementById('ot_duration_display');
+        if (otDurationEl) otDurationEl.textContent = otHours.toFixed(2) + ' Hours';
+
+        const totalDurationEl = document.getElementById('total-duration');
+        if (totalDurationEl) {
+            totalDurationEl.innerHTML = totalHours.toFixed(2) + ' <span class="text-lg font-bold text-on-surface-variant">hours</span>';
+        }
 
         if (!isValid || totalHours === 0) {
             if(saveBtn) saveBtn.disabled = true;
@@ -570,7 +650,7 @@
         }
     }
 
-    ['am_clock_in','am_clock_out','pm_clock_in','pm_clock_out'].forEach(id => {
+    ['am_clock_in','am_clock_out','pm_clock_in','pm_clock_out','ot_clock_in','ot_clock_out'].forEach(id => {
         document.getElementById(id)?.addEventListener('change', updateDurations);
     });
 
@@ -586,6 +666,121 @@
 
     // Run once on load to reflect default values
     updateDurations();
+
+    // ── Overtime Toggle Logic ──
+    const otToggle = document.getElementById('overtime_toggle');
+    const otContainer = document.getElementById('overtime_inputs_container');
+    const otClockIn = document.getElementById('ot_clock_in');
+    const otClockOut = document.getElementById('ot_clock_out');
+
+    if (otToggle) {
+        otToggle.addEventListener('change', function() {
+            if (this.checked) {
+                otContainer.classList.remove('hidden');
+            } else {
+                otContainer.classList.add('hidden');
+                if(otClockIn) otClockIn.value = '';
+                if(otClockOut) otClockOut.value = '';
+                if(otClockIn) otClockIn.classList.remove('ring-2', 'ring-error', 'text-error');
+                if(otClockOut) otClockOut.classList.remove('ring-2', 'ring-error', 'text-error');
+            }
+            updateDurations();
+        });
+    }
+
+    // ── Photo Upload Logic ──
+    const photoDropZone = document.getElementById('photo_drop_zone');
+    const photoInput = document.getElementById('photo_attachment');
+    const photoPlaceholder = document.getElementById('photo_placeholder');
+    const photoPreviewContainer = document.getElementById('photo_preview_container');
+    const photoPreview = document.getElementById('photo_preview');
+    const removePhotoBtn = document.getElementById('remove_photo_btn');
+
+    if (photoDropZone && photoInput) {
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            photoDropZone.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            photoDropZone.addEventListener(eventName, () => {
+                photoDropZone.classList.add('border-primary', 'bg-purple-50');
+                photoDropZone.classList.remove('border-outline/40');
+            }, false);
+        });
+
+        photoDropZone.addEventListener('dragleave', () => {
+            photoDropZone.classList.remove('border-primary', 'bg-purple-50');
+            photoDropZone.classList.add('border-outline/40');
+        }, false);
+
+        photoDropZone.addEventListener('drop', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            photoDropZone.classList.remove('border-primary', 'bg-purple-50'); // Remove active hover styles
+            photoDropZone.classList.add('border-outline/40');
+
+            // 1. Grab the dropped files safely
+            const droppedFiles = e.dataTransfer.files;
+            const fileInput = document.getElementById('photo_attachment');
+
+            if (droppedFiles.length > 0 && droppedFiles[0].type.match('image.*')) {
+                
+                // 2. CRITICAL BRIDGE: Create a new container and inject the file into the HTML input
+                const dataTransfer = new DataTransfer();
+                dataTransfer.items.add(droppedFiles[0]);
+                fileInput.files = dataTransfer.files;
+
+                // 3. RUN PREVIEW LOGIC: Now that the file is saved to the form, show the preview image
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    photoPreview.src = event.target.result;
+                    if (photoPlaceholder) photoPlaceholder.classList.add('hidden');
+                    if (photoPreviewContainer) photoPreviewContainer.classList.remove('hidden');
+                    
+                    // Adjust input z-index to allow clicking remove button
+                    photoInput.classList.add('hidden');
+                };
+                reader.readAsDataURL(droppedFiles[0]);
+
+            } else {
+                alert('Please drop a valid image file (PNG, JPG, or JPEG).');
+            }
+        });
+        
+        photoInput.addEventListener('change', function() {
+            if (this.files && this.files.length > 0 && this.files[0].type.match('image.*')) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    photoPreview.src = event.target.result;
+                    if (photoPlaceholder) photoPlaceholder.classList.add('hidden');
+                    if (photoPreviewContainer) photoPreviewContainer.classList.remove('hidden');
+                    
+                    // Adjust input z-index to allow clicking remove button
+                    photoInput.classList.add('hidden');
+                };
+                reader.readAsDataURL(this.files[0]);
+            }
+        });
+
+        if (removePhotoBtn) {
+            removePhotoBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                photoInput.value = ''; // Clear input
+                photoPreview.src = '#';
+                
+                if (photoPreviewContainer) photoPreviewContainer.classList.add('hidden');
+                if (photoPlaceholder) photoPlaceholder.classList.remove('hidden');
+                photoInput.classList.remove('hidden');
+            });
+        }
+    }
 
     // ── Mobile sidebar toggle ──
     const sidebar   = document.getElementById('sidebar');

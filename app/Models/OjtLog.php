@@ -13,6 +13,9 @@ class OjtLog extends Model
         'morning_out',
         'afternoon_in',
         'afternoon_out',
+        'ot_clock_in',
+        'ot_clock_out',
+        'ot_duration',
         'tasks_performed',
         'hours_rendered',
         'status',
@@ -25,6 +28,7 @@ class OjtLog extends Model
         return [
             'log_date' => 'date',
             'hours_rendered' => 'float',
+            'ot_duration' => 'float',
             'has_overtime' => 'boolean'
         ];
     }

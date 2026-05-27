@@ -74,7 +74,7 @@
                     <span class="text-sm font-bold text-on-surface/60 uppercase tracking-widest">Total Assigned Interns</span>
                 </div>
                 <div>
-                    <h2 class="text-3xl font-extrabold font-headline text-on-surface">15 <span class="text-base font-semibold text-on-surface/50 font-body">Students</span></h2>
+                    <h2 class="text-3xl font-extrabold font-headline text-on-surface">{{ $totalInterns }} <span class="text-xs text-gray-400">Students</span></h2>
                 </div>
             </div>
 
@@ -95,7 +95,7 @@
                     </div>
                 </div>
                 <div>
-                    <h2 class="text-3xl font-extrabold font-headline text-on-surface">12 / 15</h2>
+                    <h2 class="text-3xl font-extrabold font-headline text-on-surface">{{ $clockedInCount }} / {{ $totalInterns }}</h2>
                 </div>
             </div>
 
@@ -109,7 +109,7 @@
                     <span class="text-sm font-bold text-on-surface/60 uppercase tracking-widest">Hours Pending Review</span>
                 </div>
                 <div class="flex items-end justify-between">
-                    <h2 class="text-3xl font-extrabold font-headline text-warning">{{ $pendingLogs->sum('hours_rendered') }} <span class="text-base font-semibold text-warning/70 font-body">hrs</span></h2>
+                    <h2 class="text-3xl font-extrabold font-headline text-warning">{{ number_format($pendingHours, 1) }} <span class="text-xs text-gray-400">hrs</span></h2>
                     <span class="text-xs font-bold text-error flex items-center gap-1 bg-error/10 px-2 py-0.5 rounded border border-error/20">
                         <span class="material-symbols-outlined text-[14px]">error</span> {{ $pendingLogs->count() }} Action(s) Required
                     </span>
@@ -186,71 +186,41 @@
                 </div>
                 
                 <div class="flex-1 flex flex-col gap-6 overflow-y-auto pr-1">
-                    <!-- Rank 1 -->
-                    <div class="flex items-center gap-4 group">
-                        <div class="w-12 h-12 rounded-full border border-warning/50 shadow-sm flex items-center justify-center bg-warning/10 text-warning font-extrabold text-sm relative flex-shrink-0">
-                            MC
-                            <div class="absolute -top-2 -right-2 bg-surface-container rounded-full p-1 shadow-sm border border-outline/20 flex items-center justify-center">
-                                <span class="material-symbols-outlined text-[14px] text-warning" style="font-variation-settings: 'FILL' 1;">military_tech</span>
-                            </div>
-                        </div>
-                        <div class="flex-1 min-w-0">
-                            <div class="flex justify-between items-end mb-1">
-                                <div class="truncate mr-2">
-                                    <p class="text-sm font-bold text-on-surface group-hover:text-primary transition-colors truncate">Marcus Chen</p>
-                                    <p class="text-[10px] font-semibold text-on-surface/50 truncate">BS Computer Science</p>
+                    @forelse($topPerformers as $index => $profile)
+                        @php
+                            $approvedHours = $profile->user->ojt_logs_sum_hours_rendered ?? 0;
+                            $progressPercent = min(($approvedHours / 400) * 100, 100);
+                        @endphp
+                        <!-- Rank {{ $index + 1 }} -->
+                        <div class="flex items-center gap-4 group">
+                            <div class="w-12 h-12 rounded-full border {{ $index === 0 ? 'border-warning/50 bg-warning/10 text-warning' : 'border-outline/30 bg-surface text-on-surface/60' }} shadow-sm flex items-center justify-center font-extrabold text-sm relative flex-shrink-0">
+                                {{ strtoupper(substr($profile->user->name, 0, 2)) }}
+                                <div class="absolute -top-2 -right-2 bg-surface-container rounded-full shadow-sm border border-outline/20 flex items-center justify-center {{ $index === 0 ? 'p-1' : 'w-6 h-6' }}">
+                                    @if($index === 0)
+                                        <span class="material-symbols-outlined text-[14px] text-warning" style="font-variation-settings: 'FILL' 1;">military_tech</span>
+                                    @else
+                                        <span class="text-[10px] font-extrabold text-outline">#{{ $index + 1 }}</span>
+                                    @endif
                                 </div>
-                                <span class="text-[10px] font-bold text-primary bg-primary/5 border border-primary/10 px-2 py-0.5 rounded whitespace-nowrap">398/400 hrs</span>
                             </div>
-                            <div class="w-full h-1.5 bg-outline/20 rounded-full overflow-hidden mt-2">
-                                <div class="h-full bg-primary rounded-full transition-all" style="width: 99.5%"></div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Rank 2 -->
-                    <div class="flex items-center gap-4 group">
-                        <div class="w-12 h-12 rounded-full border border-outline/30 bg-surface flex items-center justify-center text-on-surface/60 font-bold text-sm relative flex-shrink-0">
-                            SJ
-                            <div class="absolute -top-2 -right-2 bg-surface-container rounded-full shadow-sm border border-outline/20 w-6 h-6 flex items-center justify-center">
-                                <span class="text-[10px] font-extrabold text-outline">#2</span>
-                            </div>
-                        </div>
-                        <div class="flex-1 min-w-0">
-                            <div class="flex justify-between items-end mb-1">
-                                <div class="truncate mr-2">
-                                    <p class="text-sm font-bold text-on-surface group-hover:text-primary transition-colors truncate">Sarah Jenkins</p>
-                                    <p class="text-[10px] font-semibold text-on-surface/50 truncate">BS Business Admin</p>
+                            <div class="flex-1 min-w-0">
+                                <div class="flex justify-between items-end mb-1">
+                                    <div class="truncate mr-2">
+                                        <p class="text-sm font-bold text-on-surface group-hover:text-primary transition-colors truncate">{{ $profile->user->name }}</p>
+                                        <p class="text-[10px] font-semibold text-on-surface/50 truncate">{{ $profile->course ?? 'Intern' }}</p>
+                                    </div>
+                                    <span class="text-[10px] font-bold {{ $index === 0 ? 'text-primary bg-primary/5 border border-primary/10' : 'text-on-surface/70 bg-surface border border-outline/20' }} px-2 py-0.5 rounded whitespace-nowrap">{{ number_format($approvedHours, 1) }}/400 hrs</span>
                                 </div>
-                                <span class="text-[10px] font-bold text-on-surface/70 bg-surface px-2 py-0.5 rounded border border-outline/20 whitespace-nowrap">340/400 hrs</span>
-                            </div>
-                            <div class="w-full h-1.5 bg-outline/20 rounded-full overflow-hidden mt-2">
-                                <div class="h-full bg-primary/80 rounded-full transition-all" style="width: 85%"></div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Rank 3 -->
-                    <div class="flex items-center gap-4 group">
-                        <div class="w-12 h-12 rounded-full border border-outline/30 bg-surface flex items-center justify-center text-on-surface/60 font-bold text-sm relative flex-shrink-0">
-                            AL
-                            <div class="absolute -top-2 -right-2 bg-surface-container rounded-full shadow-sm border border-outline/20 w-6 h-6 flex items-center justify-center">
-                                <span class="text-[10px] font-extrabold text-outline">#3</span>
-                            </div>
-                        </div>
-                        <div class="flex-1 min-w-0">
-                            <div class="flex justify-between items-end mb-1">
-                                <div class="truncate mr-2">
-                                    <p class="text-sm font-bold text-on-surface group-hover:text-primary transition-colors truncate">Amanda Lee</p>
-                                    <p class="text-[10px] font-semibold text-on-surface/50 truncate">BS Information Tech</p>
+                                <div class="w-full h-1.5 bg-outline/20 rounded-full overflow-hidden mt-2">
+                                    <div class="h-full bg-primary{{ $index > 0 ? '/'.(90 - ($index * 10)) : '' }} rounded-full transition-all" style="width: {{ $progressPercent }}%"></div>
                                 </div>
-                                <span class="text-[10px] font-bold text-on-surface/70 bg-surface px-2 py-0.5 rounded border border-outline/20 whitespace-nowrap">315/400 hrs</span>
-                            </div>
-                            <div class="w-full h-1.5 bg-outline/20 rounded-full overflow-hidden mt-2">
-                                <div class="h-full bg-primary/70 rounded-full transition-all" style="width: 78.75%"></div>
                             </div>
                         </div>
-                    </div>
+                    @empty
+                        <div class="text-center py-8 text-sm font-bold text-on-surface/40">
+                            No approved hours recorded yet.
+                        </div>
+                    @endforelse
                 </div>
                 
                 <button class="w-full mt-auto pt-4 text-xs font-bold text-primary hover:text-primary/80 transition-colors flex items-center justify-center gap-1">

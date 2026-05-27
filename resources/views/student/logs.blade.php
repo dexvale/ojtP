@@ -104,7 +104,7 @@
         <!-- ── Main Data Table ── -->
         <section class="bg-surface-container-lowest rounded-xl shadow-sm border border-surface-variant/20 overflow-hidden">
             <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse min-w-[800px]">
+                <table class="w-full text-left border-collapse min-w-[800px] table-fixed">
                     <thead>
                         <tr class="bg-surface-container-low text-[10px] font-bold text-outline uppercase tracking-wider border-b border-surface-variant/20">
                             <th class="py-4 pl-6 pr-4">Date</th>
@@ -129,8 +129,8 @@
                                     {{ \Carbon\Carbon::parse($log->afternoon_in)->format('h:i A') }} - {{ \Carbon\Carbon::parse($log->afternoon_out)->format('h:i A') }}
                                 @endif
                             </td>
-                            <td class="py-4 px-4 text-sm text-on-surface-variant max-w-sm">
-                                <span class="line-clamp-2">{{ $log->tasks_performed }}</span>
+                            <td class="py-4 px-4 max-w-xs whitespace-normal break-words text-sm text-gray-600 line-clamp-2 hover:line-clamp-none transition-all duration-200">
+                                {{ $log->tasks_performed }}
                             </td>
                             <td class="py-4 px-4 text-sm font-bold text-on-surface whitespace-nowrap">
                                 {{ number_format($log->hours_rendered, 1) }} hrs
@@ -152,7 +152,13 @@
                             </td>
                             <td class="py-4 pr-6 pl-4 text-right whitespace-nowrap">
                                 <div class="flex items-center justify-end gap-3">
-                                    <button class="text-secondary text-xs font-bold hover:underline underline-offset-4 flex items-center gap-1">
+                                    <button type="button" 
+                                            class="text-xs font-semibold text-purple-700 hover:text-purple-900 view-log-btn"
+                                            data-date="{{ \Carbon\Carbon::parse($log->log_date)->format('M d, Y') }}"
+                                            data-summary="{{ $log->tasks_performed }}"
+                                            data-hours="{{ number_format($log->hours_rendered, 1) }}"
+                                            data-times="AM: {{ $log->morning_in ? \Carbon\Carbon::parse($log->morning_in)->format('h:i A') : '--' }} - {{ $log->morning_out ? \Carbon\Carbon::parse($log->morning_out)->format('h:i A') : '--' }} | PM: {{ $log->afternoon_in ? \Carbon\Carbon::parse($log->afternoon_in)->format('h:i A') : '--' }} - {{ $log->afternoon_out ? \Carbon\Carbon::parse($log->afternoon_out)->format('h:i A') : '--' }}"
+                                            data-photo="{{ $log->photo_path ? asset('storage/' . $log->photo_path) : '' }}">
                                         View Entry
                                     </button>
                                     @if(strtoupper($log->status) === 'PENDING')
@@ -184,6 +190,50 @@
 
     </div>{{-- /Container --}}
 </main>
+
+<!-- View Entry Modal -->
+<div id="view-log-modal" class="fixed inset-0 z-[100] hidden flex items-center justify-center bg-black/50 backdrop-blur-sm transition-opacity duration-300">
+    <div class="bg-surface-container-lowest rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden flex flex-col border border-surface-variant/20">
+        <div class="flex items-center justify-between p-5 border-b border-surface-variant/20 bg-purple-50">
+            <h3 class="text-lg font-bold font-headline text-primary flex items-center gap-2">
+                <span class="material-symbols-outlined">description</span>
+                Log Entry Details
+            </h3>
+            <button type="button" class="close-modal-btn text-outline hover:text-primary transition-colors">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        </div>
+        <div class="w-full px-6 py-6 space-y-4 overflow-y-auto overflow-x-hidden max-h-[70vh]">
+            <div class="flex justify-between items-center pb-3 border-b border-surface-variant/10">
+                <span class="text-xs font-bold text-outline uppercase tracking-wider">Date</span>
+                <span id="modal-date" class="text-sm font-bold text-on-surface"></span>
+            </div>
+            <div class="flex justify-between items-center pb-3 border-b border-surface-variant/10">
+                <span class="text-xs font-bold text-outline uppercase tracking-wider">Shift Times</span>
+                <span id="modal-times" class="text-sm font-medium text-on-surface-variant text-right"></span>
+            </div>
+            <div class="flex justify-between items-center pb-3 border-b border-surface-variant/10">
+                <span class="text-xs font-bold text-outline uppercase tracking-wider">Total Hours</span>
+                <span id="modal-hours" class="text-sm font-bold text-primary"></span>
+            </div>
+            <div class="pt-2">
+                <span class="block text-xs font-bold text-outline uppercase tracking-wider mb-2">Activity Summary</span>
+                <div class="mt-1 w-full bg-gray-50 rounded-lg p-3 border border-gray-100">
+                    <p id="modal-summary" class="text-sm text-gray-700 whitespace-pre-wrap break-all overflow-hidden [word-break:break-all] [overflow-wrap:anywhere]"></p>
+                </div>
+            </div>
+            <div id="modal-photo-container" class="pt-4 hidden border-t border-surface-variant/10">
+                <span class="block text-xs font-bold text-outline uppercase tracking-wider mb-2">Workspace Photo</span>
+                <img id="modal-photo" src="" alt="Workspace" class="w-full max-w-full h-auto max-h-64 object-contain rounded-lg border border-gray-100 shadow-sm">
+            </div>
+        </div>
+        <div class="p-5 border-t border-surface-variant/20 bg-surface-container-low/30 text-right">
+            <button type="button" class="close-modal-btn px-6 py-2.5 bg-surface-container-highest text-on-surface rounded-xl font-bold text-sm hover:bg-surface-variant transition-colors">
+                Close
+            </button>
+        </div>
+    </div>
+</div>
 
 <!-- ═══════════════════════════════
      MOBILE BOTTOM NAV
@@ -229,6 +279,44 @@
     }
     toggleBtn?.addEventListener('click', () => {
         sidebar.classList.contains('-translate-x-full') ? openSidebar() : closeSidebar();
+    });
+
+    // ── Modal Logic ──
+    const modal = document.getElementById('view-log-modal');
+    const modalDate = document.getElementById('modal-date');
+    const modalSummary = document.getElementById('modal-summary');
+    const modalHours = document.getElementById('modal-hours');
+    const modalTimes = document.getElementById('modal-times');
+    const modalPhotoContainer = document.getElementById('modal-photo-container');
+    const modalPhoto = document.getElementById('modal-photo');
+    const closeBtns = document.querySelectorAll('.close-modal-btn');
+
+    document.querySelectorAll('.view-log-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            modalDate.textContent = this.getAttribute('data-date');
+            modalSummary.textContent = this.getAttribute('data-summary');
+            modalHours.textContent = this.getAttribute('data-hours') + ' hrs';
+            modalTimes.textContent = this.getAttribute('data-times');
+            
+            const photoUrl = this.getAttribute('data-photo');
+            if (photoUrl) {
+                modalPhoto.src = photoUrl;
+                modalPhotoContainer.classList.remove('hidden');
+            } else {
+                modalPhoto.src = '';
+                modalPhotoContainer.classList.add('hidden');
+            }
+            
+            modal.classList.remove('hidden');
+            document.body.classList.add('overflow-hidden');
+        });
+    });
+
+    closeBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            modal.classList.add('hidden');
+            document.body.classList.remove('overflow-hidden');
+        });
     });
 </script>
 </body>

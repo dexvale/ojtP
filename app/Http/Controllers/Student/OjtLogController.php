@@ -43,8 +43,21 @@ class OjtLogController extends Controller
         if ($request->filled('pm_clock_in') && $request->filled('pm_clock_out')) {
             $pmIn = Carbon::createFromFormat('H:i', $request->pm_clock_in);
             $pmOut = Carbon::createFromFormat('H:i', $request->pm_clock_out);
-            $totalHours += $pmOut->diffInMinutes($pmIn) / 60;
+            $totalHours += $pmOut->diffInMinutes($pmIn, false) / 60;
         }
+
+        $ot_hours = 0;
+        if ($request->filled('ot_clock_in') && $request->filled('ot_clock_out')) {
+            $ot_in = Carbon::createFromFormat('H:i', $request->ot_clock_in);
+            $ot_out = Carbon::createFromFormat('H:i', $request->ot_clock_out);
+            
+            if ($ot_out->greaterThan($ot_in)) {
+                $ot_hours = $ot_in->diffInMinutes($ot_out) / 60;
+            }
+        }
+
+        // Guarantee we never save a negative hours value and add OT
+        $totalHours = abs($totalHours) + $ot_hours;
 
         OjtLog::create([
             'user_id' => auth()->id(),
@@ -53,6 +66,9 @@ class OjtLogController extends Controller
             'morning_out' => $request->am_clock_out,
             'afternoon_in' => $request->pm_clock_in,
             'afternoon_out' => $request->pm_clock_out,
+            'ot_clock_in' => $request->ot_clock_in,
+            'ot_clock_out' => $request->ot_clock_out,
+            'ot_duration' => $ot_hours,
             'hours_rendered' => round($totalHours, 2),
             'tasks_performed' => $request->activity_summary,
             'photo_path' => $photoPath,
