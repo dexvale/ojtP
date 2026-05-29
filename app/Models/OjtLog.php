@@ -20,7 +20,8 @@ class OjtLog extends Model
         'hours_rendered',
         'status',
         'has_overtime',
-        'photo_path'
+        'photo_path',
+        'remarks'
     ];
 
     protected function casts(): array

@@ -68,7 +68,7 @@
                     <h2 class="text-xl font-bold font-headline text-on-surface tracking-tight flex items-center gap-2">
                         <span class="material-symbols-outlined text-primary">schedule</span> Today's Live Status
                     </h2>
-                    <span class="text-sm font-bold text-on-surface/50 bg-surface-container-high px-4 py-1.5 rounded-lg border border-outline/20">Oct 24, 2024</span>
+                    <span class="text-sm font-bold text-on-surface/50 bg-surface-container-high px-4 py-1.5 rounded-lg border border-outline/20">{{ \Carbon\Carbon::today()->format('M d, Y') }}</span>
                 </div>
 
                 <div class="overflow-x-auto">
@@ -84,77 +84,44 @@
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-outline/10">
-                            <!-- Row 1 -->
-                            <tr class="hover:bg-surface/50 transition-colors group">
-                                <td class="py-4 px-4">
-                                    <div class="flex items-center gap-3">
-                                        <div class="w-10 h-10 rounded-full bg-success/10 text-success flex items-center justify-center font-bold text-sm">MC</div>
-                                        <span class="font-bold text-sm text-on-surface">Marcus Chen</span>
-                                    </div>
-                                </td>
-                                <td class="py-4 px-4">
-                                    <div class="text-sm font-semibold text-on-surface">BS Computer Science</div>
-                                    <div class="text-[11px] text-on-surface/50">Frontend Dev Team</div>
-                                </td>
-                                <td class="py-4 px-4 font-bold text-sm text-on-surface">08:05 AM</td>
-                                <td class="py-4 px-4 font-bold text-sm text-on-surface/40">--:-- --</td>
-                                <td class="py-4 px-4">
-                                    <span class="bg-success/10 text-success border border-success/20 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide">Present</span>
-                                </td>
-                                <td class="py-4 px-4 text-right">
-                                    <button class="text-primary hover:bg-primary/5 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors inline-flex items-center gap-1 border border-transparent hover:border-primary/20 view-calendar-btn">
-                                        <span class="material-symbols-outlined text-[16px]">calendar_view_week</span> View Calendar
-                                    </button>
-                                </td>
-                            </tr>
-                            
-                            <!-- Row 2 -->
-                            <tr class="hover:bg-surface/50 transition-colors group">
-                                <td class="py-4 px-4">
-                                    <div class="flex items-center gap-3">
-                                        <div class="w-10 h-10 rounded-full bg-warning/10 text-warning flex items-center justify-center font-bold text-sm">SJ</div>
-                                        <span class="font-bold text-sm text-on-surface">Sarah Jenkins</span>
-                                    </div>
-                                </td>
-                                <td class="py-4 px-4">
-                                    <div class="text-sm font-semibold text-on-surface">BS Business Admin</div>
-                                    <div class="text-[11px] text-on-surface/50">HR Department</div>
-                                </td>
-                                <td class="py-4 px-4 font-bold text-sm text-on-surface text-warning">09:15 AM</td>
-                                <td class="py-4 px-4 font-bold text-sm text-on-surface/40">--:-- --</td>
-                                <td class="py-4 px-4">
-                                    <span class="bg-warning/10 text-warning border border-warning/20 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide">Late</span>
-                                </td>
-                                <td class="py-4 px-4 text-right">
-                                    <button class="text-primary hover:bg-primary/5 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors inline-flex items-center gap-1 border border-transparent hover:border-primary/20 view-calendar-btn">
-                                        <span class="material-symbols-outlined text-[16px]">calendar_view_week</span> View Calendar
-                                    </button>
-                                </td>
-                            </tr>
-
-                            <!-- Row 3 -->
-                            <tr class="hover:bg-surface/50 transition-colors group">
-                                <td class="py-4 px-4">
-                                    <div class="flex items-center gap-3">
-                                        <div class="w-10 h-10 rounded-full bg-error/10 text-error flex items-center justify-center font-bold text-sm">AL</div>
-                                        <span class="font-bold text-sm text-on-surface text-error">Amanda Lee</span>
-                                    </div>
-                                </td>
-                                <td class="py-4 px-4">
-                                    <div class="text-sm font-semibold text-on-surface opacity-60">BS Information Tech</div>
-                                    <div class="text-[11px] text-on-surface/50">IT Support</div>
-                                </td>
-                                <td class="py-4 px-4 font-bold text-sm text-on-surface/40">--:-- --</td>
-                                <td class="py-4 px-4 font-bold text-sm text-on-surface/40">--:-- --</td>
-                                <td class="py-4 px-4">
-                                    <span class="bg-error/10 text-error border border-error/20 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide">Absent</span>
-                                </td>
-                                <td class="py-4 px-4 text-right">
-                                    <button class="text-primary hover:bg-primary/5 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors inline-flex items-center gap-1 border border-transparent hover:border-primary/20 view-calendar-btn">
-                                        <span class="material-symbols-outlined text-[16px]">calendar_view_week</span> View Calendar
-                                    </button>
-                                </td>
-                            </tr>
+                            @forelse($students as $student)
+                                @php 
+                                    $log = $todayLogs->get($student->user_id); 
+                                @endphp
+                                <tr class="hover:bg-surface/50 transition-colors group">
+                                    <td class="py-4 px-4">
+                                        <div class="flex items-center gap-3">
+                                            <div class="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-sm">{{ strtoupper(substr($student->user->name, 0, 2)) }}</div>
+                                            <span class="font-bold text-sm text-on-surface">{{ $student->user->name }}</span>
+                                        </div>
+                                    </td>
+                                    <td class="py-4 px-4">
+                                        <div class="text-sm font-semibold text-on-surface">{{ $student->course ?? 'N/A' }}</div>
+                                    </td>
+                                    <td class="py-4 px-4 font-bold text-sm text-on-surface">{{ $log && $log->morning_in ? \Carbon\Carbon::parse($log->morning_in)->format('h:i A') : '--:-- --' }}</td>
+                                    <td class="py-4 px-4 font-bold text-sm text-on-surface/40">{{ $log && $log->afternoon_out ? \Carbon\Carbon::parse($log->afternoon_out)->format('h:i A') : '--:-- --' }}</td>
+                                    <td class="py-4 px-4">
+                                        @if($log && $log->morning_in)
+                                            @if(\Carbon\Carbon::parse($log->morning_in)->format('H:i') > '09:00')
+                                                <span class="bg-warning/10 text-warning border border-warning/20 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide">Late</span>
+                                            @else
+                                                <span class="bg-success/10 text-success border border-success/20 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide">Present</span>
+                                            @endif
+                                        @else
+                                            <span class="bg-error/10 text-error border border-error/20 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide">Absent</span>
+                                        @endif
+                                    </td>
+                                    <td class="py-4 px-4 text-right">
+                                        <button class="text-primary hover:bg-primary/5 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors inline-flex items-center gap-1 border border-transparent hover:border-primary/20 view-calendar-btn">
+                                            <span class="material-symbols-outlined text-[16px]">calendar_view_week</span> View Calendar
+                                        </button>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="6" class="text-center py-6 text-on-surface/50 text-sm">No students assigned to your company yet.</td>
+                                </tr>
+                            @endforelse
                         </tbody>
                     </table>
                 </div>
@@ -165,7 +132,7 @@
                 <div class="flex justify-between items-center mb-6">
                     <h2 class="text-xl font-bold font-headline text-on-surface tracking-tight flex items-center gap-2">
                         <span class="material-symbols-outlined text-primary">view_week</span> Weekly Overview 
-                        <span class="text-xs font-medium font-body text-on-surface/40 ml-2 tracking-normal">(Mon, Oct 21 - Fri, Oct 25)</span>
+                        <span class="text-xs font-medium font-body text-on-surface/40 ml-2 tracking-normal">({{ $startOfWeek->format('D, M d') }} - {{ \Carbon\Carbon::parse($startOfWeek)->addDays(4)->format('D, M d') }})</span>
                     </h2>
                 </div>
 
@@ -182,33 +149,41 @@
                             </tr>
                         </thead>
                         <tbody class="bg-white">
-                            <!-- Marcus Chen -->
+                            @forelse($students as $student)
+                            @php
+                                $studentWeeklyLogs = $weeklyLogs->get($student->user_id, collect())->keyBy(function($item) {
+                                    return \Carbon\Carbon::parse($item->log_date)->format('Y-m-d');
+                                });
+                            @endphp
                             <tr class="hover:bg-surface/30">
-                                <td class="py-3 px-4 border border-outline/10 text-left font-bold text-sm text-on-surface">Marcus Chen</td>
-                                <td class="py-3 px-2 border border-outline/10"><span class="material-icon-filled text-success text-[24px]">check_circle</span></td>
-                                <td class="py-3 px-2 border border-outline/10"><span class="material-icon-filled text-success text-[24px]">check_circle</span></td>
-                                <td class="py-3 px-2 border border-outline/10"><span class="material-icon-filled text-success text-[24px]">check_circle</span></td>
-                                <td class="py-3 px-2 border border-outline/10 bg-primary/5"><span class="material-icon-filled text-success text-[24px] animate-pulse">check_circle</span></td>
-                                <td class="py-3 px-2 border border-outline/10 opacity-60"><span class="material-symbols-outlined text-outline text-[20px]">horizontal_rule</span></td>
+                                <td class="py-3 px-4 border border-outline/10 text-left font-bold text-sm text-on-surface rounded-bl-lg">{{ $student->user->name }}</td>
+                                @for($i = 0; $i < 5; $i++)
+                                    @php
+                                        $dateKey = $startOfWeek->copy()->addDays($i)->format('Y-m-d');
+                                        $dayLog = $studentWeeklyLogs->get($dateKey);
+                                        $isToday = $dateKey === \Carbon\Carbon::today()->format('Y-m-d');
+                                        $isFuture = $dateKey > \Carbon\Carbon::today()->format('Y-m-d');
+                                    @endphp
+                                    <td class="py-3 px-2 border border-outline/10 {{ $isToday ? 'bg-primary/5' : '' }} {{ $isFuture ? 'opacity-60' : '' }}">
+                                        @if($isFuture)
+                                            <span class="material-symbols-outlined text-outline text-[20px]">horizontal_rule</span>
+                                        @elseif($dayLog)
+                                            @if(strtoupper($dayLog->status) === 'APPROVED')
+                                                <span class="material-icon-filled text-success text-[24px] {{ $isToday ? 'animate-pulse' : '' }}">check_circle</span>
+                                            @else
+                                                <span class="material-icon-filled text-warning text-[24px] {{ $isToday ? 'animate-pulse' : '' }}">error</span>
+                                            @endif
+                                        @else
+                                            <span class="material-icon-filled text-error text-[24px] {{ $isToday ? 'animate-pulse' : '' }}">cancel</span>
+                                        @endif
+                                    </td>
+                                @endfor
                             </tr>
-                            <!-- Sarah Jenkins -->
-                            <tr class="hover:bg-surface/30">
-                                <td class="py-3 px-4 border border-outline/10 text-left font-bold text-sm text-on-surface">Sarah Jenkins</td>
-                                <td class="py-3 px-2 border border-outline/10"><span class="material-icon-filled text-success text-[24px]">check_circle</span></td>
-                                <td class="py-3 px-2 border border-outline/10"><span class="material-icon-filled text-error text-[24px]">cancel</span></td>
-                                <td class="py-3 px-2 border border-outline/10"><span class="material-icon-filled text-success text-[24px]">check_circle</span></td>
-                                <td class="py-3 px-2 border border-outline/10 bg-primary/5"><span class="material-icon-filled text-warning text-[24px]">error</span></td>
-                                <td class="py-3 px-2 border border-outline/10 opacity-60"><span class="material-symbols-outlined text-outline text-[20px]">horizontal_rule</span></td>
+                            @empty
+                            <tr>
+                                <td colspan="6" class="text-center py-6 text-on-surface/50 text-sm">No students assigned to your company yet.</td>
                             </tr>
-                            <!-- Amanda Lee -->
-                            <tr class="hover:bg-surface/30">
-                                <td class="py-3 px-4 border border-outline/10 text-left font-bold text-sm text-on-surface rounded-bl-lg">Amanda Lee</td>
-                                <td class="py-3 px-2 border border-outline/10"><span class="material-icon-filled text-warning text-[24px]">error</span></td>
-                                <td class="py-3 px-2 border border-outline/10"><span class="material-icon-filled text-success text-[24px]">check_circle</span></td>
-                                <td class="py-3 px-2 border border-outline/10"><span class="material-icon-filled text-success text-[24px]">check_circle</span></td>
-                                <td class="py-3 px-2 border border-outline/10 bg-primary/5"><span class="material-icon-filled text-error text-[24px]">cancel</span></td>
-                                <td class="py-3 px-2 border border-outline/10 opacity-60 rounded-br-lg"><span class="material-symbols-outlined text-outline text-[20px]">horizontal_rule</span></td>
-                            </tr>
+                            @endforelse
                         </tbody>
                     </table>
                 </div>

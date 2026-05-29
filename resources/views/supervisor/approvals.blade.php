@@ -69,17 +69,31 @@
                         <span class="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 text-on-surface/50 pointer-events-none text-[20px]">expand_more</span>
                     </div>
 
-                    <button class="flex items-center gap-2 bg-primary text-white px-5 py-2.5 rounded-lg text-sm font-bold shadow-md hover:bg-primary/90 transition-all active:scale-95 whitespace-nowrap">
-                        <span class="material-symbols-outlined text-[18px]">done_all</span>
-                        Batch Approve All (5)
-                    </button>
+                    @if($status === 'Pending' && $logs->count() > 0)
+                        <button class="bg-purple-900 text-white rounded-lg px-4 py-2 text-sm font-semibold flex items-center gap-2">
+                            <span class="material-symbols-outlined text-sm">done_all</span>
+                            Batch Approve All ({{ $logs->count() }})
+                        </button>
+                    @endif
                 </div>
+            </div>
+
+            <div class="flex border-b border-gray-200 mb-6 gap-6">
+                <a href="{{ route('supervisor.approvals', ['status' => 'Pending']) }}" class="pb-3 text-sm font-semibold border-b-2 {{ $status === 'Pending' ? 'border-purple-600 text-purple-900' : 'border-transparent text-gray-500 hover:text-purple-600' }}">
+                    Pending Queue
+                </a>
+                <a href="{{ route('supervisor.approvals', ['status' => 'Approved']) }}" class="pb-3 text-sm font-semibold border-b-2 {{ $status === 'Approved' ? 'border-purple-600 text-purple-900' : 'border-transparent text-gray-500 hover:text-purple-600' }}">
+                    Approved Logs
+                </a>
+                <a href="{{ route('supervisor.approvals', ['status' => 'Rejected']) }}" class="pb-3 text-sm font-semibold border-b-2 {{ $status === 'Rejected' ? 'border-purple-600 text-purple-900' : 'border-transparent text-gray-500 hover:text-purple-600' }}">
+                    Rejected / Revisions
+                </a>
             </div>
 
             <!-- Review Queue List -->
             <div class="flex flex-col gap-6">
 
-                @forelse($pendingLogs as $log)
+                @forelse($logs as $log)
                 <div class="bg-surface-container rounded-2xl shadow-sm border border-outline/20 p-6 transition-all hover:bg-white relative">
                     <!-- Card Header -->
                     <div class="flex flex-wrap items-center justify-between gap-4 mb-4">
@@ -96,67 +110,117 @@
                     </div>
 
                     <!-- Card Body -->
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-4">
-                        <!-- Task Description -->
-                        <div class="md:col-span-2 relative">
-                            <div class="absolute w-1 h-full bg-primary/10 left-0 rounded-full top-0"></div>
-                            <div class="pl-4">
-                                <span class="text-[10px] font-bold uppercase tracking-widest text-on-surface/40 mb-2 block">Task Description</span>
-                                <p class="text-sm font-medium italic text-on-surface/80 leading-relaxed">
-                                    "{{ $log->tasks_performed }}"
+                    <!-- Main Grid Container: Splits layout into 3 rigid columns on desktop viewports -->
+                    <div class="w-full grid grid-cols-1 md:grid-cols-3 gap-6 items-start mt-4 min-w-0">
+                        
+                        <!-- LEFT SIDE: Task Description Column (Takes up 2 out of 3 columns) -->
+                        <div class="md:col-span-2 w-full min-w-0">
+                            <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1">Task Description</span>
+                            <div class="w-full bg-gray-50 rounded-lg p-4 border border-gray-100 min-w-0 overflow-hidden">
+                                <p class="text-sm text-gray-600 whitespace-pre-wrap break-all [word-break:break-all] [overflow-wrap:anywhere] leading-relaxed">
+                                    {{ $log->tasks_performed }}
                                 </p>
                             </div>
                         </div>
-                        
-                        <!-- Evidence -->
-                        <div class="md:col-span-1">
-                            <span class="text-[10px] font-bold uppercase tracking-widest text-on-surface/40 mb-2 block">Evidence</span>
-                            <div class="relative group cursor-pointer overflow-hidden rounded-xl border border-outline/20 aspect-video md:aspect-[4/3] bg-surface flex items-center justify-center">
-                                <div class="w-full h-full flex flex-col items-center justify-center text-outline gap-1 border-4 border-white bg-surface-container-highest">
-                                    <span class="material-symbols-outlined text-[40px] text-outline/40">image</span>
-                                    <span class="text-[8px] font-bold text-outline">NO PHOTO UPLOADED</span>
-                                </div>
+
+                        <!-- RIGHT SIDE: Evidence Photo Column (Takes up exactly 1 out of 3 columns) -->
+                        <div class="md:col-span-1 w-full min-w-0">
+                            <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1">Evidence</span>
+                            <div class="w-full h-48 bg-gray-50 rounded-lg border border-gray-100 overflow-hidden flex items-center justify-center p-2">
+                                @if($log->photo_path)
+                                    <img src="{{ asset('storage/' . $log->photo_path) }}" 
+                                         alt="Workspace Evidence" 
+                                         class="max-w-full max-h-full object-contain rounded shadow-sm cursor-pointer hover:scale-[1.02] transition-transform duration-200"
+                                         onclick="window.open(this.src, '_blank')">
+                                @else
+                                    <div class="text-center p-4 flex flex-col items-center justify-center">
+                                        <span class="material-symbols-outlined text-gray-300 text-2xl">image_not_supported</span>
+                                        <p class="text-[11px] text-gray-400 mt-1">No Photo Uploaded</p>
+                                    </div>
+                                @endif
                             </div>
                         </div>
+
                     </div>
+
+                    @if($status === 'Rejected' && !empty($log->remarks))
+                        <div class="mt-4 mb-2 bg-red-50 border-l-4 border-red-500 p-3 rounded-r-lg w-full min-w-0 overflow-hidden">
+                            <span class="text-[10px] font-bold text-red-700 uppercase tracking-wider block">Supervisor Revision Notes</span>
+                            <p class="text-sm text-red-900 mt-0.5 break-all whitespace-pre-wrap [word-break:break-all] [overflow-wrap:anywhere]">
+                                "{{ $log->remarks }}"
+                            </p>
+                        </div>
+                    @endif
+
+                    @if($status === 'Approved' && !empty($log->remarks))
+                        <div class="mt-4 mb-2 bg-purple-50 border-l-4 border-purple-500 p-3 rounded-r-lg w-full min-w-0 overflow-hidden">
+                            <span class="text-[10px] font-bold text-purple-700 uppercase tracking-wider block">Supervisor Review Remarks</span>
+                            <p class="text-sm text-purple-900 mt-0.5 break-all whitespace-pre-wrap [word-break:break-all] [overflow-wrap:anywhere]">
+                                "{{ $log->remarks }}"
+                            </p>
+                        </div>
+                    @endif
 
                     <!-- Card Footer Actions -->
                     <div class="border-t border-outline/10 pt-4 mt-6">
                         <div class="flex flex-col gap-4">
-                            <input type="text" class="w-full bg-surface-container-high/50 border border-outline/20 rounded-lg px-4 py-2.5 text-sm font-medium text-on-surface focus:ring-primary focus:border-primary placeholder-on-surface/40 transition-colors" placeholder="Add remarks or feedback for the intern (Optional)...">
-                            
-                            <div class="flex justify-end gap-3 items-center flex-wrap">
-                                <form method="POST" action="{{ route('supervisor.logs.reject', $log) }}" class="inline">
-                                    @csrf
-                                    <button type="submit" class="flex items-center gap-1.5 px-4 py-2 md:py-2.5 rounded-lg text-xs md:text-sm font-bold text-error border border-error/30 hover:bg-error/5 hover:border-error transition-all active:scale-95 bg-white shadow-sm">
-                                        <span class="material-symbols-outlined text-[16px]">undo</span> Reject & Request Revision
-                                    </button>
-                                </form>
-                                <form method="POST" action="{{ route('supervisor.logs.approve', $log) }}" class="inline">
-                                    @csrf
-                                    <button type="submit" class="flex items-center gap-1.5 bg-primary text-white px-5 py-2 md:py-2.5 rounded-lg text-xs md:text-sm font-bold shadow hover:bg-primary/95 transition-all active:scale-95 hover:shadow-md">
-                                        <span class="material-symbols-outlined text-[16px]">check_circle</span> Verify & Approve
-                                    </button>
-                                </form>
-                            </div>
+                            @if($status === 'Pending')
+                                <div class="mt-4">
+                                    <textarea name="remarks" 
+                                              id="remarks-{{ $log->id }}"
+                                              form="reject-form-{{ $log->id }}"
+                                              rows="4"
+                                              maxlength="50000"
+                                              required
+                                              class="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:border-purple-500 transition-colors duration-150 resize-y"
+                                              placeholder="Add remarks or feedback for the intern (Required for rejection...)"></textarea>
+                                </div>
+                                
+                                <div class="flex justify-end gap-3 items-center flex-wrap">
+                                    <form id="reject-form-{{$log->id}}" method="POST" action="{{ route('supervisor.logs.reject', $log) }}" class="inline">
+                                        @csrf
+                                        <button type="submit" class="flex items-center gap-1.5 px-4 py-2 md:py-2.5 rounded-lg text-xs md:text-sm font-bold text-error border border-error/30 hover:bg-error/5 hover:border-error transition-all active:scale-95 bg-white shadow-sm">
+                                            <span class="material-symbols-outlined text-[16px]">undo</span> Reject & Request Revision
+                                        </button>
+                                    </form>
+                                    <form method="POST" action="{{ route('supervisor.logs.approve', $log) }}" class="inline" onsubmit="document.getElementById('hidden-remarks-{{ $log->id }}').value = document.getElementById('remarks-{{ $log->id }}').value;">
+                                        @csrf
+                                        <input type="hidden" name="remarks" id="hidden-remarks-{{ $log->id }}" value="">
+                                        <button type="submit" class="flex items-center gap-1.5 bg-primary text-white px-5 py-2 md:py-2.5 rounded-lg text-xs md:text-sm font-bold shadow hover:bg-primary/95 transition-all active:scale-95 hover:shadow-md">
+                                            <span class="material-symbols-outlined text-[16px]">check_circle</span> Verify & Approve
+                                        </button>
+                                    </form>
+                                </div>
+                            @elseif($status === 'Approved')
+                                <div class="flex justify-between items-center bg-green-50 px-4 py-3 rounded-lg border border-green-100">
+                                    <span class="text-sm font-medium text-green-800">This log was approved.</span>
+                                    <span class="text-xs font-bold text-green-700 flex items-center gap-1">
+                                        <span class="material-symbols-outlined text-[16px]">check_circle</span> {{ $log->updated_at->format('M d, Y h:i A') }}
+                                    </span>
+                                </div>
+                            @elseif($status === 'Rejected')
+                                <div class="flex justify-between items-center bg-red-50 px-4 py-3 rounded-lg border border-red-100">
+                                    <span class="text-sm font-medium text-red-800">This log was rejected/requires revision.</span>
+                                    <span class="text-xs font-bold text-red-700 flex items-center gap-1">
+                                        <span class="material-symbols-outlined text-[16px]">cancel</span> {{ $log->updated_at->format('M d, Y h:i A') }}
+                                    </span>
+                                </div>
+                            @endif
                         </div>
                     </div>
                 </div>
                 @empty
                 <div class="text-center py-12">
                     <span class="material-symbols-outlined text-6xl text-outline/30 mb-4">fact_check</span>
-                    <h3 class="text-xl font-bold font-headline text-on-surface mb-2">All Caught Up!</h3>
-                    <p class="text-on-surface/60 font-medium">There are no pending log entries requiring your approval at this time.</p>
+                    <h3 class="text-xl font-bold font-headline text-on-surface mb-2">No Entries Found</h3>
+                    <p class="text-on-surface/60 font-medium">There are no log entries matching the '{{ $status }}' status at this time.</p>
                 </div>
                 @endforelse
 
             </div>
             
-            <div class="mt-8 text-center">
-                <button class="px-6 py-2 border-2 border-outline/30 text-on-surface/60 font-bold text-xs rounded-full hover:bg-surface-container hover:text-primary transition-colors inline-flex items-center gap-2">
-                    <span class="material-symbols-outlined text-[16px]">expand_more</span>
-                    Load More Pending Reviews (3)
-                </button>
+            <div class="mt-8">
+                {{ $logs->appends(['status' => $status])->links() }}
             </div>
 
         </div>

@@ -26,18 +26,17 @@
     /* Smooth sidebar link transitions */
     aside nav a { transition: all 0.2s ease; }
 
-    /* Hide native time picker indicator and stretch to cover input */
+    /* Position native time picker indicator to the right */
     input[type="time"]::-webkit-calendar-picker-indicator {
         background: transparent;
-        bottom: 0;
         color: transparent;
         cursor: pointer;
-        height: auto;
-        left: 0;
         position: absolute;
-        right: 0;
-        top: 0;
-        width: auto;
+        right: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 24px;
+        height: 24px;
         z-index: 10;
     }
 </style>
@@ -264,7 +263,7 @@
                                 <div>
                                     <label class="block text-[10px] font-semibold text-outline uppercase tracking-wide mb-1.5">Clock In</label>
                                     <div class="relative">
-                                        <input type="time" name="am_clock_in" id="am_clock_in"
+                                        <input type="time" name="am_clock_in" id="am_clock_in" value="{{ old('am_clock_in') }}"
                                                class="w-full bg-surface-container-highest border-none rounded-lg py-2.5 pl-3 pr-9 text-sm font-bold text-on-surface focus:ring-2 focus:ring-primary/40 transition-all appearance-none time-input"/>
                                         <span class="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 text-[18px] text-outline pointer-events-none">schedule</span>
                                     </div>
@@ -272,7 +271,7 @@
                                 <div>
                                     <label class="block text-[10px] font-semibold text-outline uppercase tracking-wide mb-1.5">Clock Out</label>
                                     <div class="relative">
-                                        <input type="time" name="am_clock_out" id="am_clock_out"
+                                        <input type="time" name="am_clock_out" id="am_clock_out" value="{{ old('am_clock_out') }}"
                                                class="w-full bg-surface-container-highest border-none rounded-lg py-2.5 pl-3 pr-9 text-sm font-bold text-on-surface focus:ring-2 focus:ring-primary/40 transition-all appearance-none time-input"/>
                                         <span class="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 text-[18px] text-outline pointer-events-none">schedule</span>
                                     </div>
@@ -294,7 +293,7 @@
                                 <div>
                                     <label class="block text-[10px] font-semibold text-outline uppercase tracking-wide mb-1.5">Clock In</label>
                                     <div class="relative">
-                                        <input type="time" name="pm_clock_in" id="pm_clock_in"
+                                        <input type="time" name="pm_clock_in" id="pm_clock_in" value="{{ old('pm_clock_in') }}"
                                                class="w-full bg-surface-container-highest border-none rounded-lg py-2.5 pl-3 pr-9 text-sm font-bold text-on-surface focus:ring-2 focus:ring-primary/40 transition-all appearance-none time-input"/>
                                         <span class="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 text-[18px] text-outline pointer-events-none">schedule</span>
                                     </div>
@@ -302,7 +301,7 @@
                                 <div>
                                     <label class="block text-[10px] font-semibold text-outline uppercase tracking-wide mb-1.5">Clock Out</label>
                                     <div class="relative">
-                                        <input type="time" name="pm_clock_out" id="pm_clock_out"
+                                        <input type="time" name="pm_clock_out" id="pm_clock_out" value="{{ old('pm_clock_out') }}"
                                                class="w-full bg-surface-container-highest border-none rounded-lg py-2.5 pl-3 pr-9 text-sm font-bold text-on-surface focus:ring-2 focus:ring-primary/40 transition-all appearance-none time-input"/>
                                         <span class="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 text-[18px] text-outline pointer-events-none">schedule</span>
                                     </div>
@@ -318,7 +317,7 @@
                     {{-- ── Activity Summary & Photo Upload ── --}}
                     <div class="px-6 mb-5">
                         <label class="block text-[10px] font-bold text-outline uppercase tracking-wide mb-2">Daily Activity Summary</label>
-                        <textarea name="activity_summary" rows="3" placeholder="What did you work on today? Briefly describe your tasks and accomplishments..." class="w-full bg-surface-container-highest border-none rounded-xl p-4 text-sm font-medium text-on-surface focus:ring-2 focus:ring-primary/40 transition-all resize-none"></textarea>
+                        <textarea name="activity_summary" rows="3" placeholder="What did you work on today? Briefly describe your tasks and accomplishments..." class="w-full bg-surface-container-highest border-none rounded-xl p-4 text-sm font-medium text-on-surface focus:ring-2 focus:ring-primary/40 transition-all resize-none">{{ old('activity_summary') }}</textarea>
                         
                         <!-- Photo Upload Zone -->
                         <div id="photo_drop_zone" class="mt-4 border-2 border-dashed border-outline/40 hover:bg-gray-50 hover:border-outline/60 transition-all rounded-xl p-8 flex flex-col items-center justify-center cursor-pointer group relative">
@@ -357,7 +356,7 @@
                         </div>
                         {{-- Toggle Switch --}}
                         <label class="relative inline-flex items-center cursor-pointer flex-shrink-0 ml-4">
-                            <input type="checkbox" id="overtime_toggle" name="has_overtime" class="hidden peer"/>
+                            <input type="checkbox" id="overtime_toggle" name="has_overtime" {{ old('has_overtime') ? 'checked' : '' }} class="hidden peer"/>
                             <div class="w-11 h-6 bg-surface-container-highest rounded-full peer
                                         peer-checked:bg-primary
                                         after:content-[''] after:absolute after:top-0.5 after:left-0.5
@@ -377,14 +376,14 @@
                             <div>
                                 <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1">Clock In</label>
                                 <div class="relative w-full">
-                                    <input type="time" name="ot_clock_in" id="ot_clock_in" class="w-full bg-white border border-gray-200 rounded-lg p-2.5 text-sm focus:ring-purple-500 focus:border-purple-500 transition-all">
+                                    <input type="time" name="ot_clock_in" id="ot_clock_in" value="{{ old('ot_clock_in') }}" class="w-full bg-white border border-gray-200 rounded-lg p-2.5 text-sm focus:ring-purple-500 focus:border-purple-500 transition-all">
                                     <span class="absolute right-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-purple-400 pointer-events-none text-base">schedule</span>
                                 </div>
                             </div>
                             <div>
                                 <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1">Clock Out</label>
                                 <div class="relative w-full">
-                                    <input type="time" name="ot_clock_out" id="ot_clock_out" class="w-full bg-white border border-gray-200 rounded-lg p-2.5 text-sm focus:ring-purple-500 focus:border-purple-500 transition-all">
+                                    <input type="time" name="ot_clock_out" id="ot_clock_out" value="{{ old('ot_clock_out') }}" class="w-full bg-white border border-gray-200 rounded-lg p-2.5 text-sm focus:ring-purple-500 focus:border-purple-500 transition-all">
                                     <span class="absolute right-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-purple-400 pointer-events-none text-base">schedule</span>
                                 </div>
                             </div>
@@ -665,7 +664,15 @@
     }
 
     // Run once on load to reflect default values
-    updateDurations();
+    document.addEventListener("DOMContentLoaded", function() {
+        updateDurations(); 
+        
+        const otToggle = document.getElementById('overtime_toggle');
+        const otContainer = document.getElementById('overtime_inputs_container');
+        if (otToggle && otToggle.checked) {
+            otContainer.classList.remove('hidden');
+        }
+    });
 
     // ── Overtime Toggle Logic ──
     const otToggle = document.getElementById('overtime_toggle');

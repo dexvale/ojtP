@@ -127,55 +127,8 @@
                     <button class="p-1.5 hover:bg-surface-container-high rounded-full text-on-surface/50 transition-colors active:scale-95"><span class="material-symbols-outlined text-[20px]">more_vert</span></button>
                 </div>
                 
-                <!-- Mock Bar Chart -->
-                <div class="flex-1 relative flex items-end ml-8 mr-2 mb-6">
-                    <!-- Y-Axis markers -->
-                    <div class="absolute w-full h-full flex flex-col justify-between items-start inset-0 pointer-events-none">
-                        <div class="w-full h-0 border-b border-dashed border-outline/40 relative"><span class="absolute -left-8 -translate-y-1/2 text-[10px] font-bold text-on-surface/40">15</span></div>
-                        <div class="w-full h-0 border-b border-dashed border-outline/40 relative"><span class="absolute -left-8 -translate-y-1/2 text-[10px] font-bold text-on-surface/40">10</span></div>
-                        <div class="w-full h-0 border-b border-dashed border-outline/40 relative"><span class="absolute -left-8 -translate-y-1/2 text-[10px] font-bold text-on-surface/40">5</span></div>
-                        <div class="w-full h-0 border-b border-outline/40 relative"><span class="absolute -left-8 -translate-y-1/2 text-[10px] font-bold text-on-surface/40">0</span></div>
-                    </div>
-                    
-                    <!-- Chart Bars -->
-                    <div class="w-full h-full flex justify-around items-end pt-2 pb-0 z-10 px-4">
-                        <!-- Mon: 15 -->
-                        <div class="flex flex-col items-center gap-3 group w-12 sm:w-20">
-                            <div class="w-full bg-primary rounded-t-lg cursor-pointer hover:brightness-110 transition-all relative flex justify-center shadow-sm" style="height: 100%;">
-                                <div class="absolute -top-10 bg-on-surface text-surface text-xs font-bold py-1.5 px-3 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none shadow-xl whitespace-nowrap z-20">15 Interns</div>
-                            </div>
-                            <span class="text-[11px] font-bold text-on-surface/50 uppercase tracking-widest">Mon</span>
-                        </div>
-                        <!-- Tue: 14 -->
-                        <div class="flex flex-col items-center gap-3 group w-12 sm:w-20">
-                            <div class="w-full bg-primary/90 rounded-t-lg cursor-pointer hover:brightness-110 transition-all relative flex justify-center shadow-sm" style="height: 93.3%;">
-                                <div class="absolute -top-10 bg-on-surface text-surface text-xs font-bold py-1.5 px-3 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none shadow-xl whitespace-nowrap z-20">14 Interns</div>
-                            </div>
-                            <span class="text-[11px] font-bold text-on-surface/50 uppercase tracking-widest">Tue</span>
-                        </div>
-                        <!-- Wed: 15 -->
-                        <div class="flex flex-col items-center gap-3 group w-12 sm:w-20">
-                            <div class="w-full bg-primary rounded-t-lg cursor-pointer hover:brightness-110 transition-all relative flex justify-center shadow-sm" style="height: 100%;">
-                                <div class="absolute -top-10 bg-on-surface text-surface text-xs font-bold py-1.5 px-3 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none shadow-xl whitespace-nowrap z-20">15 Interns</div>
-                            </div>
-                            <span class="text-[11px] font-bold text-on-surface/50 uppercase tracking-widest">Wed</span>
-                        </div>
-                        <!-- Thu: 12 -->
-                        <div class="flex flex-col items-center gap-3 group w-12 sm:w-20">
-                            <div class="w-full bg-primary/70 rounded-t-lg cursor-pointer hover:brightness-110 transition-all relative flex justify-center shadow-sm" style="height: 80%;">
-                                <div class="absolute -top-10 bg-on-surface text-surface text-xs font-bold py-1.5 px-3 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none shadow-xl whitespace-nowrap z-20">12 Interns</div>
-                            </div>
-                            <span class="text-[11px] font-bold text-on-surface/50 uppercase tracking-widest">Thu</span>
-                        </div>
-                        <!-- Fri: 0 -->
-                        <div class="flex flex-col items-center gap-3 group w-12 sm:w-20">
-                            <div class="w-full bg-outline/20 rounded-t-lg flex items-end justify-center cursor-pointer hover:bg-outline/30 transition-all relative shadow-sm" style="height: 4px;">
-                                <div class="absolute -top-10 bg-on-surface text-surface text-xs font-bold py-1.5 px-3 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none shadow-xl whitespace-nowrap z-20">0 Interns</div>
-                            </div>
-                            <span class="text-[11px] font-bold text-on-surface/50 uppercase tracking-widest">Fri</span>
-                        </div>
-                    </div>
-                </div>
+                <!-- ApexChart Container -->
+                <div id="weeklyTrendsChart" class="w-full h-64"></div>
             </div>
 
             <!-- Right Side: Top Performers List (Span 1) -->
@@ -230,5 +183,52 @@
         </div>
     </main>
 
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            var options = {
+                series: [{
+                    name: 'Students Present',
+                    data: @json($attendanceCounts)
+                }],
+                chart: {
+                    type: 'area',
+                    height: 250,
+                    toolbar: { show: false },
+                    fontFamily: 'Inter, sans-serif'
+                },
+                colors: ['#5B21B6'], /* Matching our deep purple theme */
+                fill: {
+                    type: 'gradient',
+                    gradient: {
+                        shadeIntensity: 1,
+                        opacityFrom: 0.4,
+                        opacityTo: 0.05,
+                        stops: [0, 90, 100]
+                    }
+                },
+                dataLabels: { enabled: false },
+                stroke: { curve: 'smooth', width: 3 },
+                xaxis: {
+                    categories: ['MON', 'TUE', 'WED', 'THU', 'FRI'],
+                    axisBorder: { show: false },
+                    axisTicks: { show: false }
+                },
+                yaxis: {
+                    tickAmount: 3,
+                    labels: {
+                        formatter: function(val) { return Math.floor(val); }
+                    }
+                },
+                grid: {
+                    borderColor: '#F3F4F6',
+                    strokeDashArray: 4
+                }
+            };
+
+            var chart = new ApexCharts(document.querySelector("#weeklyTrendsChart"), options);
+            chart.render();
+        });
+    </script>
 </body>
 </html>

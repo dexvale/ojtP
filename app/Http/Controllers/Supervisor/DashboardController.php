@@ -53,36 +53,103 @@ class DashboardController extends Controller
             ->orderBy('log_date', 'asc')
             ->get();
             
-        return view('supervisor.dashboard', compact('totalInterns', 'clockedInCount', 'pendingHours', 'topPerformers', 'pendingLogs'));
+        $startOfWeek = \Carbon\Carbon::now()->startOfWeek(\Carbon\Carbon::MONDAY);
+        
+        $attendanceCounts = [];
+        for ($i = 0; $i < 5; $i++) {
+            $date = $startOfWeek->copy()->addDays($i)->format('Y-m-d');
+            $attendanceCounts[] = OjtLog::whereIn('user_id', $internUserIds)
+                ->whereDate('log_date', $date)
+                ->whereNotNull('morning_in')
+                ->count();
+        }
+            
+        return view('supervisor.dashboard', compact('totalInterns', 'clockedInCount', 'pendingHours', 'topPerformers', 'pendingLogs', 'attendanceCounts'));
     }
 
     public function attendance()
     {
-        return view('supervisor.attendance');
+        $companyId = auth()->user()->supervisorProfile->company_id ?? null;
+        $students = \App\Models\StudentProfile::where('company_id', $companyId)->with('user')->get();
+        $studentIds = $students->pluck('user_id');
+
+        // 1. Today's Live Status Data
+        $todayLogs = \App\Models\OjtLog::whereIn('user_id', $studentIds)
+            ->whereDate('log_date', \Carbon\Carbon::today())
+            ->get()
+            ->keyBy('user_id');
+
+        // 2. Build Weekly Attendance Matrix Tracker (Mon - Fri)
+        $startOfWeek = \Carbon\Carbon::now()->startOfWeek(\Carbon\Carbon::MONDAY);
+        $endOfWeek = \Carbon\Carbon::now()->endOfWeek(\Carbon\Carbon::FRIDAY);
+        
+        $weeklyLogs = \App\Models\OjtLog::whereIn('user_id', $studentIds)
+            ->whereBetween('log_date', [$startOfWeek, $endOfWeek])
+            ->get()
+            ->groupBy('user_id');
+
+        return view('supervisor.attendance', compact('students', 'todayLogs', 'weeklyLogs', 'startOfWeek'));
     }
 
     public function approvals()
     {
-        $pendingLogs = OjtLog::where('status', 'Pending')
-            ->whereHas('user.studentProfile', function ($query) {
-                $query->where('company_id', auth()->user()->company_id);
-            })
-            ->with('user.studentProfile')
-            ->orderBy('log_date', 'asc')
-            ->get();
+        $status = ucfirst(strtolower(request('status', 'Pending')));
+        
+        $user = auth()->user();
+        $companyId = $user->company_id ?? $user->supervisorProfile->company_id ?? null;
+
+        if ($companyId) {
+            $internUserIds = \App\Models\StudentProfile::where('company_id', $companyId)->pluck('user_id');
             
-        return view('supervisor.approvals', compact('pendingLogs'));
+            $logs = \App\Models\OjtLog::whereIn('user_id', $internUserIds)
+                ->where('status', $status)
+                ->with('user.studentProfile')
+                ->latest()
+                ->paginate(10);
+        } else {
+            // Debugging fall-back: grab all pending logs for local development testing
+            $logs = \App\Models\OjtLog::where('status', $status)
+                ->with('user.studentProfile')
+                ->latest()
+                ->paginate(10);
+        }
+
+        return view('supervisor.approvals', compact('logs', 'status'));
     }
 
-    public function approve(OjtLog $log)
+    public function approve(\Illuminate\Http\Request $request, \App\Models\OjtLog $log)
     {
-        $log->update(['status' => 'Approved']);
-        return redirect()->back()->with('success', 'Intern log entry verified and approved successfully!');
+        $request->validate([
+            'remarks' => 'nullable|string|max:50000'
+        ]);
+
+        $log->status = 'Approved';
+        // Note: Only assign approved_at if the column exists in your migration
+        // $log->approved_at = now(); 
+        
+        // Capture optional remark text if provided by supervisor
+        if ($request->has('remarks') && !empty($request->remarks)) {
+            $log->remarks = $request->remarks;
+        } else {
+            $log->remarks = null; // Clear previous rejection text if any
+        }
+        
+        $log->save();
+
+        return redirect()->back()->with('success', 'Intern log entry verified and hours officially approved!');
     }
 
-    public function reject(OjtLog $log)
+    public function reject(\Illuminate\Http\Request $request, \App\Models\OjtLog $log)
     {
-        $log->update(['status' => 'Rejected']);
-        return redirect()->back()->with('success', 'Intern log entry rejected and sent back for revision.');
+        $request->validate([
+            'remarks' => 'required|string|max:50000'
+        ]);
+
+        // Shift to revision queue
+        $log->status = 'Rejected';
+        $log->remarks = $request->remarks;
+        $log->save();
+
+        return redirect()->back()->with('error', 'Log entry sent back to intern for mandatory revision.');
     }
 }

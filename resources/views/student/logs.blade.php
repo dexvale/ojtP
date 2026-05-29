@@ -218,8 +218,8 @@
             </div>
             <div class="pt-2">
                 <span class="block text-xs font-bold text-outline uppercase tracking-wider mb-2">Activity Summary</span>
-                <div class="mt-1 w-full bg-gray-50 rounded-lg p-3 border border-gray-100">
-                    <p id="modal-summary" class="text-sm text-gray-700 whitespace-pre-wrap break-all overflow-hidden [word-break:break-all] [overflow-wrap:anywhere]"></p>
+                <div class="mt-1 w-full bg-gray-50 rounded-lg p-3 border border-gray-100 min-h-[4.5rem]">
+                    <p id="modal-summary" class="text-sm text-gray-700 whitespace-pre-wrap break-words overflow-visible"></p>
                 </div>
             </div>
             <div id="modal-photo-container" class="pt-4 hidden border-t border-surface-variant/10">
