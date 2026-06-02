@@ -61,6 +61,8 @@ Route::middleware(['auth', 'no.cache', 'role:Admin,coordinator'])->group(functio
 Route::middleware(['auth', 'no.cache', 'role:Advisor'])->group(function () {
     Route::get('/supervisor/dashboard', [\App\Http\Controllers\Supervisor\DashboardController::class, 'index'])->name('supervisor.dashboard');
     Route::get('/supervisor/attendance', [\App\Http\Controllers\Supervisor\DashboardController::class, 'attendance'])->name('supervisor.attendance');
+    Route::get('/supervisor/interns/{id}/calendar-data', [\App\Http\Controllers\Supervisor\DashboardController::class, 'getCalendarData'])->name('supervisor.interns.calendar-data');
+    Route::get('/supervisor/my-interns', [\App\Http\Controllers\Supervisor\InternsController::class, 'index'])->name('supervisor.interns.index');
     Route::get('/supervisor/approvals', [\App\Http\Controllers\Supervisor\DashboardController::class, 'approvals'])->name('supervisor.approvals');
     
     Route::post('/supervisor/logs/{log}/approve', [\App\Http\Controllers\Supervisor\DashboardController::class, 'approve'])->name('supervisor.logs.approve');

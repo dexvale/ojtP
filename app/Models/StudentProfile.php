@@ -29,4 +29,9 @@ class StudentProfile extends Model
             $q->where('name', 'Advisor');
         });
     }
+
+    public function ojtLogs()
+    {
+        return $this->hasMany(OjtLog::class, 'user_id', 'user_id');
+    }
 }

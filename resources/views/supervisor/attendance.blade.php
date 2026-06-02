@@ -84,19 +84,19 @@
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-outline/10">
-                            @forelse($students as $student)
+                            @forelse($todayAttendance as $intern)
                                 @php 
-                                    $log = $todayLogs->get($student->user_id); 
+                                    $log = $intern->ojtLogs->first(); 
                                 @endphp
                                 <tr class="hover:bg-surface/50 transition-colors group">
                                     <td class="py-4 px-4">
                                         <div class="flex items-center gap-3">
-                                            <div class="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-sm">{{ strtoupper(substr($student->user->name, 0, 2)) }}</div>
-                                            <span class="font-bold text-sm text-on-surface">{{ $student->user->name }}</span>
+                                            <div class="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-sm">{{ strtoupper(substr($intern->user->name, 0, 2)) }}</div>
+                                            <span class="font-bold text-sm text-on-surface">{{ $intern->user->name }}</span>
                                         </div>
                                     </td>
                                     <td class="py-4 px-4">
-                                        <div class="text-sm font-semibold text-on-surface">{{ $student->course ?? 'N/A' }}</div>
+                                        <div class="text-sm font-semibold text-on-surface">{{ $intern->course ?? 'N/A' }}</div>
                                     </td>
                                     <td class="py-4 px-4 font-bold text-sm text-on-surface">{{ $log && $log->morning_in ? \Carbon\Carbon::parse($log->morning_in)->format('h:i A') : '--:-- --' }}</td>
                                     <td class="py-4 px-4 font-bold text-sm text-on-surface/40">{{ $log && $log->afternoon_out ? \Carbon\Carbon::parse($log->afternoon_out)->format('h:i A') : '--:-- --' }}</td>
@@ -112,7 +112,7 @@
                                         @endif
                                     </td>
                                     <td class="py-4 px-4 text-right">
-                                        <button class="text-primary hover:bg-primary/5 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors inline-flex items-center gap-1 border border-transparent hover:border-primary/20 view-calendar-btn">
+                                        <button onclick="openAttendanceCalendar({{ $intern->id }})" class="text-primary hover:bg-primary/5 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors inline-flex items-center gap-1 border border-transparent hover:border-primary/20">
                                             <span class="material-symbols-outlined text-[16px]">calendar_view_week</span> View Calendar
                                         </button>
                                     </td>
@@ -149,20 +149,20 @@
                             </tr>
                         </thead>
                         <tbody class="bg-white">
-                            @forelse($students as $student)
+                            @forelse($todayAttendance as $intern)
                             @php
-                                $studentWeeklyLogs = $weeklyLogs->get($student->user_id, collect())->keyBy(function($item) {
-                                    return \Carbon\Carbon::parse($item->log_date)->format('Y-m-d');
-                                });
+                                $studentWeeklyLogs = $weeklyLogs->get($intern->user_id, collect());
                             @endphp
                             <tr class="hover:bg-surface/30">
-                                <td class="py-3 px-4 border border-outline/10 text-left font-bold text-sm text-on-surface rounded-bl-lg">{{ $student->user->name }}</td>
+                                <td class="py-3 px-4 border border-outline/10 text-left font-bold text-sm text-on-surface rounded-bl-lg">{{ $intern->user->name }}</td>
                                 @for($i = 0; $i < 5; $i++)
                                     @php
-                                        $dateKey = $startOfWeek->copy()->addDays($i)->format('Y-m-d');
-                                        $dayLog = $studentWeeklyLogs->get($dateKey);
-                                        $isToday = $dateKey === \Carbon\Carbon::today()->format('Y-m-d');
-                                        $isFuture = $dateKey > \Carbon\Carbon::today()->format('Y-m-d');
+                                        $dateObj = $startOfWeek->copy()->addDays($i);
+                                        $dayName = $dateObj->format('D'); // e.g. Mon, Tue
+                                        $dayLogsGroup = $studentWeeklyLogs->get($dayName);
+                                        $dayLog = $dayLogsGroup ? $dayLogsGroup->first() : null;
+                                        $isToday = $dateObj->format('Y-m-d') === \Carbon\Carbon::today()->format('Y-m-d');
+                                        $isFuture = $dateObj->format('Y-m-d') > \Carbon\Carbon::today()->format('Y-m-d');
                                     @endphp
                                     <td class="py-3 px-2 border border-outline/10 {{ $isToday ? 'bg-primary/5' : '' }} {{ $isFuture ? 'opacity-60' : '' }}">
                                         @if($isFuture)
@@ -209,10 +209,10 @@
             <!-- Panel Content -->
             <div class="p-6 flex-1 overflow-y-auto">
                 <div class="flex items-center gap-4 mb-6">
-                    <div class="w-14 h-14 rounded-full bg-success/10 text-success flex items-center justify-center font-bold text-lg">MC</div>
+                    <div class="w-14 h-14 rounded-full bg-success/10 text-success flex items-center justify-center font-bold text-lg" id="cal-avatar">--</div>
                     <div>
-                        <h4 class="font-bold text-lg text-on-surface">Marcus Chen</h4>
-                        <p class="text-[11px] text-on-surface/50 uppercase tracking-widest font-semibold flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">school</span> BS Computer Science</p>
+                        <h4 class="font-bold text-lg text-on-surface" id="cal-name">Loading...</h4>
+                        <p class="text-[11px] text-on-surface/50 uppercase tracking-widest font-semibold flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">school</span> <span id="cal-course">...</span></p>
                     </div>
                 </div>
 
@@ -220,82 +220,34 @@
                 <div class="grid grid-cols-3 gap-3 mb-8">
                     <div class="bg-success/5 border border-success/20 rounded-xl p-3 text-center">
                         <span class="block text-[10px] font-bold uppercase tracking-widest text-success/70 mb-1">Present</span>
-                        <span class="block text-2xl font-extrabold font-headline text-success">18</span>
+                        <span class="block text-2xl font-extrabold font-headline text-success" id="cal-present">-</span>
                     </div>
                     <div class="bg-warning/5 border border-warning/20 rounded-xl p-3 text-center">
                         <span class="block text-[10px] font-bold uppercase tracking-widest text-warning/80 mb-1">Late</span>
-                        <span class="block text-2xl font-extrabold font-headline text-warning">2</span>
+                        <span class="block text-2xl font-extrabold font-headline text-warning" id="cal-late">-</span>
                     </div>
                     <div class="bg-error/5 border border-error/20 rounded-xl p-3 text-center">
                         <span class="block text-[10px] font-bold uppercase tracking-widest text-error/70 mb-1">Absent</span>
-                        <span class="block text-2xl font-extrabold font-headline text-error">1</span>
+                        <span class="block text-2xl font-extrabold font-headline text-error" id="cal-absent">-</span>
                     </div>
                 </div>
 
                 <!-- Month Calendar layout -->
                 <div>
                     <div class="flex justify-between items-center mb-4">
-                        <h5 class="font-bold text-sm text-on-surface">October 2024</h5>
+                        <h5 class="font-bold text-sm text-on-surface" id="calendar-month-label">Loading...</h5>
                         <div class="flex gap-1">
-                            <span class="material-symbols-outlined text-outline hover:text-primary cursor-pointer">chevron_left</span>
-                            <span class="material-symbols-outlined text-outline hover:text-primary cursor-pointer">chevron_right</span>
+                            <button onclick="changeCalendarMonth(-1)" class="hover:bg-surface-container p-1 rounded-lg transition-colors flex items-center justify-center">
+                                <span class="material-symbols-outlined text-outline hover:text-primary text-sm">chevron_left</span>
+                            </button>
+                            <button onclick="changeCalendarMonth(1)" class="hover:bg-surface-container p-1 rounded-lg transition-colors flex items-center justify-center">
+                                <span class="material-symbols-outlined text-outline hover:text-primary text-sm">chevron_right</span>
+                            </button>
                         </div>
                     </div>
 
                     <!-- 30-day Calendar Grid -->
-                    <div class="grid grid-cols-7 gap-1.5 text-center mb-6">
-                        <!-- header -->
-                        <div class="text-[10px] font-bold uppercase text-on-surface/40 py-1">S</div>
-                        <div class="text-[10px] font-bold uppercase text-on-surface/40 py-1">M</div>
-                        <div class="text-[10px] font-bold uppercase text-on-surface/40 py-1">T</div>
-                        <div class="text-[10px] font-bold uppercase text-on-surface/40 py-1">W</div>
-                        <div class="text-[10px] font-bold uppercase text-on-surface/40 py-1">T</div>
-                        <div class="text-[10px] font-bold uppercase text-on-surface/40 py-1">F</div>
-                        <div class="text-[10px] font-bold uppercase text-on-surface/40 py-1">S</div>
-
-                        <!-- Blank days for start of month (assuming Oct 1 is Tuesday) -->
-                        <div></div>
-                        <div></div>
-
-                        <!-- Days 1-23 -->
-                        <!-- Week 1: 1-5 -->
-                        <div class="aspect-square rounded-md bg-success/20 flex items-center justify-center text-sm font-bold text-success" title="Present">1</div>
-                        <div class="aspect-square rounded-md bg-success/20 flex items-center justify-center text-sm font-bold text-success" title="Present">2</div>
-                        <div class="aspect-square rounded-md bg-success/20 flex items-center justify-center text-sm font-bold text-success" title="Present">3</div>
-                        <div class="aspect-square rounded-md bg-success/20 flex items-center justify-center text-sm font-bold text-success" title="Present">4</div>
-                        <div class="aspect-square rounded-md bg-outline/10 flex items-center justify-center text-sm text-on-surface/30">5</div> <!-- Weekend -->
-                        <div class="aspect-square rounded-md bg-outline/10 flex items-center justify-center text-sm text-on-surface/30">6</div> <!-- Weekend -->
-                        <!-- Week 2 -->
-                        <div class="aspect-square rounded-md bg-warning/20 flex items-center justify-center text-sm font-bold text-warning" title="Late">7</div>
-                        <div class="aspect-square rounded-md bg-success/20 flex items-center justify-center text-sm font-bold text-success" title="Present">8</div>
-                        <div class="aspect-square rounded-md bg-success/20 flex items-center justify-center text-sm font-bold text-success" title="Present">9</div>
-                        <div class="aspect-square rounded-md bg-success/20 flex items-center justify-center text-sm font-bold text-success" title="Present">10</div>
-                        <div class="aspect-square rounded-md bg-success/20 flex items-center justify-center text-sm font-bold text-success" title="Present">11</div>
-                        <div class="aspect-square rounded-md bg-outline/10 flex items-center justify-center text-sm text-on-surface/30">12</div>
-                        <div class="aspect-square rounded-md bg-outline/10 flex items-center justify-center text-sm text-on-surface/30">13</div>
-                        <!-- Week 3 -->
-                        <div class="aspect-square rounded-md bg-success/20 flex items-center justify-center text-sm font-bold text-success" title="Present">14</div>
-                        <div class="aspect-square rounded-md bg-error/20 flex items-center justify-center text-sm font-bold text-error" title="Absent">15</div>
-                        <div class="aspect-square rounded-md bg-success/20 flex items-center justify-center text-sm font-bold text-success" title="Present">16</div>
-                        <div class="aspect-square rounded-md bg-success/20 flex items-center justify-center text-sm font-bold text-success" title="Present">17</div>
-                        <div class="aspect-square rounded-md bg-success/20 flex items-center justify-center text-sm font-bold text-success" title="Present">18</div>
-                        <div class="aspect-square rounded-md bg-outline/10 flex items-center justify-center text-sm text-on-surface/30">19</div>
-                        <div class="aspect-square rounded-md bg-outline/10 flex items-center justify-center text-sm text-on-surface/30">20</div>
-                        <!-- Week 4 -->
-                        <div class="aspect-square rounded-md bg-success/20 flex items-center justify-center text-sm font-bold text-success" title="Present">21</div>
-                        <div class="aspect-square rounded-md bg-success/20 flex items-center justify-center text-sm font-bold text-success" title="Present">22</div>
-                        <div class="aspect-square rounded-md bg-warning/20 flex items-center justify-center text-sm font-bold text-warning" title="Late">23</div>
-                        <div class="aspect-square rounded-md bg-success/20 flex items-center justify-center text-sm font-bold text-success ring-2 ring-primary ring-offset-2 border border-primary relative" title="Today">24</div>
-                        
-                        <!-- Future days -->
-                        <div class="aspect-square rounded-md bg-surface-container border border-outline/20 flex items-center justify-center text-sm text-on-surface/30">25</div>
-                        <div class="aspect-square rounded-md bg-surface-container border border-outline/20 flex items-center justify-center text-sm text-on-surface/30">26</div>
-                        <div class="aspect-square rounded-md bg-surface-container border border-outline/20 flex items-center justify-center text-sm text-on-surface/30">27</div>
-                        <div class="aspect-square rounded-md bg-surface-container border border-outline/20 flex items-center justify-center text-sm text-on-surface/30">28</div>
-                        <div class="aspect-square rounded-md bg-surface-container border border-outline/20 flex items-center justify-center text-sm text-on-surface/30">29</div>
-                        <div class="aspect-square rounded-md bg-surface-container border border-outline/20 flex items-center justify-center text-sm text-on-surface/30">30</div>
-                        <div class="aspect-square rounded-md bg-surface-container border border-outline/20 flex items-center justify-center text-sm text-on-surface/30">31</div>
-
+                    <div id="calendarGrid" class="grid grid-cols-7 gap-1.5 text-center mb-6">
                     </div>
                     
                     <div class="text-[10px] bg-white border border-outline/20 p-3 rounded-lg flex justify-around font-medium text-on-surface/60">
@@ -310,19 +262,140 @@
     </div>
 
     <!-- Simple JS to mock the modal behavior -->
+    <!-- Simple JS to mock the modal behavior -->
     <script>
         const panel = document.getElementById('calendarPanel');
         const sidebar = document.getElementById('calendarSidebar');
-        const btns = document.querySelectorAll('.view-calendar-btn');
         const closeBtn = document.getElementById('closePanelBtn');
 
-        const openPanel = () => {
+        let calendarStudentId = null;
+        let calendarCurrentMonth = new Date().getMonth() + 1; // 1-indexed (1 = Jan, 12 = Dec)
+        let calendarCurrentYear = new Date().getFullYear();
+
+        const openAttendanceCalendar = (studentId) => {
+            calendarStudentId = studentId;
+            // Reset to current system date upon fresh opening
+            const today = new Date();
+            calendarCurrentMonth = today.getMonth() + 1;
+            calendarCurrentYear = today.getFullYear();
+
+            // Open Panel UI
             panel.classList.remove('hidden');
-            // Slight delay to allow flex to process before opacity transitions
             setTimeout(() => {
                 panel.setAttribute('data-open', 'true');
                 sidebar.setAttribute('data-open', 'true');
             }, 10);
+
+            fetchCalendarData();
+        };
+
+        const fetchCalendarData = async () => {
+            if (!calendarStudentId) return;
+
+            try {
+                // Fetch dynamic calendar data from new API endpoint with structural parameters
+                const response = await fetch(`/supervisor/interns/${calendarStudentId}/calendar-data?month=${calendarCurrentMonth}&year=${calendarCurrentYear}`);
+                if(!response.ok) throw new Error("Failed to fetch");
+                
+                const data = await response.json();
+
+                // 1. Map Top Header
+                document.getElementById('cal-name').innerText = data.name;
+                document.getElementById('cal-course').innerText = data.course;
+                document.getElementById('cal-avatar').innerText = data.name.substring(0, 2).toUpperCase();
+
+                // 2. Map KPIs
+                document.getElementById('cal-present').innerText = data.metrics.present;
+                document.getElementById('cal-late').innerText = data.metrics.late;
+                document.getElementById('cal-absent').innerText = data.metrics.absent;
+
+                // 3. Build Dynamic Month Calendar Layout
+                const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+                document.getElementById('calendar-month-label').innerText = `${monthNames[calendarCurrentMonth - 1]} ${calendarCurrentYear}`;
+
+                // Month is 0-indexed for Date object
+                const firstDay = new Date(calendarCurrentYear, calendarCurrentMonth - 1, 1).getDay();
+                const daysInMonth = new Date(calendarCurrentYear, calendarCurrentMonth, 0).getDate();
+
+                const grid = document.getElementById('calendarGrid');
+                
+                // Inject Header
+                grid.innerHTML = `
+                    <div class="text-[10px] font-bold uppercase text-on-surface/40 py-1">S</div>
+                    <div class="text-[10px] font-bold uppercase text-on-surface/40 py-1">M</div>
+                    <div class="text-[10px] font-bold uppercase text-on-surface/40 py-1">T</div>
+                    <div class="text-[10px] font-bold uppercase text-on-surface/40 py-1">W</div>
+                    <div class="text-[10px] font-bold uppercase text-on-surface/40 py-1">T</div>
+                    <div class="text-[10px] font-bold uppercase text-on-surface/40 py-1">F</div>
+                    <div class="text-[10px] font-bold uppercase text-on-surface/40 py-1">S</div>
+                `;
+
+                // Empty preceding blocks
+                for (let i = 0; i < firstDay; i++) {
+                    grid.innerHTML += `<div></div>`;
+                }
+
+                // Grid Days
+                const today = new Date();
+                for (let day = 1; day <= daysInMonth; day++) {
+                    const dateStr = `${calendarCurrentYear}-${String(calendarCurrentMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                    const event = data.events[dateStr];
+                    
+                    let classes = "aspect-square rounded-md flex items-center justify-center text-sm text-on-surface/30 bg-surface-container border border-outline/20";
+                    let title = "No Record";
+
+                    const dayOfWeek = new Date(calendarCurrentYear, calendarCurrentMonth - 1, day).getDay();
+                    const isWeekend = (dayOfWeek === 0 || dayOfWeek === 6);
+                    if (isWeekend) {
+                         classes = "aspect-square rounded-md bg-outline/10 flex items-center justify-center text-sm text-on-surface/30";
+                         title = "Weekend";
+                    }
+
+                    if (event) {
+                        const status = event.status ? event.status.toUpperCase() : '';
+                        if (event.is_late) {
+                            classes = "aspect-square rounded-md bg-warning/20 flex items-center justify-center text-sm font-bold text-warning";
+                            title = "Late: " + (event.time_in || '--:--');
+                        } else if (status === 'APPROVED') {
+                            classes = "aspect-square rounded-md bg-success/20 flex items-center justify-center text-sm font-bold text-success";
+                            title = "Present: " + (event.time_in || '--:--');
+                        } else if (status === 'REJECTED') {
+                            classes = "aspect-square rounded-md bg-error/20 flex items-center justify-center text-sm font-bold text-error";
+                            title = "Absent/Rejected";
+                        } else if (status === 'PENDING') {
+                            classes = "aspect-square rounded-md bg-primary/10 flex items-center justify-center text-sm font-bold text-primary";
+                            title = "Pending Approval";
+                        }
+                    }
+
+                    // Highlight Today
+                    const todayStr = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+                    if (dateStr === todayStr) {
+                        classes += " ring-2 ring-primary ring-offset-2 border border-primary relative";
+                    }
+
+                    grid.innerHTML += `<div class="${classes}" title="${title}">${day}</div>`;
+                }
+
+            } catch (err) {
+                console.error('Error fetching structural calendar logs:', err);
+                alert("Could not load calendar data at this time.");
+            }
+        };
+
+        const changeCalendarMonth = (offset) => {
+            calendarCurrentMonth += offset;
+            
+            if (calendarCurrentMonth < 1) {
+                calendarCurrentMonth = 12;
+                calendarCurrentYear -= 1;
+            } else if (calendarCurrentMonth > 12) {
+                calendarCurrentMonth = 1;
+                calendarCurrentYear += 1;
+            }
+            
+            // Issue API call to reload the database values for the newly calculated target window
+            fetchCalendarData();
         };
 
         const closePanel = () => {
@@ -333,7 +406,6 @@
             }, 300); // Wait for transition
         };
 
-        btns.forEach(btn => btn.addEventListener('click', openPanel));
         closeBtn.addEventListener('click', closePanel);
         panel.addEventListener('click', (e) => {
             if(e.target === panel) closePanel();

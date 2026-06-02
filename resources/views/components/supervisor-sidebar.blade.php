@@ -15,6 +15,10 @@
             <span class="material-symbols-outlined" data-icon="calendar_month">calendar_month</span>
             <span>Intern Attendance</span>
         </a>
+        <a href="{{ route('supervisor.interns.index') }}" class="mx-2 my-1 px-4 py-3 flex items-center gap-3 text-sm font-medium rounded-lg {{ request()->routeIs('supervisor.interns.*') ? 'bg-[#faf1f8]/10 text-[#ffffff] translate-x-1' : 'text-[#faf1f8]/70 hover:text-[#ffffff] hover:bg-[#ffffff]/5' }} transition-all duration-300">
+            <span class="material-symbols-outlined" data-icon="group">group</span>
+            <span>My Interns</span>
+        </a>
         <a href="{{ route('supervisor.approvals') }}" class="mx-2 my-1 px-4 py-3 flex items-center gap-3 text-sm font-medium rounded-lg {{ request()->routeIs('supervisor.approvals') ? 'bg-[#faf1f8]/10 text-[#ffffff] translate-x-1' : 'text-[#faf1f8]/70 hover:text-[#ffffff] hover:bg-[#ffffff]/5' }} transition-all duration-300">
             <span class="material-symbols-outlined" data-icon="fact_check">fact_check</span>
             <span>Pending Approvals</span>

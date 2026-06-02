@@ -69,26 +69,28 @@ class DashboardController extends Controller
 
     public function attendance()
     {
-        $companyId = auth()->user()->supervisorProfile->company_id ?? null;
-        $students = \App\Models\StudentProfile::where('company_id', $companyId)->with('user')->get();
-        $studentIds = $students->pluck('user_id');
-
-        // 1. Today's Live Status Data
-        $todayLogs = \App\Models\OjtLog::whereIn('user_id', $studentIds)
-            ->whereDate('log_date', \Carbon\Carbon::today())
-            ->get()
-            ->keyBy('user_id');
-
-        // 2. Build Weekly Attendance Matrix Tracker (Mon - Fri)
+        $companyId = auth()->user()->company_id ?? null;
+        $todayDate = \Carbon\Carbon::today()->format('Y-m-d');
         $startOfWeek = \Carbon\Carbon::now()->startOfWeek(\Carbon\Carbon::MONDAY);
-        $endOfWeek = \Carbon\Carbon::now()->endOfWeek(\Carbon\Carbon::FRIDAY);
-        
-        $weeklyLogs = \App\Models\OjtLog::whereIn('user_id', $studentIds)
-            ->whereBetween('log_date', [$startOfWeek, $endOfWeek])
-            ->get()
-            ->groupBy('user_id');
+        $endOfWeek = \Carbon\Carbon::now()->startOfWeek(\Carbon\Carbon::MONDAY)->addDays(4);
 
-        return view('supervisor.attendance', compact('students', 'todayLogs', 'weeklyLogs', 'startOfWeek'));
+        // 1. Fetch Today's Live Status
+        $todayAttendance = \App\Models\StudentProfile::where('company_id', $companyId)
+            ->with(['user', 'ojtLogs' => function($query) use ($todayDate) {
+                $query->whereDate('log_date', $todayDate);
+            }])->get();
+
+        // 2. Fetch Weekly Logs for Matrix Mapping
+        $weeklyLogs = \App\Models\OjtLog::whereIn('user_id', function($query) use ($companyId) {
+            $query->select('user_id')->from('student_profiles')->where('company_id', $companyId);
+        })
+        ->whereBetween('log_date', [$startOfWeek->format('Y-m-d'), $endOfWeek->format('Y-m-d')])
+        ->get()
+        ->groupBy(['user_id', function($item) {
+            return \Carbon\Carbon::parse($item->log_date)->format('D'); // Groups by 'Mon', 'Tue', etc.
+        }]);
+
+        return view('supervisor.attendance', compact('todayAttendance', 'weeklyLogs', 'startOfWeek'));
     }
 
     public function approvals()
@@ -151,5 +153,48 @@ class DashboardController extends Controller
         $log->save();
 
         return redirect()->back()->with('error', 'Log entry sent back to intern for mandatory revision.');
+    }
+
+    public function getCalendarData(\Illuminate\Http\Request $request, $id)
+    {
+        $student = \App\Models\StudentProfile::with('user')->findOrFail($id);
+        
+        $month = $request->get('month', \Carbon\Carbon::now()->month);
+        $year = $request->get('year', \Carbon\Carbon::now()->year);
+
+        $logs = \App\Models\OjtLog::where('user_id', $student->user_id)
+            ->whereMonth('log_date', $month)
+            ->whereYear('log_date', $year)
+            ->get();
+
+        // Compute Summary Statistics
+        $presentCount = $logs->where('status', 'Approved')->count();
+        $lateCount = $logs->filter(function($log) {
+            return $log->morning_in && \Carbon\Carbon::parse($log->morning_in)->format('H:i') > '09:00';
+        })->count();
+        $absentCount = 0; // Customize according to your institutional calendar expectations
+
+        // Map daily statuses into an easy-to-read lookup array [ 'YYYY-MM-DD' => 'status_type' ]
+        $events = [];
+        foreach ($logs as $log) {
+            $dateString = \Carbon\Carbon::parse($log->log_date)->format('Y-m-d');
+            $events[$dateString] = [
+                'status' => $log->status,
+                'time_in' => $log->morning_in,
+                'time_out' => $log->afternoon_out,
+                'is_late' => $log->morning_in && \Carbon\Carbon::parse($log->morning_in)->format('H:i') > '09:00'
+            ];
+        }
+
+        return response()->json([
+            'name' => $student->user->name,
+            'course' => $student->course ?? $student->course_major ?? 'N/A',
+            'metrics' => [
+                'present' => $presentCount,
+                'late' => $lateCount,
+                'absent' => $absentCount
+            ],
+            'events' => $events
+        ]);
     }
 }
