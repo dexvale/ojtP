@@ -34,6 +34,7 @@ Route::middleware(['auth', 'no.cache', 'role:Admin,coordinator'])->group(functio
     Route::get('/coordinator/dashboard', [\App\Http\Controllers\Coordinator\DashboardController::class, 'index'])->name('coordinator.dashboard');
 
     Route::get('/coordinator/students', [\App\Http\Controllers\Coordinator\DashboardController::class, 'students'])->name('coordinator.students');
+    Route::get('/coordinator/students/{id}', [\App\Http\Controllers\Coordinator\DashboardController::class, 'showStudent'])->name('coordinator.students.show');
     Route::post('/coordinator/students/{student}/assign', [\App\Http\Controllers\Coordinator\StudentPlacementController::class, 'assign'])->name('coordinator.students.assign');
 
     Route::get('/coordinator/reports', function () {
@@ -64,6 +65,7 @@ Route::middleware(['auth', 'no.cache', 'role:Advisor'])->group(function () {
     Route::get('/supervisor/interns/{id}/calendar-data', [\App\Http\Controllers\Supervisor\DashboardController::class, 'getCalendarData'])->name('supervisor.interns.calendar-data');
     Route::get('/supervisor/my-interns', [\App\Http\Controllers\Supervisor\InternsController::class, 'index'])->name('supervisor.interns.index');
     Route::get('/supervisor/approvals', [\App\Http\Controllers\Supervisor\DashboardController::class, 'approvals'])->name('supervisor.approvals');
+    Route::get('/supervisor/leaderboard', [\App\Http\Controllers\Supervisor\DashboardController::class, 'viewLeaderboard'])->name('supervisor.leaderboard');
     
     Route::post('/supervisor/logs/{log}/approve', [\App\Http\Controllers\Supervisor\DashboardController::class, 'approve'])->name('supervisor.logs.approve');
     Route::post('/supervisor/logs/{log}/reject', [\App\Http\Controllers\Supervisor\DashboardController::class, 'reject'])->name('supervisor.logs.reject');

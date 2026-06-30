@@ -71,20 +71,22 @@
                                     </div>
                                     <div class="min-w-0 pt-1">
                                         <h3 class="font-bold text-lg text-on-surface truncate group-hover:text-primary transition-colors">{{ $intern->user->name ?? 'Unknown Student' }}</h3>
-                                        <p class="text-xs text-on-surface/60 mt-0.5 font-medium truncate">{{ $intern->course_major ?? 'Computing Student' }}</p>
-                                        <p class="text-[11px] text-on-surface/40 mt-1 font-mono font-semibold">ID: {{ $intern->student_id ?? 'N/A' }}</p>
+                                        <p class="text-xs text-on-surface/60 mt-0.5 font-medium truncate">{{ $intern->course ?? 'Computing Student' }}</p>
+                                        <p class="text-[11px] text-on-surface/40 mt-1 font-mono font-semibold">ID: {{ $intern->student_id_number ?? 'N/A' }}</p>
                                     </div>
                                 </div>
 
                                 <div class="mt-8">
+                                    @php
+                                        $approvedHours = floatval($intern->approved_hours ?? 0);
+                                        $requiredHours = $intern->academicCourse->required_hours ?? 400;
+                                        $percent = min(($approvedHours / max($requiredHours, 1)) * 100, 100);
+                                    @endphp
                                     <div class="flex justify-between items-end mb-2">
                                         <span class="text-xs font-bold text-on-surface/60 uppercase tracking-widest">Verified Progress</span>
-                                        <span class="text-primary font-bold text-sm bg-primary/5 px-2 py-0.5 rounded border border-primary/10">{{ number_format($intern->approved_hours ?? 0, 1) }} / 400 hrs</span>
+                                        <span class="text-primary font-bold text-sm bg-primary/5 px-2 py-0.5 rounded border border-primary/10">{{ number_format($approvedHours, 1) }} / {{ $requiredHours }} hrs</span>
                                     </div>
                                     <div class="w-full bg-outline/20 h-2 rounded-full overflow-hidden">
-                                        @php
-                                            $percent = min((($intern->approved_hours ?? 0) / 400) * 100, 100);
-                                        @endphp
                                         <div class="bg-primary h-full rounded-full transition-all duration-500 relative" style="width: {{ $percent }}%">
                                             <div class="absolute inset-0 bg-white/20 w-full h-full"></div>
                                         </div>

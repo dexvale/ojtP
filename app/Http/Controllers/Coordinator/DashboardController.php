@@ -11,40 +11,37 @@ class DashboardController extends Controller
 {
     public function index()
     {
-        $students = StudentProfile::with(['user.internships.shiftLogs' => function ($query) {
-            $query->where('status', 'Approved');
-        }])->get();
-
-        $students->each(function ($student) {
-            $hours = 0;
-            if ($student->user) {
-                foreach ($student->user->internships as $internship) {
-                    $hours += $internship->shiftLogs->sum('total_hours');
-                }
-            }
-            $student->approved_hours_count = $hours;
-        });
+        $students = StudentProfile::with('company')
+            ->withSum(['ojtLogs as approved_hours' => function ($query) {
+                $query->where('status', 'Approved');
+            }], 'hours_rendered')
+            ->get();
 
         return view('coordinator.dashboard', compact('students'));
     }
 
     public function students()
     {
-        $students = StudentProfile::with(['user.internships.shiftLogs' => function ($query) {
-            $query->where('status', 'Approved');
-        }])->get();
-
-        $students->each(function ($student) {
-            $hours = 0;
-            if ($student->user) {
-                foreach ($student->user->internships as $internship) {
-                    $hours += $internship->shiftLogs->sum('total_hours');
-                }
-            }
-            $student->approved_hours_count = $hours;
-        });
+        $students = StudentProfile::with(['company', 'academicCourse'])
+            ->withSum(['ojtLogs as approved_hours' => function ($query) {
+                $query->where('status', 'Approved');
+            }], 'hours_rendered')
+            ->get();
         $companies = \App\Models\Company::orderBy('name', 'asc')->get();
 
         return view('coordinator.students', compact('students', 'companies'));
+    }
+
+    public function showStudent($id)
+    {
+        $student = \App\Models\StudentProfile::with(['company', 'user.ojtLogs' => function($q) {
+            $q->orderBy('log_date', 'desc');
+        }])
+        ->withSum(['ojtLogs as approved_hours' => function ($query) {
+            $query->where('status', 'Approved');
+        }], 'hours_rendered')
+        ->findOrFail($id);
+
+        return view('coordinator.students.show', compact('student'));
     }
 }

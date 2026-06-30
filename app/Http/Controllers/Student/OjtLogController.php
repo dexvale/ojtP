@@ -31,33 +31,41 @@ class OjtLogController extends Controller
             $photoPath = $request->file('photo_attachment')->store('ojt_photos', 'public');
         }
 
-        // Calculate hours dynamically based on inputs
-        $totalHours = 0;
+        // Calculate hours dynamically based on inputs (Secure backend validation matching frontend human decimal map)
+        $totalMinutes = 0;
         
         if ($request->filled('am_clock_in') && $request->filled('am_clock_out')) {
             $amIn = Carbon::createFromFormat('H:i', $request->am_clock_in);
             $amOut = Carbon::createFromFormat('H:i', $request->am_clock_out);
-            $totalHours += $amOut->diffInMinutes($amIn) / 60;
+            if ($amOut->lessThan($amIn)) $amOut->addDay(); // Handle cross-midnight shifts
+            $totalMinutes += $amIn->diffInMinutes($amOut);
         }
 
         if ($request->filled('pm_clock_in') && $request->filled('pm_clock_out')) {
             $pmIn = Carbon::createFromFormat('H:i', $request->pm_clock_in);
             $pmOut = Carbon::createFromFormat('H:i', $request->pm_clock_out);
-            $totalHours += $pmOut->diffInMinutes($pmIn, false) / 60;
+            if ($pmOut->lessThan($pmIn)) $pmOut->addDay();
+            $totalMinutes += $pmIn->diffInMinutes($pmOut);
         }
 
-        $ot_hours = 0;
+        $ot_minutes = 0;
         if ($request->filled('ot_clock_in') && $request->filled('ot_clock_out')) {
             $ot_in = Carbon::createFromFormat('H:i', $request->ot_clock_in);
             $ot_out = Carbon::createFromFormat('H:i', $request->ot_clock_out);
             
-            if ($ot_out->greaterThan($ot_in)) {
-                $ot_hours = $ot_in->diffInMinutes($ot_out) / 60;
-            }
+            if ($ot_out->lessThan($ot_in)) $ot_out->addDay();
+            $ot_minutes = $ot_in->diffInMinutes($ot_out);
+            $totalMinutes += $ot_minutes;
         }
 
-        // Guarantee we never save a negative hours value and add OT
-        $totalHours = abs($totalHours) + $ot_hours;
+        // Convert exactly to the human decimal structure: 4 hours 1 min = 4.01
+        $totalHrs = floor($totalMinutes / 60);
+        $totalMins = $totalMinutes % 60;
+        $humanDecimalTotal = (float) sprintf('%d.%02d', $totalHrs, $totalMins);
+
+        $otHrs = floor($ot_minutes / 60);
+        $otMins = $ot_minutes % 60;
+        $humanDecimalOT = (float) sprintf('%d.%02d', $otHrs, $otMins);
 
         OjtLog::create([
             'user_id' => auth()->id(),
@@ -68,8 +76,8 @@ class OjtLogController extends Controller
             'afternoon_out' => $request->pm_clock_out,
             'ot_clock_in' => $request->ot_clock_in,
             'ot_clock_out' => $request->ot_clock_out,
-            'ot_duration' => $ot_hours,
-            'hours_rendered' => round($totalHours, 2),
+            'ot_duration' => $humanDecimalOT,
+            'hours_rendered' => $humanDecimalTotal,
             'tasks_performed' => $request->activity_summary,
             'photo_path' => $photoPath,
             'status' => 'Pending',

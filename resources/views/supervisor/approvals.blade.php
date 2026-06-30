@@ -60,11 +60,11 @@
                 <!-- Global Actions -->
                 <div class="flex items-center gap-3 z-10 hidden sm:flex">
                     <div class="relative">
-                        <select class="appearance-none bg-surface-container border border-outline/20 pl-4 py-2.5 pr-8 rounded-lg text-sm font-bold text-on-surface/70 shadow-sm focus:ring-primary focus:border-primary cursor-pointer w-44 outline-none">
-                            <option>Sort by: Oldest First</option>
-                            <option>Sort by: Newest First</option>
-                            <option>Sort by: Intern Name</option>
-                            <option>Sort by: Highest Hours</option>
+                        <select onchange="window.location.href=this.value" class="appearance-none bg-surface-container border border-outline/20 pl-4 py-2.5 pr-8 rounded-lg text-sm font-bold text-on-surface/70 shadow-sm focus:ring-primary focus:border-primary cursor-pointer w-44 outline-none">
+                            <option value="?status={{ $status }}&sort=oldest_first" {{ $sortBy === 'oldest_first' ? 'selected' : '' }}>Sort by: Oldest First</option>
+                            <option value="?status={{ $status }}&sort=newest_first" {{ $sortBy === 'newest_first' ? 'selected' : '' }}>Sort by: Newest First</option>
+                            <option value="?status={{ $status }}&sort=intern_name" {{ $sortBy === 'intern_name' ? 'selected' : '' }}>Sort by: Intern Name</option>
+                            <option value="?status={{ $status }}&sort=highest_hours" {{ $sortBy === 'highest_hours' ? 'selected' : '' }}>Sort by: Highest Hours</option>
                         </select>
                         <span class="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 text-on-surface/50 pointer-events-none text-[20px]">expand_more</span>
                     </div>
@@ -105,7 +105,7 @@
                             </div>
                         </div>
                         <div class="bg-surface border border-outline/30 px-3 py-1.5 rounded-lg shadow-sm">
-                            <span class="text-xs font-bold text-on-surface/70 tracking-wide">Hours Logged: <span class="text-primary font-black ml-1 text-sm font-headline">{{ number_format($log->hours_rendered, 1) }} hrs</span></span>
+                            <span class="text-xs font-bold text-on-surface/70 tracking-wide">Hours Logged: <span class="text-primary font-black ml-1 text-sm font-headline">{{ number_format($log->hours_rendered, 2) }} hrs</span></span>
                         </div>
                     </div>
 
@@ -220,7 +220,7 @@
             </div>
             
             <div class="mt-8">
-                {{ $logs->appends(['status' => $status])->links() }}
+                {{ $logs->withQueryString()->links() }}
             </div>
 
         </div>

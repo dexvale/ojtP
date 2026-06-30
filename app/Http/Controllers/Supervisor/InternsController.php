@@ -12,7 +12,7 @@ class InternsController extends Controller
         $companyId = auth()->user()->company_id ?? null;
 
         $interns = StudentProfile::where('company_id', $companyId)
-            ->with('user')
+            ->with(['user', 'academicCourse'])
             ->withSum(['ojtLogs as approved_hours' => function ($query) {
                 $query->where('status', 'Approved');
             }], 'hours_rendered')

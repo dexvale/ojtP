@@ -34,4 +34,9 @@ class StudentProfile extends Model
     {
         return $this->hasMany(OjtLog::class, 'user_id', 'user_id');
     }
+
+    public function academicCourse()
+    {
+        return $this->belongsTo(Course::class, 'course', 'course_name');
+    }
 }

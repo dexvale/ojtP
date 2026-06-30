@@ -121,7 +121,7 @@
                             <th class="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Student Name</th>
                             <th class="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Course & Year</th>
                             <th class="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Placement Status</th>
-                            <th class="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">OJT Progress (400 hrs)</th>
+                            <th class="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">OJT Progress</th>
                             <th class="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider text-right">Actions</th>
                         </tr>
                     </thead>
@@ -143,31 +143,70 @@
                                 <p class="text-sm font-medium text-slate-900">{{ $student->course }}</p>
                             </td>
                             <td class="px-6 py-4">
-                                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-800 border border-amber-200/50">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-amber-600 mr-1.5"></span>
-                                    {{ ($student->approved_hours_count ?? 0) >= $student->required_hours && $student->required_hours > 0 ? 'Completed' : 'In Progress' }}
-                                </span>
+                                @if($student->company)
+                                    <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-green-50 border border-green-100 text-green-700 text-xs font-semibold">
+                                        <span class="material-symbols-outlined text-sm">corporate_fare</span>
+                                        <span class="truncate max-w-[150px]">{{ $student->company->name }}</span>
+                                    </div>
+                                @else
+                                    <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-50 border border-amber-100 text-amber-700 text-xs font-semibold">
+                                        <span class="material-symbols-outlined text-sm">pending</span>
+                                        <span>Unassigned</span>
+                                    </div>
+                                @endif
                             </td>
                             <td class="px-6 py-4">
-                                <div class="w-full max-w-[180px]">
-                                    <div class="flex justify-between items-center mb-1.5">
-                                        <span class="text-xs font-semibold text-slate-700">{{ $student->approved_hours_count ?? 0 }} / {{ $student->required_hours }} hrs</span>
-                                        <span class="text-xs font-bold text-slate-400">{{ $student->required_hours > 0 ? round(($student->approved_hours_count / $student->required_hours) * 100) : 0 }}%</span>
+                                @php
+                                    $approvedHours = floatval($student->approved_hours ?? 0);
+                                    $requiredHours = $student->academicCourse->required_hours ?? 400;
+                                    $progressPercent = min(($approvedHours / max($requiredHours, 1)) * 100, 100);
+
+                                    // Dynamic Color State Selector Logic
+                                    if ($progressPercent <= 25) {
+                                        $barColor = 'bg-amber-500';
+                                        $textColor = 'text-amber-700';
+                                    } elseif ($progressPercent < 90) {
+                                        $barColor = 'bg-purple-700';
+                                        $textColor = 'text-purple-700';
+                                    } else {
+                                        $barColor = 'bg-emerald-600';
+                                        $textColor = 'text-emerald-700';
+                                    }
+                                @endphp
+                                
+                                <div class="w-full max-w-[170px] flex flex-col gap-1.5">
+                                    <!-- Text Labels Top Layer: Aligned and De-cluttered -->
+                                    <div class="flex justify-between items-center text-xs font-medium">
+                                        <span class="font-mono text-gray-600">{{ number_format($approvedHours, 2) }} <span class="text-[10px] text-gray-400">/ {{ $requiredHours }} hrs</span></span>
+                                        <span class="{{ $textColor }} font-bold font-mono">{{ round($progressPercent) }}%</span>
                                     </div>
-                                    <div class="h-2 w-full bg-slate-100 rounded-full overflow-hidden shadow-inner">
-                                        <div class="h-full bg-primary rounded-full transition-all duration-500" style="width: {{ $student->required_hours > 0 ? round(($student->approved_hours_count / $student->required_hours) * 100) : 0 }}%"></div>
+                                    
+                                    <!-- Track Rail Background Container -->
+                                    <div class="w-full bg-gray-100 h-2 rounded-full overflow-hidden p-[1px] border border-gray-100">
+                                        <!-- Dynamic Filled State Strip Indicator -->
+                                        <div class="{{ $barColor }} h-full rounded-full transition-all duration-700 ease-out shadow-sm" 
+                                             style="width: {{ $progressPercent }}%"></div>
                                     </div>
                                 </div>
                             </td>
-                            <td class="px-6 py-4 text-right flex items-center justify-end gap-2">
-                                <button onclick="openAssignModal({{ $student->id }}, '{{ $student->first_name }} {{ $student->last_name }}')" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-purple-50 text-purple-700 text-xs font-bold rounded-lg hover:bg-primary hover:text-white transition-all focus:ring-2 focus:ring-primary/20">
-                                    <span class="material-symbols-outlined text-[16px]">apartment</span>
-                                    Assign Placement
-                                </button>
-                                <button class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-primary/30 text-primary text-xs font-semibold rounded-lg hover:bg-purple-50 hover:border-primary/50 transition-all focus:ring-2 focus:ring-primary/20">
-                                    View Profile
-                                    <span class="material-symbols-outlined text-[16px]">chevron_right</span>
-                                </button>
+                            <td class="px-6 py-4 text-right">
+                                <div class="flex items-center justify-end gap-2">
+                                    @if(!$student->company_id)
+                                        <button onclick="openAssignModal({{ $student->id }}, '{{ addslashes($student->first_name . ' ' . $student->last_name) }}')" class="border border-purple-200 hover:bg-purple-50 text-purple-700 font-semibold text-sm rounded-lg px-3 py-2 transition-colors duration-150 flex items-center gap-1.5">
+                                            <span class="material-symbols-outlined text-sm">business_center</span>
+                                            <span>Assign Placement</span>
+                                        </button>
+                                    @else
+                                        <button onclick="openAssignModal({{ $student->id }}, '{{ addslashes($student->first_name . ' ' . $student->last_name) }}')" class="text-gray-400 hover:text-purple-700 p-2 rounded-lg hover:bg-gray-50 transition-colors" title="Change Company Assignment">
+                                            <span class="material-symbols-outlined text-sm">edit</span>
+                                        </button>
+                                    @endif
+
+                                    <a href="{{ route('coordinator.students.show', $student->id) }}" class="border border-gray-200 text-gray-700 font-semibold text-sm rounded-lg px-3 py-2 hover:bg-gray-50 transition-colors duration-150 flex items-center gap-1">
+                                        <span>View Profile</span>
+                                        <span class="material-symbols-outlined text-sm">chevron_right</span>
+                                    </a>
+                                </div>
                             </td>
                         </tr>
                         @endforeach

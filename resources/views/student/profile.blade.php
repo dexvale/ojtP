@@ -107,6 +107,27 @@
             @csrf
             @method('PUT')
 
+            @if(session('success'))
+                <div class="mb-6 p-4 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-700 flex items-center gap-3 shadow-sm">
+                    <span class="material-symbols-outlined">check_circle</span>
+                    <p class="font-bold text-sm">{{ session('success') }}</p>
+                </div>
+            @endif
+
+            @if($errors->any())
+                <div class="mb-6 p-4 rounded-lg bg-rose-50 border border-rose-200 text-rose-700 flex items-start gap-3 shadow-sm">
+                    <span class="material-symbols-outlined mt-0.5">error</span>
+                    <div>
+                        <p class="font-bold text-sm mb-1">Please fix the following errors:</p>
+                        <ul class="list-disc list-inside text-xs font-medium space-y-1">
+                            @foreach($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                </div>
+            @endif
+
             <div class="space-y-5">
 
                 {{-- ═══ Card 1: Basic Information ═══ --}}
@@ -247,6 +268,23 @@
                                     <span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-outline text-[18px] pointer-events-none">calendar_today</span>
                                 </div>
                             </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-outline uppercase tracking-widest mb-1.5">
+                                    Course / Program <span class="text-error">*</span>
+                                </label>
+                                <div class="relative">
+                                    <select name="course" disabled
+                                            class="profile-input w-full bg-surface-container rounded-lg px-3.5 py-2.5 text-sm font-medium text-on-surface border border-surface-variant/30 focus:ring-2 focus:ring-primary/40 focus:border-transparent transition-all disabled:opacity-60 disabled:cursor-not-allowed appearance-none">
+                                        <option value="">Select a Course</option>
+                                        @foreach($courses as $courseItem)
+                                            <option value="{{ $courseItem->course_name }}" {{ (old('course', $user->studentProfile->course ?? '') == $courseItem->course_name) ? 'selected' : '' }}>
+                                                {{ $courseItem->course_name }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                    <span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-outline text-[18px] pointer-events-none">expand_more</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -338,6 +376,13 @@
     toggleBtn?.addEventListener('click', () => {
         sidebar.classList.contains('-translate-x-full') ? openSidebar() : closeSidebar();
     });
+
+    // Auto-open edit mode if there are validation errors
+    @if($errors->any())
+        document.addEventListener('DOMContentLoaded', () => {
+            toggleEdit();
+        });
+    @endif
 </script>
 </body>
 </html>

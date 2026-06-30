@@ -128,7 +128,7 @@
                 <div class="flex-grow space-y-5 text-center sm:text-left">
                     <div>
                         <h2 class="text-2xl font-bold font-headline text-primary mb-1">Internship Progress</h2>
-                        <p class="text-sm text-on-surface-variant">Track your rendered hours against the 400-hour requirement.</p>
+                        <p class="text-sm text-on-surface-variant">Track your rendered hours against the {{ $requiredHours }}-hour requirement.</p>
                     </div>
                     <div class="grid grid-cols-3 gap-3">
                         <div class="space-y-1">
@@ -220,6 +220,7 @@
             <section class="col-span-12 lg:col-span-8 bg-surface-container-lowest rounded-xl shadow-sm border border-surface-variant/20 overflow-hidden">
                 <form method="POST" action="{{ route('student.logs.store') }}" id="shift-form" enctype="multipart/form-data">
                     @csrf
+                    <input type="hidden" name="hours_rendered" id="hours_rendered_input" value="0.00">
 
                     @if($errors->any())
                         <div class="bg-error/10 text-error p-4 text-sm border-b border-error/20">
@@ -279,7 +280,7 @@
                             </div>
                             <div class="flex items-center justify-between pt-3 border-t border-surface-variant/20">
                                 <span class="text-xs text-on-surface-variant font-medium">Duration</span>
-                                <span id="morning-duration" class="text-sm font-extrabold font-headline text-primary">0.00 Hours</span>
+                                <span id="morning-duration" class="text-sm font-extrabold font-headline text-primary">0 hrs 0 mins</span>
                             </div>
                         </div>
 
@@ -309,7 +310,7 @@
                             </div>
                             <div class="flex items-center justify-between pt-3 border-t border-surface-variant/20">
                                 <span class="text-xs text-on-surface-variant font-medium">Duration</span>
-                                <span id="afternoon-duration" class="text-sm font-extrabold font-headline text-primary">0.00 Hours</span>
+                                <span id="afternoon-duration" class="text-sm font-extrabold font-headline text-primary">0 hrs 0 mins</span>
                             </div>
                         </div>
                     </div>
@@ -389,7 +390,7 @@
                             </div>
                         </div>
                         <div class="text-right mt-2 text-xs font-semibold text-purple-900">
-                            Duration: <span id="ot_duration_display">0.00 Hours</span>
+                            Duration: <span id="ot_duration_display">0 hrs 0 mins</span>
                         </div>
                     </div>
 
@@ -397,7 +398,7 @@
                     <div class="flex items-center justify-between px-6 py-4 border-t border-surface-variant/20 bg-surface-container-lowest">
                         <div>
                             <p class="text-xs text-on-surface-variant font-medium mb-0.5">Total Shift Duration:</p>
-                            <p id="total-duration" class="text-3xl font-extrabold font-headline text-primary leading-none">0.00 <span class="text-lg font-bold text-on-surface-variant">hours</span></p>
+                            <p id="total-duration" class="text-3xl font-extrabold font-headline text-primary leading-none">0 <span class="text-lg font-bold text-on-surface-variant">hrs</span> 0 <span class="text-lg font-bold text-on-surface-variant">mins</span></p>
                         </div>
                         <button type="submit" id="save-shift-btn"
                                 class="flex items-center gap-2 bg-primary text-on-primary px-6 py-3 rounded-xl font-bold text-sm shadow-lg shadow-primary/25 hover:opacity-90 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
@@ -487,7 +488,7 @@
                                 <td class="py-4 px-4 text-sm text-on-surface-variant max-w-xs lg:max-w-md">
                                     <span class="line-clamp-1">{{ Str::limit($log->tasks_performed, 70) }}</span>
                                 </td>
-                                <td class="py-4 px-4 text-sm font-bold text-on-surface whitespace-nowrap">{{ number_format($log->hours_rendered, 1) }} hrs</td>
+                                <td class="py-4 px-4 text-sm font-bold text-on-surface whitespace-nowrap">{{ number_format($log->hours_rendered, 2) }} hrs</td>
                                 <td class="py-4 px-4">
                                     @if($log->status === 'Pending')
                                         <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-amber-50 text-amber-700 border border-amber-100">Pending</span>
@@ -554,98 +555,77 @@
     const saveBtn = document.getElementById('save-shift-btn');
     const form = document.getElementById('shift-form');
 
-    function parseTime(val) {
-        if (!val) return null;
-        const [h, m] = val.split(':').map(Number);
-        return h * 60 + m;
+    function timeToMinutes(timeString) {
+        if (!timeString) return null;
+        const [hours, minutes] = timeString.split(':').map(Number);
+        return (hours * 60) + minutes;
     }
 
-    function checkSession(inId, outId) {
-        const inEl = document.getElementById(inId);
-        const outEl = document.getElementById(outId);
-        if(!inEl || !outEl) return { mins: 0, valid: true };
+    function calculateSessionDuration(timeInId, timeOutId, displayId) {
+        const timeInEl = document.getElementById(timeInId);
+        const timeOutEl = document.getElementById(timeOutId);
 
-        const inVal = parseTime(inEl.value);
-        const outVal = parseTime(outEl.value);
-
-        if (inVal !== null && outVal !== null) {
-            if (outVal <= inVal) {
-                outEl.classList.add('ring-2', 'ring-error', 'text-error');
-                return { mins: 0, valid: false };
-            } else {
-                outEl.classList.remove('ring-2', 'ring-error', 'text-error');
-                return { mins: outVal - inVal, valid: true };
-            }
+        if (!timeInEl || !timeOutEl || !timeInEl.value || !timeOutEl.value) {
+            const displayEl = document.getElementById(displayId);
+            if (displayEl) displayEl.innerText = '0 hrs 0 mins';
+            return 0;
         }
+
+        const minutesIn = timeToMinutes(timeInEl.value);
+        const minutesOut = timeToMinutes(timeOutEl.value);
+
+        // Handle cases where checkout happens after midnight if applicable
+        let diffMinutes = minutesOut - minutesIn;
+        if (diffMinutes < 0) diffMinutes += 24 * 60; 
+
+        // Calculate discrete hours and remaining minutes
+        const hrs = Math.floor(diffMinutes / 60);
+        const mins = diffMinutes % 60;
         
-        outEl.classList.remove('ring-2', 'ring-error', 'text-error');
-        return { mins: 0, valid: true };
+        // Display cleanly: e.g., "4 hrs 1 min"
+        const displayEl = document.getElementById(displayId);
+        if (displayEl) displayEl.innerText = `${hrs} hrs ${mins} min${mins !== 1 ? 's' : ''}`;
+        
+        // Remove error states since we handle midnight crossing
+        timeOutEl.classList.remove('ring-2', 'ring-error', 'text-error');
+        
+        return diffMinutes;
     }
 
     function updateDurations() {
-        const amData = checkSession('am_clock_in', 'am_clock_out');
-        const pmData = checkSession('pm_clock_in', 'pm_clock_out');
-        const otData = checkSession('ot_clock_in', 'ot_clock_out');
+        const morningMins = calculateSessionDuration('am_clock_in', 'am_clock_out', 'morning-duration');
+        const afternoonMins = calculateSessionDuration('pm_clock_in', 'pm_clock_out', 'afternoon-duration');
         
-        // Cross-session check
-        let crossValid = true;
-        const amOutEl = document.getElementById('am_clock_out');
-        const pmInEl = document.getElementById('pm_clock_in');
-        if (amOutEl && pmInEl && amOutEl.value && pmInEl.value) {
-            const amOutVal = parseTime(amOutEl.value);
-            const pmInVal = parseTime(pmInEl.value);
-            if (pmInVal <= amOutVal) {
-                pmInEl.classList.add('ring-2', 'ring-error', 'text-error');
-                crossValid = false;
-            } else {
-                pmInEl.classList.remove('ring-2', 'ring-error', 'text-error');
-            }
-        }
-
-        // Cross-session check OT
-        const pmOutEl = document.getElementById('pm_clock_out');
-        const otInEl = document.getElementById('ot_clock_in');
+        let otMins = 0;
         const otToggle = document.getElementById('overtime_toggle');
-        if (pmOutEl && otInEl && pmOutEl.value && otInEl.value && otToggle && otToggle.checked) {
-            const pmOutVal = parseTime(pmOutEl.value);
-            const otInVal = parseTime(otInEl.value);
-            if (otInVal <= pmOutVal) {
-                otInEl.classList.add('ring-2', 'ring-error', 'text-error');
-                crossValid = false;
-            } else {
-                otInEl.classList.remove('ring-2', 'ring-error', 'text-error');
-            }
-        }
-
-        const amHours = amData.mins / 60;
-        const pmHours = pmData.mins / 60;
-        let otHours = 0;
         
         if (otToggle && otToggle.checked) {
-            otHours = otData.mins / 60;
+            otMins = calculateSessionDuration('ot_clock_in', 'ot_clock_out', 'ot_duration_display');
+        } else {
+            const otDisplay = document.getElementById('ot_duration_display');
+            if(otDisplay) otDisplay.innerText = '0 hrs 0 mins';
         }
 
-        const totalHours = amHours + pmHours + otHours;
-        const isValid = amData.valid && pmData.valid && (!otToggle || !otToggle.checked || otData.valid) && crossValid;
-
-        const morningDurationEl = document.getElementById('morning-duration');
-        if (morningDurationEl) morningDurationEl.textContent = amHours.toFixed(2) + ' Hours';
+        const totalMinutes = morningMins + afternoonMins + otMins;
         
-        const afternoonDurationEl = document.getElementById('afternoon-duration');
-        if (afternoonDurationEl) afternoonDurationEl.textContent = pmHours.toFixed(2) + ' Hours';
-
-        const otDurationEl = document.getElementById('ot_duration_display');
-        if (otDurationEl) otDurationEl.textContent = otHours.toFixed(2) + ' Hours';
+        const totalHrs = Math.floor(totalMinutes / 60);
+        const totalMins = totalMinutes % 60;
 
         const totalDurationEl = document.getElementById('total-duration');
         if (totalDurationEl) {
-            totalDurationEl.innerHTML = totalHours.toFixed(2) + ' <span class="text-lg font-bold text-on-surface-variant">hours</span>';
+            totalDurationEl.innerHTML = `${totalHrs} <span class="text-lg font-bold text-on-surface-variant">hrs</span> ${totalMins} <span class="text-lg font-bold text-on-surface-variant">min${totalMins !== 1 ? 's' : ''}</span>`;
+        }
+        
+        const paddedMinutesString = totalMins < 10 ? '0' + totalMins : totalMins;
+        const humanDecimalValue = `${totalHrs}.${paddedMinutesString}`;
+        
+        const hiddenInput = document.getElementById('hours_rendered_input');
+        if (hiddenInput) {
+            hiddenInput.value = parseFloat(humanDecimalValue).toFixed(2);
         }
 
-        if (!isValid || totalHours === 0) {
-            if(saveBtn) saveBtn.disabled = true;
-        } else {
-            if(saveBtn) saveBtn.disabled = false;
+        if (saveBtn) {
+            saveBtn.disabled = totalMinutes === 0;
         }
     }
 

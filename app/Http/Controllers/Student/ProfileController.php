@@ -11,7 +11,8 @@ class ProfileController extends Controller
     public function edit()
     {
         $user = auth()->user()->load('studentProfile', 'company');
-        return view('student.profile', compact('user'));
+        $courses = \App\Models\Course::orderBy('course_name')->get();
+        return view('student.profile', compact('user', 'courses'));
     }
 
     public function update(Request $request)
@@ -31,6 +32,7 @@ class ProfileController extends Controller
             'mother_name' => 'nullable|string|max:255',
             'emergency_contact_person' => 'required|string|max:255',
             'emergency_contact_number' => 'required|string|max:20',
+            'course' => 'required|string|exists:courses,course_name',
         ]);
 
         // Update credentials on the core users table
@@ -38,6 +40,13 @@ class ProfileController extends Controller
 
         // Save personal, family, and contact metadata to the profiles table
         $profile->fill($validated);
+        
+        // Sync the required hours dynamically from the selected course
+        $courseModel = \App\Models\Course::where('course_name', $request->course)->first();
+        if ($courseModel) {
+            $profile->required_hours = $courseModel->required_hours;
+        }
+
         $profile->save();
 
         return redirect()->back()->with('success', 'Your student profile information has been successfully synchronized and updated!');

@@ -58,7 +58,7 @@
             </div>
             <div class="flex items-center gap-2 bg-surface-container px-4 py-2 rounded-lg shadow-sm border border-outline/30">
                 <span class="material-symbols-outlined text-outline">calendar_today</span>
-                <span class="text-sm font-bold text-on-surface/80">Today: October 24, 2024</span>
+                <span class="text-sm font-bold text-on-surface/80">Today: {{ now()->format('F j, Y') }}</span>
             </div>
         </div>
 
@@ -109,7 +109,7 @@
                     <span class="text-sm font-bold text-on-surface/60 uppercase tracking-widest">Hours Pending Review</span>
                 </div>
                 <div class="flex items-end justify-between">
-                    <h2 class="text-3xl font-extrabold font-headline text-warning">{{ number_format($pendingHours, 1) }} <span class="text-xs text-gray-400">hrs</span></h2>
+                    <h2 class="text-3xl font-extrabold font-headline text-warning">{{ number_format($pendingHours, 2) }} <span class="text-xs text-gray-400">hrs</span></h2>
                     <span class="text-xs font-bold text-error flex items-center gap-1 bg-error/10 px-2 py-0.5 rounded border border-error/20">
                         <span class="material-symbols-outlined text-[14px]">error</span> {{ $pendingLogs->count() }} Action(s) Required
                     </span>
@@ -142,7 +142,8 @@
                     @forelse($topPerformers as $index => $profile)
                         @php
                             $approvedHours = $profile->user->ojt_logs_sum_hours_rendered ?? 0;
-                            $progressPercent = min(($approvedHours / 400) * 100, 100);
+                            $requiredHours = $profile->academicCourse->required_hours ?? $profile->required_hours ?? 400;
+                            $progressPercent = min(($approvedHours / max($requiredHours, 1)) * 100, 100);
                         @endphp
                         <!-- Rank {{ $index + 1 }} -->
                         <div class="flex items-center gap-4 group">
@@ -162,7 +163,7 @@
                                         <p class="text-sm font-bold text-on-surface group-hover:text-primary transition-colors truncate">{{ $profile->user->name }}</p>
                                         <p class="text-[10px] font-semibold text-on-surface/50 truncate">{{ $profile->course ?? 'Intern' }}</p>
                                     </div>
-                                    <span class="text-[10px] font-bold {{ $index === 0 ? 'text-primary bg-primary/5 border border-primary/10' : 'text-on-surface/70 bg-surface border border-outline/20' }} px-2 py-0.5 rounded whitespace-nowrap">{{ number_format($approvedHours, 1) }}/400 hrs</span>
+                                    <span class="text-[10px] font-bold {{ $index === 0 ? 'text-primary bg-primary/5 border border-primary/10' : 'text-on-surface/70 bg-surface border border-outline/20' }} px-2 py-0.5 rounded whitespace-nowrap">{{ number_format($approvedHours, 2) }}/{{ $requiredHours }} hrs</span>
                                 </div>
                                 <div class="w-full h-1.5 bg-outline/20 rounded-full overflow-hidden mt-2">
                                     <div class="h-full bg-primary{{ $index > 0 ? '/'.(90 - ($index * 10)) : '' }} rounded-full transition-all" style="width: {{ $progressPercent }}%"></div>
@@ -176,9 +177,9 @@
                     @endforelse
                 </div>
                 
-                <button class="w-full mt-auto pt-4 text-xs font-bold text-primary hover:text-primary/80 transition-colors flex items-center justify-center gap-1">
+                <a href="{{ route('supervisor.leaderboard') }}" class="w-full mt-auto pt-4 text-xs font-bold text-primary hover:text-primary/80 transition-colors flex items-center justify-center gap-1">
                     View Full Leaderboard <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
-                </button>
+                </a>
             </div>
         </div>
     </main>

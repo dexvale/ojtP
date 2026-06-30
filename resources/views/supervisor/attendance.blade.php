@@ -132,7 +132,7 @@
                 <div class="flex justify-between items-center mb-6">
                     <h2 class="text-xl font-bold font-headline text-on-surface tracking-tight flex items-center gap-2">
                         <span class="material-symbols-outlined text-primary">view_week</span> Weekly Overview 
-                        <span class="text-xs font-medium font-body text-on-surface/40 ml-2 tracking-normal">({{ $startOfWeek->format('D, M d') }} - {{ \Carbon\Carbon::parse($startOfWeek)->addDays(4)->format('D, M d') }})</span>
+                        <span class="text-xs font-medium font-body text-on-surface/40 ml-2 tracking-normal">({{ $startOfWeek->format('D, M d') }} - {{ \Carbon\Carbon::parse($startOfWeek)->addDays(6)->format('D, M d') }})</span>
                     </h2>
                 </div>
 
@@ -144,8 +144,10 @@
                                 <th class="py-4 px-2 border border-outline/20 text-[10px] font-bold uppercase tracking-widest text-on-surface/50 w-24">Mon</th>
                                 <th class="py-4 px-2 border border-outline/20 text-[10px] font-bold uppercase tracking-widest text-on-surface/50 w-24">Tue</th>
                                 <th class="py-4 px-2 border border-outline/20 text-[10px] font-bold uppercase tracking-widest text-on-surface/50 w-24">Wed</th>
-                                <th class="py-4 px-2 border border-outline/20 text-[10px] font-bold uppercase tracking-widest text-on-surface/50 w-24 bg-primary/5 text-primary">Thu <span class="lowercase tracking-normal">(Today)</span></th>
-                                <th class="py-4 px-2 border border-outline/20 text-[10px] font-bold uppercase tracking-widest text-on-surface/50 w-24 opacity-60 rounded-tr-lg">Fri</th>
+                                <th class="py-4 px-2 border border-outline/20 text-[10px] font-bold uppercase tracking-widest text-on-surface/50 w-24 {{ \Carbon\Carbon::today()->isThursday() ? 'bg-primary/5 text-primary' : '' }}">Thu {{ \Carbon\Carbon::today()->isThursday() ? '(Today)' : '' }}</th>
+                                <th class="py-4 px-2 border border-outline/20 text-[10px] font-bold uppercase tracking-widest text-on-surface/50 w-24 {{ \Carbon\Carbon::today()->isFriday() ? 'bg-primary/5 text-primary' : 'opacity-60' }}">Fri {{ \Carbon\Carbon::today()->isFriday() ? '(Today)' : '' }}</th>
+                                <th class="py-4 px-2 border border-outline/20 text-[10px] font-bold uppercase tracking-widest text-on-surface/50 w-24 {{ \Carbon\Carbon::today()->isSaturday() ? 'bg-primary/5 text-primary' : '' }}">Sat {{ \Carbon\Carbon::today()->isSaturday() ? '(Today)' : '' }}</th>
+                                <th class="py-4 px-2 border border-outline/20 text-[10px] font-bold uppercase tracking-widest text-on-surface/50 w-24 rounded-tr-lg {{ \Carbon\Carbon::today()->isSunday() ? 'bg-primary/5 text-primary' : '' }}">Sun {{ \Carbon\Carbon::today()->isSunday() ? '(Today)' : '' }}</th>
                             </tr>
                         </thead>
                         <tbody class="bg-white">
@@ -155,7 +157,7 @@
                             @endphp
                             <tr class="hover:bg-surface/30">
                                 <td class="py-3 px-4 border border-outline/10 text-left font-bold text-sm text-on-surface rounded-bl-lg">{{ $intern->user->name }}</td>
-                                @for($i = 0; $i < 5; $i++)
+                                @for($i = 0; $i < 7; $i++)
                                     @php
                                         $dateObj = $startOfWeek->copy()->addDays($i);
                                         $dayName = $dateObj->format('D'); // e.g. Mon, Tue

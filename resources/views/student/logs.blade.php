@@ -133,7 +133,7 @@
                                 {{ $log->tasks_performed }}
                             </td>
                             <td class="py-4 px-4 text-sm font-bold text-on-surface whitespace-nowrap">
-                                {{ number_format($log->hours_rendered, 1) }} hrs
+                                {{ number_format($log->hours_rendered, 2) }} hrs
                             </td>
                             <td class="py-4 px-4">
                                 @if(strtoupper($log->status) === 'APPROVED')
@@ -156,7 +156,7 @@
                                             class="text-xs font-semibold text-purple-700 hover:text-purple-900 view-log-btn"
                                             data-date="{{ \Carbon\Carbon::parse($log->log_date)->format('M d, Y') }}"
                                             data-summary="{{ $log->tasks_performed }}"
-                                            data-hours="{{ number_format($log->hours_rendered, 1) }}"
+                                            data-hours="{{ number_format($log->hours_rendered, 2) }}"
                                             data-times="AM: {{ $log->morning_in ? \Carbon\Carbon::parse($log->morning_in)->format('h:i A') : '--' }} - {{ $log->morning_out ? \Carbon\Carbon::parse($log->morning_out)->format('h:i A') : '--' }} | PM: {{ $log->afternoon_in ? \Carbon\Carbon::parse($log->afternoon_in)->format('h:i A') : '--' }} - {{ $log->afternoon_out ? \Carbon\Carbon::parse($log->afternoon_out)->format('h:i A') : '--' }}"
                                             data-photo="{{ $log->photo_path ? asset('storage/' . $log->photo_path) : '' }}">
                                         View Entry

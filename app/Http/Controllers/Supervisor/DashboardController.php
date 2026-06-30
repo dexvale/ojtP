@@ -38,7 +38,7 @@ class DashboardController extends Controller
 
         // 3. Top Performers (Sum of approved hours per student, taking top 3)
         $topPerformers = \App\Models\StudentProfile::where('company_id', $companyId)
-            ->with(['user' => function($query) {
+            ->with(['academicCourse', 'user' => function($query) {
                 $query->withSum(['ojtLogs' => function($q) {
                     $q->where('status', 'Approved');
                 }], 'hours_rendered');
@@ -72,7 +72,7 @@ class DashboardController extends Controller
         $companyId = auth()->user()->company_id ?? null;
         $todayDate = \Carbon\Carbon::today()->format('Y-m-d');
         $startOfWeek = \Carbon\Carbon::now()->startOfWeek(\Carbon\Carbon::MONDAY);
-        $endOfWeek = \Carbon\Carbon::now()->startOfWeek(\Carbon\Carbon::MONDAY)->addDays(4);
+        $endOfWeek = \Carbon\Carbon::now()->endOfWeek(\Carbon\Carbon::SUNDAY);
 
         // 1. Fetch Today's Live Status
         $todayAttendance = \App\Models\StudentProfile::where('company_id', $companyId)
@@ -96,6 +96,7 @@ class DashboardController extends Controller
     public function approvals()
     {
         $status = ucfirst(strtolower(request('status', 'Pending')));
+        $sortBy = request('sort', 'oldest_first');
         
         $user = auth()->user();
         $companyId = $user->company_id ?? $user->supervisorProfile->company_id ?? null;
@@ -103,20 +104,36 @@ class DashboardController extends Controller
         if ($companyId) {
             $internUserIds = \App\Models\StudentProfile::where('company_id', $companyId)->pluck('user_id');
             
-            $logs = \App\Models\OjtLog::whereIn('user_id', $internUserIds)
+            $query = \App\Models\OjtLog::whereIn('user_id', $internUserIds)
                 ->where('status', $status)
-                ->with('user.studentProfile')
-                ->latest()
-                ->paginate(10);
+                ->with('user.studentProfile');
         } else {
             // Debugging fall-back: grab all pending logs for local development testing
-            $logs = \App\Models\OjtLog::where('status', $status)
-                ->with('user.studentProfile')
-                ->latest()
-                ->paginate(10);
+            $query = \App\Models\OjtLog::where('status', $status)
+                ->with('user.studentProfile');
         }
 
-        return view('supervisor.approvals', compact('logs', 'status'));
+        switch ($sortBy) {
+            case 'newest_first':
+                $query->orderBy('created_at', 'desc');
+                break;
+            case 'intern_name':
+                $query->join('users', 'ojt_logs.user_id', '=', 'users.id')
+                      ->select('ojt_logs.*')
+                      ->orderBy('users.name', 'asc');
+                break;
+            case 'highest_hours':
+                $query->orderBy('hours_rendered', 'desc');
+                break;
+            case 'oldest_first':
+            default:
+                $query->orderBy('created_at', 'asc');
+                break;
+        }
+
+        $logs = $query->paginate(10)->withQueryString();
+
+        return view('supervisor.approvals', compact('logs', 'status', 'sortBy'));
     }
 
     public function approve(\Illuminate\Http\Request $request, \App\Models\OjtLog $log)
@@ -196,5 +213,26 @@ class DashboardController extends Controller
             ],
             'events' => $events
         ]);
+    }
+    public function viewLeaderboard()
+    {
+        $user = auth()->user();
+        $companyId = $user->company_id ?? $user->supervisorProfile->company_id ?? null;
+
+        if (!$companyId) {
+            return redirect()->back()->with('error', 'You are not currently linked to an active industry partner company.');
+        }
+
+        // Aggregate approved hours specifically for students inside this company
+        $leaderboard = \App\Models\StudentProfile::with('user')
+            ->where('company_id', $companyId)
+            ->addSelect(['approved_hours' => \App\Models\OjtLog::selectRaw('COALESCE(SUM(hours_rendered), 0)')
+                ->whereColumn('user_id', 'student_profiles.user_id')
+                ->where('status', 'Approved')
+            ])
+            ->orderBy('approved_hours', 'desc')
+            ->get(); // Using get() since a single company typically has a manageable group of interns
+
+        return view('supervisor.leaderboard', compact('leaderboard'));
     }
 }

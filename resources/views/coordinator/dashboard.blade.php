@@ -89,21 +89,6 @@
                 <p class="text-on-surface/60 font-medium" style="">Monitoring progress for Academic Year
                     2023-2024</p>
             </div>
-            <div class="flex gap-3">
-                <button
-                    class="flex items-center gap-2 px-5 py-2.5 bg-surface-container border border-outline/20 rounded-lg text-sm font-semibold text-primary hover:bg-outline/10 transition-all active:scale-95"
-                    style="">
-                    <span class="material-symbols-outlined text-[18px]" data-icon="filter_list"
-                        style="">filter_list</span>
-                    Filter View
-                </button>
-                <button
-                    class="flex items-center gap-2 px-5 py-2.5 bg-primary text-on-primary rounded-lg text-sm font-semibold hover:shadow-lg transition-all active:scale-95"
-                    style="">
-                    <span class="material-symbols-outlined text-[18px]" data-icon="add" style="">add</span>
-                    Register Student
-                </button>
-            </div>
         </div>
         <!-- Overview Bento Grid -->
         <section class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
@@ -315,7 +300,7 @@
                 <div
                     class="bg-surface-container rounded-lg shadow-sm overflow-hidden sticky top-24 border border-outline/10">
                     <div class="p-5 border-b border-outline/10 flex justify-between items-center bg-white/50">
-                        <h3 class="font-headline font-bold text-on-surface" style="">Approval Queue</h3>
+                        <h3 class="font-headline font-bold text-on-surface" style="">Document Verification Queue</h3>
                         <span
                             class="bg-error text-white text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-tighter"
                             style="">18 New</span>
@@ -344,8 +329,7 @@
                                     <div class="flex-1 overflow-hidden">
                                         <p class="text-xs font-bold text-on-surface truncate" style="">
                                             Weekly_Logbook_W12.pdf</p>
-                                        <p class="text-[10px] text-on-surface/50 font-medium" style="">Logbook
-                                            Entry • 2.4 MB</p>
+                                        <p class="text-[10px] text-on-surface/50 font-medium" style="">Submitted Documents for Endorsement • 2.4 MB</p>
                                     </div>
                                     <span
                                         class="material-symbols-outlined text-on-surface/40 opacity-0 group-hover:opacity-100 transition-opacity"
@@ -354,10 +338,10 @@
                                 <div class="flex gap-2">
                                     <button
                                         class="flex-1 py-2.5 bg-primary text-white rounded text-[10px] font-bold uppercase tracking-widest hover:brightness-110 transition-all active:scale-95"
-                                        style="">Approve</button>
+                                        style="">Endorse Document</button>
                                     <button
                                         class="flex-1 py-2.5 bg-outline/10 text-on-surface rounded text-[10px] font-bold uppercase tracking-widest hover:bg-error/10 hover:text-error transition-all active:scale-95"
-                                        style="">Reject</button>
+                                        style="">Return for Revision</button>
                                 </div>
                             </div>
                         </div>
