@@ -11,6 +11,22 @@ class OjtLogController extends Controller
 {
     public function store(Request $request)
     {
+        $profile = auth()->user()->studentProfile;
+        $hasCompany = $profile && $profile->company_id !== null;
+        $hasAdvisor = $hasCompany && $profile->company->users()->where('role', 'Advisor')->exists();
+
+        if (!$hasCompany) {
+            return redirect()->back()->withInput()->withErrors([
+                'log_date' => 'You cannot submit logs because you have not been assigned to a company placement yet.'
+            ]);
+        }
+
+        if (!$hasAdvisor) {
+            return redirect()->back()->withInput()->withErrors([
+                'log_date' => 'You cannot submit logs because your assigned company does not have a supervisor/advisor account registered yet.'
+            ]);
+        }
+
         $validated = $request->validate([
             'log_date' => 'required|date|before_or_equal:today',
             'am_clock_in' => 'required_with:am_clock_out|nullable|date_format:H:i',
@@ -28,7 +44,22 @@ class OjtLogController extends Controller
 
         $photoPath = null;
         if ($request->hasFile('photo_attachment')) {
-            $photoPath = $request->file('photo_attachment')->store('ojt_photos', 'public');
+            $file = $request->file('photo_attachment');
+            $fileName = uniqid() . '.jpg';
+            $dirPath = storage_path('app/public/ojt_photos');
+            
+            if (!file_exists($dirPath)) {
+                mkdir($dirPath, 0755, true);
+            }
+            
+            $targetPath = $dirPath . '/' . $fileName;
+            
+            if ($this->compressAndSaveImage($file->getPathname(), $targetPath, 800, 75)) {
+                $photoPath = 'ojt_photos/' . $fileName;
+            } else {
+                // Fallback to direct store if GD compression fails for some reason
+                $photoPath = $file->store('ojt_photos', 'public');
+            }
         }
 
         // Calculate hours dynamically based on inputs (Secure backend validation matching frontend human decimal map)
@@ -117,5 +148,74 @@ class OjtLogController extends Controller
         $ojtLog->delete();
 
         return redirect()->back()->with('success', 'OJT shift log entry has been successfully deleted.');
+    }
+
+    /**
+     * Compress and resize an image before storing it.
+     *
+     * @param string $sourcePath
+     * @param string $destinationPath
+     * @param int $maxWidth
+     * @param int $quality
+     * @return bool
+     */
+    private function compressAndSaveImage(string $sourcePath, string $destinationPath, int $maxWidth, int $quality): bool
+    {
+        $imageInfo = @getimagesize($sourcePath);
+        if ($imageInfo === false) {
+            return false;
+        }
+
+        list($width, $height, $type) = $imageInfo;
+
+        switch ($type) {
+            case IMAGETYPE_JPEG:
+                $srcImage = @imagecreatefromjpeg($sourcePath);
+                break;
+            case IMAGETYPE_PNG:
+                $srcImage = @imagecreatefrompng($sourcePath);
+                break;
+            case IMAGETYPE_GIF:
+                $srcImage = @imagecreatefromgif($sourcePath);
+                break;
+            case IMAGETYPE_WEBP:
+                $srcImage = @imagecreatefromwebp($sourcePath);
+                break;
+            default:
+                return false;
+        }
+
+        if (!$srcImage) {
+            return false;
+        }
+
+        // Calculate aspect ratio keeping dimensions bounded within $maxWidth
+        if ($width > $maxWidth) {
+            $newWidth = $maxWidth;
+            $newHeight = (int) round($height * ($maxWidth / $width));
+        } else {
+            $newWidth = $width;
+            $newHeight = $height;
+        }
+
+        $destImage = imagecreatetruecolor($newWidth, $newHeight);
+        if (!$destImage) {
+            imagedestroy($srcImage);
+            return false;
+        }
+
+        // Handle transparency by filling the background with white
+        $white = imagecolorallocate($destImage, 255, 255, 255);
+        imagefill($destImage, 0, 0, $white);
+
+        imagecopyresampled($destImage, $srcImage, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
+
+        // Save as a highly optimized JPEG
+        $saved = imagejpeg($destImage, $destinationPath, $quality);
+
+        imagedestroy($srcImage);
+        imagedestroy($destImage);
+
+        return $saved;
     }
 }

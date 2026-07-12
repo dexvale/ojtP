@@ -68,4 +68,9 @@ class User extends Authenticatable
     {
         return $this->hasMany(OjtLog::class);
     }
+
+    public function managedCourses()
+    {
+        return $this->belongsToMany(Course::class, 'coordinator_course');
+    }
 }

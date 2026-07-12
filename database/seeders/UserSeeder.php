@@ -6,18 +6,32 @@ use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
+use App\Models\Course;
+
 class UserSeeder extends Seeder
 {
     public function run(): void
     {
-        // Create ONLY the master Coordinator / Admin Account
-        User::create([
-            // 'name' field is intentionally omitted because the `users` table is strict-auth-only
+        // 1. Create a Department Coordinator (managing IT & CS courses)
+        $coordinatorUser = User::create([
             'email'    => 'coordinator@bisu.edu.ph', 
             'password' => Hash::make('admin123'),      
             'role'     => 'Admin',                     
         ]);
 
+        $itCourse = Course::where('course_name', 'BS in Information Technology')->first();
+        $csCourse = Course::where('course_name', 'BS in Computer Science')->first();
+
+        if ($itCourse && $csCourse) {
+            $coordinatorUser->managedCourses()->attach([$itCourse->id, $csCourse->id]);
+        }
+
+        // 2. Create the master Super Admin (Dean / OJT Director) who manages all departments
+        User::create([
+            'email'    => 'dean@bisu.edu.ph', 
+            'password' => Hash::make('admin123'),      
+            'role'     => 'Admin',                     
+        ]);
         // 2. Create a Test Student Account (Authentication Layer)
         $studentUser = User::create([
             // 'name' is intentionally omitted here as well

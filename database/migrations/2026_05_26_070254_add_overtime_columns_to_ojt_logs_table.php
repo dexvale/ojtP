@@ -11,8 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Columns ot_clock_in, ot_clock_out, ot_duration, and has_overtime 
-        // already exist in the database.
+        Schema::table('ojt_logs', function (Blueprint $table) {
+            $table->time('ot_clock_in')->nullable()->after('afternoon_out');
+            $table->time('ot_clock_out')->nullable()->after('ot_clock_in');
+            $table->decimal('ot_duration', 5, 2)->default(0.00)->after('ot_clock_out');
+        });
     }
 
     /**
@@ -20,6 +23,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        // No action required.
+        Schema::table('ojt_logs', function (Blueprint $table) {
+            $table->dropColumn(['ot_clock_in', 'ot_clock_out', 'ot_duration']);
+        });
     }
 };

@@ -217,6 +217,13 @@
             <!-- ────────────────────────────────
                  LOG OJT SHIFT  (8 cols)
             ──────────────────────────────── -->
+            @php
+                $profile = auth()->user()->studentProfile;
+                $hasCompany = $profile && $profile->company_id !== null;
+                $hasAdvisor = $hasCompany && $profile->company->users()->where('role', 'Advisor')->exists();
+            @endphp
+
+            @if($hasCompany && $hasAdvisor)
             <section class="col-span-12 lg:col-span-8 bg-surface-container-lowest rounded-xl shadow-sm border border-surface-variant/20 overflow-hidden">
                 <form method="POST" action="{{ route('student.logs.store') }}" id="shift-form" enctype="multipart/form-data">
                     @csrf
@@ -408,6 +415,35 @@
                     </div>
                 </form>
             </section>
+            @else
+            <section class="col-span-12 lg:col-span-8 bg-surface-container-lowest rounded-xl shadow-sm border border-surface-variant/20 overflow-hidden flex flex-col items-center justify-center p-8 lg:p-12 text-center min-h-[400px]">
+                @if(!$hasCompany)
+                    <div class="w-16 h-16 bg-amber-500/10 text-amber-600 rounded-full flex items-center justify-center mb-4 animate-pulse">
+                        <span class="material-symbols-outlined text-4xl">domain_disabled</span>
+                    </div>
+                    <h3 class="text-xl font-bold font-headline text-[#300050] mb-2">Company Placement Pending</h3>
+                    <p class="text-sm text-gray-500 max-w-md mb-6 leading-relaxed">
+                        You cannot log OJT shifts yet. Your profile has not been assigned to a company placement by the coordinator.
+                    </p>
+                    <div class="inline-flex items-center gap-2 px-4 py-2 bg-amber-50 border border-amber-100 rounded-full text-xs font-bold text-amber-700">
+                        <span class="material-symbols-outlined text-sm">info</span>
+                        Please coordinate with your OJT Coordinator to assign your company placement.
+                    </div>
+                @else
+                    <div class="w-16 h-16 bg-purple-500/10 text-purple-600 rounded-full flex items-center justify-center mb-4">
+                        <span class="material-symbols-outlined text-4xl">supervisor_account</span>
+                    </div>
+                    <h3 class="text-xl font-bold font-headline text-[#300050] mb-2">Supervisor Assignment Pending</h3>
+                    <p class="text-sm text-gray-500 max-w-md mb-6 leading-relaxed">
+                        You are placed at <span class="font-bold text-purple-900">{{ $profile->company->name }}</span>, but no supervisor or advisor account has been registered for this company yet.
+                    </p>
+                    <div class="inline-flex items-center gap-2 px-4 py-2 bg-purple-50 border border-purple-100 rounded-full text-xs font-bold text-purple-700">
+                        <span class="material-symbols-outlined text-sm">hourglass_empty</span>
+                        Awaiting coordinator or company manager to provision the supervisor account.
+                    </div>
+                @endif
+            </section>
+            @endif
 
 
             <!-- ────────────────────────────────

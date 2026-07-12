@@ -178,7 +178,9 @@
                                 <td class="px-6 py-4">
                                     @if($log->photo_path)
                                         <div class="relative group cursor-pointer w-16 h-12 rounded overflow-hidden border shadow-sm flex-shrink-0" 
-                                             onclick="openImageLightbox('{{ asset('storage/' . $log->photo_path) }}', '{{ addslashes($log->tasks_performed) }}')">
+                                             data-photo="{{ asset('storage/' . $log->photo_path) }}"
+                                             data-desc="{{ $log->tasks_performed }}"
+                                             onclick="openImageLightbox(this)">
                                             <img src="{{ asset('storage/' . $log->photo_path) }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform">
                                             <div class="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white transition-opacity">
                                                 <span class="material-symbols-outlined text-sm">visibility</span>
@@ -207,12 +209,26 @@
 
     <!-- 4. Shared JavaScript Modal Lightbox -->
     <div id="evidence-lightbox" class="fixed inset-0 z-[100] hidden flex items-center justify-center bg-black/80 backdrop-blur-sm transition-opacity duration-300 p-4">
-        <div class="bg-white rounded-2xl shadow-2xl overflow-hidden w-full max-w-6xl flex flex-col md:flex-row relative">
+        <div class="bg-white rounded-2xl shadow-2xl overflow-hidden w-[90vw] max-w-6xl flex flex-col md:flex-row relative">
             <button onclick="closeImageLightbox()" class="absolute top-4 right-4 z-10 w-8 h-8 flex items-center justify-center rounded-full bg-black/50 text-white hover:bg-rose-500 transition-colors">
                 <span class="material-symbols-outlined text-[18px]">close</span>
             </button>
-            <div class="w-full md:w-2/3 bg-slate-900 flex items-center justify-center min-h-[400px] md:min-h-[600px] p-4">
-                <img id="lightbox-img" src="" class="max-w-full max-h-[85vh] object-contain shadow-lg">
+            <div class="w-full md:w-2/3 bg-slate-900 flex items-center justify-center min-h-[400px] md:min-h-[600px] p-4 relative overflow-hidden group/zoom">
+                <div class="w-full h-full flex items-center justify-center overflow-hidden cursor-grab active:cursor-grabbing" id="zoom-container">
+                    <img id="lightbox-img" src="" class="max-w-full max-h-[85vh] object-contain shadow-lg origin-center transition-transform duration-200 ease-out select-none">
+                </div>
+                <!-- Zoom Controls Overlay -->
+                <div class="absolute bottom-4 left-4 flex gap-2 bg-black/60 backdrop-blur-sm px-3 py-2 rounded-xl text-white opacity-0 group-hover/zoom:opacity-100 transition-opacity duration-200">
+                    <button onclick="zoomIn()" class="p-1 hover:text-purple-400 transition-colors flex items-center justify-center" title="Zoom In">
+                        <span class="material-symbols-outlined text-[20px]">zoom_in</span>
+                    </button>
+                    <button onclick="zoomOut()" class="p-1 hover:text-purple-400 transition-colors flex items-center justify-center" title="Zoom Out">
+                        <span class="material-symbols-outlined text-[20px]">zoom_out</span>
+                    </button>
+                    <button onclick="resetZoom()" class="p-1 hover:text-rose-400 transition-colors flex items-center justify-center" title="Reset Zoom">
+                        <span class="material-symbols-outlined text-[20px]">restart_alt</span>
+                    </button>
+                </div>
             </div>
             <div class="w-full md:w-1/3 p-8 bg-white flex flex-col">
                 <span class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Activity Description</span>
@@ -225,9 +241,76 @@
     </div>
 
     <script>
-        function openImageLightbox(imgSrc, descText) {
-            document.getElementById('lightbox-img').src = imgSrc;
+        let zoomLevel = 1;
+        let isDragging = false;
+        let startX = 0, startY = 0;
+        let translateX = 0, translateY = 0;
+        const img = document.getElementById('lightbox-img');
+        const container = document.getElementById('zoom-container');
+
+        function updateTransform() {
+            img.style.transform = `scale(${zoomLevel}) translate(${translateX}px, ${translateY}px)`;
+        }
+
+        function zoomIn() {
+            zoomLevel = Math.min(zoomLevel + 0.25, 4);
+            updateTransform();
+        }
+
+        function zoomOut() {
+            zoomLevel = Math.max(zoomLevel - 0.25, 1);
+            if (zoomLevel === 1) {
+                translateX = 0;
+                translateY = 0;
+            }
+            updateTransform();
+        }
+
+        function resetZoom() {
+            zoomLevel = 1;
+            translateX = 0;
+            translateY = 0;
+            updateTransform();
+        }
+
+        // Dragging & Panning logic
+        container.addEventListener('mousedown', function(e) {
+            if (zoomLevel > 1) {
+                isDragging = true;
+                startX = e.clientX - translateX * zoomLevel;
+                startY = e.clientY - translateY * zoomLevel;
+                e.preventDefault();
+            }
+        });
+
+        window.addEventListener('mousemove', function(e) {
+            if (isDragging) {
+                translateX = (e.clientX - startX) / zoomLevel;
+                translateY = (e.clientY - startY) / zoomLevel;
+                updateTransform();
+            }
+        });
+
+        window.addEventListener('mouseup', function() {
+            isDragging = false;
+        });
+
+        // Wheel Zoom Support
+        container.addEventListener('wheel', function(e) {
+            e.preventDefault();
+            if (e.deltaY < 0) {
+                zoomIn();
+            } else {
+                zoomOut();
+            }
+        }, { passive: false });
+
+        function openImageLightbox(element) {
+            const imgSrc = element.getAttribute('data-photo');
+            const descText = element.getAttribute('data-desc');
+            img.src = imgSrc;
             document.getElementById('lightbox-desc').textContent = descText;
+            resetZoom();
             document.getElementById('evidence-lightbox').classList.remove('hidden');
             document.body.style.overflow = 'hidden';
         }
