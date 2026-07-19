@@ -77,10 +77,16 @@
             <!-- Company Profile Card -->
             <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 relative overflow-hidden">
                 <div class="absolute top-0 left-0 w-1 h-full bg-purple-600"></div>
-                <h2 class="text-lg font-bold text-[#300050] mb-5 flex items-center gap-2">
-                    <span class="material-symbols-outlined text-purple-500 text-[20px]">business</span>
-                    Company Profile
-                </h2>
+                <div class="flex justify-between items-center mb-5">
+                    <h2 class="text-lg font-bold text-[#300050] flex items-center gap-2">
+                        <span class="material-symbols-outlined text-purple-500 text-[20px]">business</span>
+                        Company Profile
+                    </h2>
+                    <button onclick="openEditModal({{ $company }})" class="text-xs font-bold text-purple-700 hover:text-purple-950 flex items-center gap-1">
+                        <span class="material-symbols-outlined text-sm">edit</span>
+                        Edit
+                    </button>
+                </div>
                 
                 <div class="space-y-4">
                     <div>
@@ -238,7 +244,12 @@
                     </div>
                     <div>
                         <label class="block text-sm font-bold text-[#300050] mb-1">Temporary Password</label>
-                        <input type="text" name="password" required class="w-full border border-purple-100 rounded-xl px-4 py-2.5 bg-purple-50/30 text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all" placeholder="Min 8 characters">
+                        <div class="flex gap-2">
+                            <input type="text" name="password" id="supervisor_password" required class="flex-1 border border-purple-100 rounded-xl px-4 py-2.5 bg-purple-50/30 text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all" placeholder="Min 8 characters">
+                            <button type="button" onclick="generateSupervisorPassword()" class="px-3 bg-purple-100 hover:bg-purple-200 text-purple-700 rounded-xl font-bold text-xs transition-colors">
+                                Generate
+                            </button>
+                        </div>
                     </div>
                 </div>
 
@@ -254,5 +265,80 @@
         </div>
     </div>
 
+    <!-- EDIT COMPANY MODAL -->
+    <div id="editCompanyModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm transition-opacity duration-300">
+        <div class="bg-white rounded-2xl shadow-2xl border border-purple-100 p-6 w-full max-w-md mx-4">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold font-headline text-[#300050]">Edit Company Details</h2>
+                <button onclick="document.getElementById('editCompanyModal').classList.add('hidden')" class="text-gray-400 hover:text-rose-500 transition">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+
+            <form method="POST" id="editCompanyForm" action="{{ route('coordinator.companies.update', $company->id) }}">
+                @csrf
+                @method('PUT')
+                
+                <div class="space-y-4 mb-6">
+                    <div>
+                        <label class="block text-sm font-bold text-[#300050] mb-1">Company Name</label>
+                        <input type="text" name="name" id="edit_name" required class="w-full border border-purple-100 rounded-xl px-4 py-2.5 bg-purple-50/30 text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-[#300050] mb-1">Industry</label>
+                        <input type="text" name="industry" id="edit_industry" class="w-full border border-purple-100 rounded-xl px-4 py-2.5 bg-purple-50/30 text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-[#300050] mb-1">Location</label>
+                        <input type="text" name="location" id="edit_location" class="w-full border border-purple-100 rounded-xl px-4 py-2.5 bg-purple-50/30 text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all">
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-bold text-[#300050] mb-1">Contact Person</label>
+                            <input type="text" name="contact_person" id="edit_contact_person" class="w-full border border-purple-100 rounded-xl px-4 py-2.5 bg-purple-50/30 text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-[#300050] mb-1">Contact Number</label>
+                            <input type="text" name="contact_number" id="edit_contact_number" class="w-full border border-purple-100 rounded-xl px-4 py-2.5 bg-purple-50/30 text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-[#300050] mb-1">Allocation Slots</label>
+                        <input type="number" name="allocation_slots" id="edit_allocation_slots" min="0" required class="w-full border border-purple-100 rounded-xl px-4 py-2.5 bg-purple-50/30 text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all">
+                    </div>
+                </div>
+
+                <div class="flex gap-3">
+                    <button type="button" onclick="document.getElementById('editCompanyModal').classList.add('hidden')" class="flex-1 px-5 py-2.5 rounded-xl border border-gray-200 text-gray-600 text-sm font-bold hover:bg-gray-50 transition">
+                        Cancel
+                    </button>
+                    <button type="submit" class="flex-1 bg-purple-950 hover:bg-purple-900 text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-md transition">
+                        Update Details
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function generateSupervisorPassword() {
+            const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+";
+            let pass = "";
+            for (let i = 0; i < 10; i++) {
+                pass += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            document.getElementById('supervisor_password').value = pass;
+        }
+
+        function openEditModal(company) {
+            document.getElementById('edit_name').value = company.name || '';
+            document.getElementById('edit_industry').value = company.industry || '';
+            document.getElementById('edit_location').value = company.location || '';
+            document.getElementById('edit_contact_person').value = company.contact_person || '';
+            document.getElementById('edit_contact_number').value = company.contact_number || '';
+            document.getElementById('edit_allocation_slots').value = company.allocation_slots || 0;
+            document.getElementById('editCompanyModal').classList.remove('hidden');
+        }
+    </script>
 </body>
 </html>

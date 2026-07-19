@@ -289,7 +289,12 @@
                     </div>
                     <div>
                         <label class="block text-sm font-bold text-[#300050] mb-1">Initial Password</label>
-                        <input type="text" name="advisor_password" placeholder="Set initial temporary password (min 8 chars)" class="w-full border border-purple-100 rounded-xl px-4 py-2.5 bg-purple-50/30 text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all">
+                        <div class="flex gap-2">
+                            <input type="text" name="advisor_password" id="advisor_password" placeholder="Set initial temporary password (min 8 chars)" class="flex-1 border border-purple-100 rounded-xl px-4 py-2.5 bg-purple-50/30 text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all">
+                            <button type="button" onclick="generateCompanyAdvisorPassword()" class="px-3 bg-purple-100 hover:bg-purple-200 text-purple-700 rounded-xl font-bold text-xs transition-colors">
+                                Generate
+                            </button>
+                        </div>
                     </div>
                 </div>
 
@@ -369,6 +374,15 @@
             document.getElementById('edit_contact_number').value = company.contact_number || '';
             document.getElementById('edit_allocation_slots').value = company.allocation_slots || 0;
             document.getElementById('editCompanyModal').classList.remove('hidden');
+        }
+
+        function generateCompanyAdvisorPassword() {
+            const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+";
+            let pass = "";
+            for (let i = 0; i < 10; i++) {
+                pass += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            document.getElementById('advisor_password').value = pass;
         }
     </script>
 </body>

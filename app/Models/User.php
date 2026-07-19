@@ -16,6 +16,10 @@ class User extends Authenticatable
 {
     public function company()
     {
+        if ($this->role === 'Advisor') {
+            return $this->belongsTo(Company::class, 'company_id');
+        }
+
         return $this->hasOneThrough(
             Company::class,
             StudentProfile::class,

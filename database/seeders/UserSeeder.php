@@ -16,7 +16,7 @@ class UserSeeder extends Seeder
         $coordinatorUser = User::create([
             'email'    => 'coordinator@bisu.edu.ph', 
             'password' => Hash::make('admin123'),      
-            'role'     => 'Admin',                     
+            'role'     => 'Coordinator',                     
         ]);
 
         $itCourse = Course::where('course_name', 'BS in Information Technology')->first();

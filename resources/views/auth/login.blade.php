@@ -181,7 +181,7 @@
             const openIcon = button.querySelector('#eye-open');
             const closedIcon = button.querySelector('#eye-closed');
             if (openIcon && closedIcon) {
-                if (isPassword) {
+                if (input.type === 'password') {
                     openIcon.classList.remove('hidden');
                     closedIcon.classList.add('hidden');
                 } else {

@@ -58,6 +58,13 @@ Route::middleware(['auth', 'no.cache', 'role:Admin,coordinator'])->group(functio
         ->except(['create', 'show', 'edit']);
 });
 
+// Admin (Super Admin / Dean) Only Routes
+Route::middleware(['auth', 'no.cache', 'role:Admin'])->group(function () {
+    Route::get('/coordinator/manage', [\App\Http\Controllers\Coordinator\CoordinatorManagerController::class, 'index'])->name('admin.coordinators');
+    Route::post('/coordinator/manage', [\App\Http\Controllers\Coordinator\CoordinatorManagerController::class, 'store'])->name('admin.coordinators.store');
+    Route::delete('/coordinator/manage/{id}', [\App\Http\Controllers\Coordinator\CoordinatorManagerController::class, 'destroy'])->name('admin.coordinators.destroy');
+});
+
 // Supervisor / Advisor Routes
 Route::middleware(['auth', 'no.cache', 'role:Advisor'])->group(function () {
     Route::get('/supervisor/dashboard', [\App\Http\Controllers\Supervisor\DashboardController::class, 'index'])->name('supervisor.dashboard');
