@@ -17,4 +17,9 @@ class Company extends Model
     {
         return $this->hasMany(StudentProfile::class);
     }
+
+    public function courses()
+    {
+        return $this->belongsToMany(Course::class, 'company_course');
+    }
 }

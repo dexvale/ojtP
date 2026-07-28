@@ -41,7 +41,7 @@ class DashboardController extends Controller
         }
 
         $students = $query->get();
-        $companies = \App\Models\Company::orderBy('name', 'asc')->get();
+        $companies = \App\Models\Company::with('courses')->orderBy('name', 'asc')->get();
 
         return view('coordinator.students', compact('students', 'companies'));
     }

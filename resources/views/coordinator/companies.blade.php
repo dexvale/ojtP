@@ -277,6 +277,18 @@
                         <label class="block text-sm font-bold text-[#300050] mb-1">Allocation Slots</label>
                         <input type="number" name="allocation_slots" value="{{ old('allocation_slots', 5) }}" min="0" required class="w-full border border-purple-100 rounded-xl px-4 py-2.5 bg-purple-50/30 text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all">
                     </div>
+                    <div>
+                        <label class="block text-sm font-bold text-[#300050] mb-2">Scope to Academic Course(s)</label>
+                        <div class="space-y-2 bg-purple-50/30 p-4 rounded-xl border border-purple-100/50">
+                            @foreach($managedCourses as $course)
+                                <label class="flex items-center gap-3 cursor-pointer group">
+                                    <input type="checkbox" name="courses[]" value="{{ $course->id }}" checked class="rounded border-purple-200 text-purple-600 focus:ring-purple-400 focus:ring-opacity-25 transition-all">
+                                    <span class="text-sm text-gray-700 font-medium group-hover:text-purple-900 transition-colors">{{ $course->course_name }}</span>
+                                </label>
+                            @endforeach
+                        </div>
+                        <p class="text-[10px] text-gray-400 mt-1 font-medium">Specify which course departments this company is accessible for.</p>
+                    </div>
                 </div>
 
                 <hr class="my-4 border-gray-100">

@@ -192,12 +192,12 @@
                             <td class="px-6 py-4 text-right">
                                 <div class="flex items-center justify-end gap-2">
                                     @if(!$student->company_id)
-                                        <button onclick="openAssignModal({{ $student->id }}, '{{ addslashes($student->first_name . ' ' . $student->last_name) }}')" class="border border-purple-200 hover:bg-purple-50 text-purple-700 font-semibold text-sm rounded-lg px-3 py-2 transition-colors duration-150 flex items-center gap-1.5">
+                                        <button onclick="openAssignModal({{ $student->id }}, '{{ addslashes($student->first_name . ' ' . $student->last_name) }}', {{ $student->academicCourse->id ?? 'null' }})" class="border border-purple-200 hover:bg-purple-50 text-purple-700 font-semibold text-sm rounded-lg px-3 py-2 transition-colors duration-150 flex items-center gap-1.5">
                                             <span class="material-symbols-outlined text-sm">business_center</span>
                                             <span>Assign Placement</span>
                                         </button>
                                     @else
-                                        <button onclick="openAssignModal({{ $student->id }}, '{{ addslashes($student->first_name . ' ' . $student->last_name) }}')" class="text-gray-400 hover:text-purple-700 p-2 rounded-lg hover:bg-gray-50 transition-colors" title="Change Company Assignment">
+                                        <button onclick="openAssignModal({{ $student->id }}, '{{ addslashes($student->first_name . ' ' . $student->last_name) }}', {{ $student->academicCourse->id ?? 'null' }})" class="text-gray-400 hover:text-purple-700 p-2 rounded-lg hover:bg-gray-50 transition-colors" title="Change Company Assignment">
                                             <span class="material-symbols-outlined text-sm">edit</span>
                                         </button>
                                     @endif
@@ -245,10 +245,10 @@
                 @csrf
                 <div class="mb-6">
                     <label class="block text-sm font-bold text-[#300050] mb-2">Select Company</label>
-                    <select name="company_id" required class="w-full border border-purple-100 rounded-xl px-4 py-3 bg-purple-50/30 text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all">
+                    <select name="company_id" id="assign_company_select" required class="w-full border border-purple-100 rounded-xl px-4 py-3 bg-purple-50/30 text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all">
                         <option value="">-- Select Company --</option>
                         @foreach($companies as $company)
-                            <option value="{{ $company->id }}">{{ $company->name }}</option>
+                            <option value="{{ $company->id }}" data-courses="{{ json_encode($company->courses->pluck('id')->toArray()) }}">{{ $company->name }}</option>
                         @endforeach
                     </select>
                 </div>
@@ -266,9 +266,36 @@
     </div>
 
     <script>
-        function openAssignModal(studentId, studentName) {
+        function openAssignModal(studentId, studentName, courseId) {
             document.getElementById('assign-student-name').innerText = studentName;
             document.getElementById('assign-form').action = '/coordinator/students/' + studentId + '/assign';
+            
+            const select = document.getElementById('assign_company_select');
+            const options = select.options;
+            
+            for (let i = 0; i < options.length; i++) {
+                const opt = options[i];
+                if (opt.value === "") {
+                    opt.style.display = "";
+                    continue;
+                }
+                
+                try {
+                    const courses = JSON.parse(opt.getAttribute('data-courses') || '[]');
+                    if (!courseId || courses.includes(courseId)) {
+                        opt.style.display = "";
+                        opt.disabled = false;
+                    } else {
+                        opt.style.display = "none";
+                        opt.disabled = true;
+                    }
+                } catch (e) {
+                    opt.style.display = "";
+                    opt.disabled = false;
+                }
+            }
+            
+            select.value = "";
             document.getElementById('assign-modal').classList.remove('hidden');
         }
 

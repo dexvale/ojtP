@@ -36,6 +36,11 @@
                 <span>Course Settings</span>
             </a>
             @endif
+            <a href="{{ route('coordinator.requirements') }}" 
+               class="mx-2 my-1 px-4 py-3 flex items-center gap-3 text-sm font-medium rounded-lg transition-all duration-300 {{ request()->routeIs('coordinator.requirements*') ? 'bg-[#faf1f8]/10 text-[#ffffff] translate-x-1' : 'text-[#faf1f8]/70 hover:text-[#ffffff] hover:bg-[#ffffff]/5' }}">
+                <span class="material-symbols-outlined" data-icon="assignment">assignment</span>
+                <span>Requirements</span>
+            </a>
             <a href="{{ route('coordinator.reports') }}" 
                class="mx-2 my-1 px-4 py-3 flex items-center gap-3 text-sm font-medium rounded-lg transition-all duration-300 {{ request()->routeIs('coordinator.reports') ? 'bg-[#faf1f8]/10 text-[#ffffff] translate-x-1' : 'text-[#faf1f8]/70 hover:text-[#ffffff] hover:bg-[#ffffff]/5' }}">
                 <span class="material-symbols-outlined" data-icon="assessment">assessment</span>

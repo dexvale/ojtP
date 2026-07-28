@@ -16,12 +16,36 @@ class DashboardController extends Controller
         $lackingHours = max(0, $requiredHours - $approvedHours);
         $completionPercentage = $requiredHours > 0 ? round(($approvedHours / $requiredHours) * 100) : 0;
 
+        // Calculate dynamic completion pace
+        $approvedLogs = auth()->user()->ojtLogs()->where('status', 'Approved')->orderBy('log_date', 'asc')->get();
+        $paceMessage = "Start logging approved shifts to calculate your completion pace.";
+        
+        if ($lackingHours <= 0) {
+            $paceMessage = "Congratulations! You have completed all required OJT hours.";
+        } elseif ($approvedLogs->count() > 0) {
+            $firstDate = \Carbon\Carbon::parse($approvedLogs->first()->log_date);
+            $lastDate = \Carbon\Carbon::parse($approvedLogs->last()->log_date);
+            
+            // Days difference, minimum of 1 day to avoid divide-by-zero
+            $daysDiff = max(1, $firstDate->diffInDays($lastDate));
+            // Calculate weeks, minimum of 1 week
+            $weeksPassed = max(1, ceil($daysDiff / 7));
+            $averageWeeklyHours = $approvedHours / $weeksPassed;
+            
+            if ($averageWeeklyHours > 0) {
+                $weeksRemaining = ceil($lackingHours / $averageWeeklyHours);
+                $weeksText = $weeksRemaining == 1 ? 'week' : 'weeks';
+                $paceMessage = "You are on track to finish in {$weeksRemaining} {$weeksText} at your current pace (" . number_format($averageWeeklyHours, 1) . " hrs/week).";
+            }
+        }
+
         return view('student.dashboard', compact(
             'requiredHours',
             'approvedHours',
             'lackingHours',
             'completionPercentage',
-            'recentLogs'
+            'recentLogs',
+            'paceMessage'
         ));
     }
 

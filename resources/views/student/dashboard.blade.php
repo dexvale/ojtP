@@ -151,7 +151,7 @@
                         </div>
                     </div>
                     <div class="bg-primary-container rounded-lg p-4 border-l-4 border-primary">
-                        <p class="text-sm font-medium italic text-on-primary-container">"You are on track to finish in 4 weeks at your current pace."</p>
+                        <p class="text-sm font-medium italic text-on-primary-container">"{{ $paceMessage }}"</p>
                     </div>
                 </div>
             </section>
@@ -219,7 +219,7 @@
             ──────────────────────────────── -->
             @php
                 $profile = auth()->user()->studentProfile;
-                $hasCompany = $profile && $profile->company_id !== null;
+                $hasCompany = $profile && $profile->company !== null;
                 $hasAdvisor = $hasCompany && $profile->company->users()->where('role', 'Advisor')->exists();
             @endphp
 

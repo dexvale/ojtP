@@ -12,8 +12,20 @@ class CompanyController extends Controller
 {
     public function index()
     {
-        $companies = Company::withCount(['studentProfiles as filled_slots'])->get();
-        return view('coordinator.companies', compact('companies'));
+        $coordinator = auth()->user();
+        $query = Company::withCount(['studentProfiles as filled_slots']);
+
+        if ($coordinator->role === 'Coordinator' && $coordinator->managedCourses()->exists()) {
+            $courseIds = $coordinator->managedCourses->pluck('id')->toArray();
+            $query->whereHas('courses', function($q) use ($courseIds) {
+                $q->whereIn('courses.id', $courseIds);
+            });
+        }
+
+        $companies = $query->get();
+        $managedCourses = $coordinator->role === 'Coordinator' ? $coordinator->managedCourses : \App\Models\Course::all();
+
+        return view('coordinator.companies', compact('companies', 'managedCourses'));
     }
 
     public function store(Request $request)
@@ -26,7 +38,9 @@ class CompanyController extends Controller
             'contact_number' => 'nullable|string|max:255',
             'allocation_slots' => 'required|integer|min:0',
             'advisor_email' => 'nullable|string|email|max:255|unique:users,email',
-            'advisor_password' => 'nullable|string|min:8'
+            'advisor_password' => 'nullable|string|min:8',
+            'courses' => 'required|array|min:1',
+            'courses.*' => 'exists:courses,id'
         ]);
 
         $company = Company::create([
@@ -37,6 +51,8 @@ class CompanyController extends Controller
             'contact_number' => $validated['contact_number'] ?? null,
             'allocation_slots' => $validated['allocation_slots'],
         ]);
+
+        $company->courses()->sync($validated['courses']);
 
         if ($request->filled('advisor_email') && $request->filled('advisor_password')) {
             $plainPassword = $request->advisor_password;

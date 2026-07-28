@@ -27,6 +27,10 @@ Route::middleware(['auth', 'no.cache'])->group(function () {
     
     Route::get('/student/logs', [\App\Http\Controllers\Student\OjtLogController::class, 'index'])->name('student.logs.index');
     Route::delete('/student/logs/{ojtLog}', [\App\Http\Controllers\Student\OjtLogController::class, 'destroy'])->name('student.logs.destroy');
+
+    // Student Requirements routes
+    Route::get('/student/requirements', [\App\Http\Controllers\Student\StudentRequirementController::class, 'index'])->name('student.requirements');
+    Route::post('/student/requirements/{id}/submit', [\App\Http\Controllers\Student\StudentRequirementController::class, 'submit'])->name('student.requirements.submit');
 });
 
 // Coordinator Routes
@@ -47,6 +51,13 @@ Route::middleware(['auth', 'no.cache', 'role:Admin,coordinator'])->group(functio
     Route::put('/coordinator/companies/{company}', [\App\Http\Controllers\Coordinator\CompanyController::class, 'update'])->name('coordinator.companies.update');
     Route::delete('/coordinator/companies/{company}', [\App\Http\Controllers\Coordinator\CompanyController::class, 'destroy'])->name('coordinator.companies.destroy');
     Route::post('/coordinator/supervisors/store', [\App\Http\Controllers\Coordinator\CompanyController::class, 'storeSupervisor'])->name('coordinator.supervisors.store');
+
+    // Coordinator OJT Requirements Management Routes
+    Route::get('/coordinator/requirements', [\App\Http\Controllers\Coordinator\CoordinatorRequirementController::class, 'index'])->name('coordinator.requirements');
+    Route::post('/coordinator/requirements', [\App\Http\Controllers\Coordinator\CoordinatorRequirementController::class, 'store'])->name('coordinator.requirements.store');
+    Route::delete('/coordinator/requirements/{id}', [\App\Http\Controllers\Coordinator\CoordinatorRequirementController::class, 'destroy'])->name('coordinator.requirements.destroy');
+    Route::post('/coordinator/submissions/{id}/approve', [\App\Http\Controllers\Coordinator\CoordinatorRequirementController::class, 'approve'])->name('coordinator.submissions.approve');
+    Route::post('/coordinator/submissions/{id}/reject', [\App\Http\Controllers\Coordinator\CoordinatorRequirementController::class, 'reject'])->name('coordinator.submissions.reject');
 
     Route::resource('coordinator/courses', \App\Http\Controllers\Coordinator\CourseController::class)
         ->names([
