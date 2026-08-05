@@ -20,11 +20,16 @@
     <!-- SIDEBAR (Supervisor Version - Shared Component) -->
     @include('components.supervisor-sidebar')
 
+    <!-- Sidebar overlay for mobile -->
+    <div id="sidebar-overlay" class="fixed inset-0 bg-black/40 z-40 hidden lg:hidden" onclick="closeSidebar()"></div>
+
     <!-- TOP NAVIGATION -->
-    <header class="fixed top-0 md:left-64 left-0 right-0 z-40 bg-[#fff7fd] border-b border-[#cec3d0]/15">
+    <header class="fixed top-0 lg:left-64 left-0 right-0 z-40 bg-[#fff7fd] border-b border-[#cec3d0]/15">
         <div class="flex justify-between items-center px-4 md:px-8 py-4 w-full">
             <div class="flex items-center gap-8">
-                <button class="md:hidden p-2 text-primary rounded outline-none hover:bg-surface-container"><span class="material-symbols-outlined">menu</span></button>
+                <button id="sidebar-toggle" class="lg:hidden p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center text-primary rounded outline-none hover:bg-surface-container" aria-label="Toggle menu">
+                    <span class="material-symbols-outlined">menu</span>
+                </button>
                 <span class="text-2xl font-headline font-semibold text-[#300050] tracking-tight hidden sm:block">Industry Supervisor</span>
             </div>
             <div class="flex items-center gap-6">
@@ -46,15 +51,15 @@
     </header>
 
     <!-- MAIN CONTENT -->
-    <main class="md:ml-64 pt-24 px-4 md:px-8 pb-12">
+    <main class="lg:ml-64 ml-0 pt-24 px-4 sm:px-6 lg:px-8 pb-12 w-full max-w-7xl mx-auto">
         
         <!-- Page Header -->
-        <div class="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4">
+        <div class="flex flex-col sm:flex-row items-stretch sm:items-end justify-between mb-8 gap-4">
             <div>
                 <h1 class="text-4xl font-extrabold font-headline text-primary tracking-tight">Intern Attendance Tracker</h1>
                 <p class="text-on-surface/60 font-medium mt-1">Monitor daily time logs and weekly attendance trends.</p>
             </div>
-            <button class="flex items-center gap-2 px-5 py-2.5 border-2 border-primary text-primary bg-transparent rounded-lg font-bold text-sm hover:bg-primary hover:text-white transition-all shadow-sm active:scale-95">
+            <button class="flex items-center justify-center gap-2 px-5 py-2.5 border-2 border-primary text-primary bg-transparent rounded-lg font-bold text-sm hover:bg-primary hover:text-white transition-all shadow-sm active:scale-95">
                 <span class="material-symbols-outlined text-[20px]">download</span>
                 Download Weekly Report
             </button>
@@ -71,12 +76,12 @@
                     <span class="text-sm font-bold text-on-surface/50 bg-surface-container-high px-4 py-1.5 rounded-lg border border-outline/20">{{ \Carbon\Carbon::today()->format('M d, Y') }}</span>
                 </div>
 
-                <div class="overflow-x-auto">
+                <div class="w-full overflow-x-auto -mx-4 sm:mx-0 min-w-full inline-block align-middle">
                     <table class="w-full text-left min-w-[800px]">
                         <thead>
                             <tr class="border-b border-outline/20">
                                 <th class="pb-3 text-[10px] font-bold uppercase tracking-widest text-on-surface/50 px-4">Intern</th>
-                                <th class="pb-3 text-[10px] font-bold uppercase tracking-widest text-on-surface/50 px-4">Course/Dept</th>
+                                <th class="pb-3 text-[10px] font-bold uppercase tracking-widest text-on-surface/50 px-4 hidden md:table-cell">Course/Dept</th>
                                 <th class="pb-3 text-[10px] font-bold uppercase tracking-widest text-on-surface/50 px-4">Time In</th>
                                 <th class="pb-3 text-[10px] font-bold uppercase tracking-widest text-on-surface/50 px-4">Time Out</th>
                                 <th class="pb-3 text-[10px] font-bold uppercase tracking-widest text-on-surface/50 px-4">Status</th>
@@ -95,7 +100,7 @@
                                             <span class="font-bold text-sm text-on-surface">{{ $intern->user->name }}</span>
                                         </div>
                                     </td>
-                                    <td class="py-4 px-4">
+                                    <td class="py-4 px-4 hidden md:table-cell">
                                         <div class="text-sm font-semibold text-on-surface">{{ $intern->course ?? 'N/A' }}</div>
                                     </td>
                                     <td class="py-4 px-4 font-bold text-sm text-on-surface">{{ $log && $log->morning_in ? \Carbon\Carbon::parse($log->morning_in)->format('h:i A') : '--:-- --' }}</td>
@@ -136,7 +141,7 @@
                     </h2>
                 </div>
 
-                <div class="overflow-x-auto">
+                <div class="w-full overflow-x-auto -mx-4 sm:mx-0 min-w-full inline-block align-middle">
                     <table class="w-full text-center min-w-[700px] border-collapse">
                         <thead>
                             <tr class="bg-surface/50">
@@ -198,7 +203,7 @@
     <!-- Hidden by default, added id to toggle via JS -->
     <div id="calendarPanel" class="hidden fixed inset-0 z-[60] bg-on-surface/40 backdrop-blur-sm flex justify-end transition-opacity opacity-0 data-[open=true]:opacity-100">
         <!-- Panel -->
-        <div class="h-full w-full max-w-md bg-surface shadow-2xl flex flex-col transform translate-x-full transition-transform duration-300 data-[open=true]:translate-x-0" id="calendarSidebar">
+        <div class="h-full w-full max-w-full sm:max-w-md bg-surface shadow-2xl flex flex-col transform translate-x-full transition-transform duration-300 data-[open=true]:translate-x-0" id="calendarSidebar">
             
             <!-- Panel Header -->
             <div class="px-6 py-5 border-b border-outline/20 bg-white flex justify-between items-center">
@@ -411,6 +416,25 @@
         closeBtn.addEventListener('click', closePanel);
         panel.addEventListener('click', (e) => {
             if(e.target === panel) closePanel();
+        });
+
+        // Sidebar Toggling Code
+        const sidebarEl = document.getElementById('sidebar');
+        const overlayEl = document.getElementById('sidebar-overlay');
+        const toggleBtnEl = document.getElementById('sidebar-toggle');
+
+        function openSidebar() {
+            sidebarEl.classList.remove('-translate-x-full');
+            overlayEl.classList.remove('hidden');
+            document.body.classList.add('overflow-hidden');
+        }
+        function closeSidebar() {
+            sidebarEl.classList.add('-translate-x-full');
+            overlayEl.classList.add('hidden');
+            document.body.classList.remove('overflow-hidden');
+        }
+        toggleBtnEl?.addEventListener('click', () => {
+            sidebarEl.classList.contains('-translate-x-full') ? openSidebar() : closeSidebar();
         });
     </script>
 </body>

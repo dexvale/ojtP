@@ -26,9 +26,9 @@
 <!-- ═══════════════════════════════
      TOP HEADER
 ═══════════════════════════════ -->
-<header class="fixed top-0 w-full z-50 bg-[#fff7fd] flex justify-between items-center px-6 lg:px-8 py-4 border-b border-[#cec3d0]/20 backdrop-blur-sm md:pl-64">
+<header class="fixed top-0 w-full z-50 bg-[#fff7fd] flex justify-between items-center px-6 lg:px-8 py-4 border-b border-[#cec3d0]/20 backdrop-blur-sm lg:pl-64 pl-0">
     <div class="flex items-center gap-4">
-        <button id="sidebar-toggle" class="md:hidden p-2 text-primary rounded-lg hover:bg-surface-container transition-colors" aria-label="Toggle menu">
+        <button id="sidebar-toggle" class="lg:hidden p-2 text-primary rounded-lg hover:bg-surface-container transition-colors" aria-label="Toggle menu">
             <span class="material-symbols-outlined">menu</span>
         </button>
         <div class="flex items-center gap-2.5">
@@ -61,12 +61,12 @@
     @include('components.student-sidebar')
 
 <!-- Sidebar overlay for mobile -->
-<div id="sidebar-overlay" class="fixed inset-0 bg-black/40 z-30 hidden md:hidden" onclick="closeSidebar()"></div>
+<div id="sidebar-overlay" class="fixed inset-0 bg-black/40 z-30 hidden lg:hidden" onclick="closeSidebar()"></div>
 
 <!-- ═══════════════════════════════
      MAIN CONTENT
 ═══════════════════════════════ -->
-<main class="md:ml-64 pt-20 min-h-screen pb-24 md:pb-8">
+<main class="lg:ml-64 ml-0 pt-20 min-h-screen pb-24 lg:pb-8">
     <div class="p-5 lg:p-8 max-w-7xl mx-auto space-y-6">
 
         <!-- ── Page Header & Filters ── -->
@@ -238,7 +238,7 @@
 <!-- ═══════════════════════════════
      MOBILE BOTTOM NAV
 ═══════════════════════════════ -->
-<nav class="md:hidden fixed bottom-0 w-full bg-white/90 backdrop-blur-lg border-t border-surface-variant/20 flex justify-around items-center py-2.5 z-50">
+<nav class="lg:hidden fixed bottom-0 w-full bg-white/90 backdrop-blur-lg border-t border-surface-variant/20 flex justify-around items-center py-2.5 z-50">
     <a href="{{ route('student.dashboard') }}" class="flex flex-col items-center gap-0.5 text-outline px-3 py-1">
         <span class="material-symbols-outlined text-xl">dashboard</span>
         <span class="text-[10px] font-bold">Home</span>

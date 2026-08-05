@@ -46,10 +46,10 @@
 <!-- ═══════════════════════════════
      TOP HEADER
 ═══════════════════════════════ -->
-<header class="fixed top-0 w-full z-50 bg-[#fff7fd] flex justify-between items-center px-6 lg:px-8 py-4 border-b border-[#cec3d0]/20 backdrop-blur-sm md:pl-64">
+<header class="fixed top-0 w-full z-50 bg-[#fff7fd] flex justify-between items-center px-6 lg:px-8 py-4 border-b border-[#cec3d0]/20 backdrop-blur-sm lg:pl-64 pl-0">
     <div class="flex items-center gap-4">
         <!-- Hamburger for mobile only -->
-        <button id="sidebar-toggle" class="md:hidden p-2 text-primary rounded-lg hover:bg-surface-container transition-colors" aria-label="Toggle menu">
+        <button id="sidebar-toggle" class="lg:hidden p-2 text-primary rounded-lg hover:bg-surface-container transition-colors" aria-label="Toggle menu">
             <span class="material-symbols-outlined">menu</span>
         </button>
         <!-- Logo & Branding -->
@@ -83,12 +83,12 @@
     @include('components.student-sidebar')
 
 <!-- Sidebar overlay for mobile -->
-<div id="sidebar-overlay" class="fixed inset-0 bg-black/40 z-30 hidden md:hidden" onclick="closeSidebar()"></div>
+<div id="sidebar-overlay" class="fixed inset-0 bg-black/40 z-30 hidden lg:hidden" onclick="closeSidebar()"></div>
 
 <!-- ═══════════════════════════════
      MAIN CONTENT
 ═══════════════════════════════ -->
-<main class="md:ml-64 pt-20 min-h-screen pb-20 md:pb-0">
+<main class="lg:ml-64 ml-0 pt-20 min-h-screen pb-20 lg:pb-0">
     <div class="p-5 lg:p-8 max-w-7xl mx-auto space-y-6">
 
         <!-- ── Page Header ── -->
@@ -506,12 +506,12 @@
                         <span class="material-symbols-outlined text-sm transform group-hover:translate-x-1 transition-transform duration-200">arrow_forward</span>
                     </a>
                 </div>
-                <div class="overflow-x-auto -mx-2 px-2">
+                <div class="w-full overflow-x-auto -mx-4 sm:mx-0 min-w-full inline-block align-middle">
                     <table class="w-full text-left border-collapse min-w-[560px]">
                         <thead class="bg-gray-50/50">
                             <tr>
                                 <th class="text-[10px] font-bold text-gray-400 uppercase tracking-wider py-3 px-4 text-left">Date</th>
-                                <th class="text-[10px] font-bold text-gray-400 uppercase tracking-wider py-3 px-4 text-left">Activity Summary</th>
+                                <th class="text-[10px] font-bold text-gray-400 uppercase tracking-wider py-3 px-4 text-left hidden md:table-cell">Activity Summary</th>
                                 <th class="text-[10px] font-bold text-gray-400 uppercase tracking-wider py-3 px-4 text-left">Hours</th>
                                 <th class="text-[10px] font-bold text-gray-400 uppercase tracking-wider py-3 px-4 text-left">Status</th>
                                 <th class="text-[10px] font-bold text-gray-400 uppercase tracking-wider py-3 px-4 text-right">Action</th>
@@ -521,7 +521,7 @@
                             @forelse($recentLogs as $log)
                             <tr class="hover:bg-purple-50/30 transition-colors duration-150 border-b border-gray-50 last:border-0 group">
                                 <td class="py-4 px-4 font-bold text-sm whitespace-nowrap">{{ $log->log_date->format('M d, Y') }}</td>
-                                <td class="py-4 px-4 text-sm text-on-surface-variant max-w-xs lg:max-w-md">
+                                <td class="py-4 px-4 text-sm text-on-surface-variant max-w-xs lg:max-w-md hidden md:table-cell">
                                     <span class="line-clamp-1">{{ Str::limit($log->tasks_performed, 70) }}</span>
                                 </td>
                                 <td class="py-4 px-4 text-sm font-bold text-on-surface whitespace-nowrap">{{ number_format($log->hours_rendered, 2) }} hrs</td>
@@ -557,7 +557,7 @@
 <!-- ═══════════════════════════════
      MOBILE BOTTOM NAV
 ═══════════════════════════════ -->
-<nav class="md:hidden fixed bottom-0 w-full bg-white/90 backdrop-blur-lg border-t border-surface-variant/20 flex justify-around items-center py-2.5 z-50">
+<nav class="lg:hidden fixed bottom-0 w-full bg-white/90 backdrop-blur-lg border-t border-surface-variant/20 flex justify-around items-center py-2.5 z-50">
     <button class="flex flex-col items-center gap-0.5 text-primary px-3 py-1">
         <span class="material-symbols-outlined text-xl" style='font-variation-settings:"FILL" 1,"wght" 400,"GRAD" 0,"opsz" 24;'>dashboard</span>
         <span class="text-[10px] font-bold">Home</span>

@@ -32,11 +32,17 @@
     <!-- SideNavBar (Shared Component) -->
     @include('components.coordinator-sidebar')
 
+    <!-- Sidebar overlay for mobile -->
+    <div id="sidebar-overlay" class="fixed inset-0 bg-black/40 z-40 hidden lg:hidden" onclick="closeSidebar()"></div>
+
     <!-- TopNavBar -->
-    <header class="fixed top-0 left-64 right-0 z-40 bg-surface/90 backdrop-blur-sm border-b border-[#cec3d0]/15">
-        <div class="flex justify-between items-center px-8 py-4 w-full">
-            <div class="flex items-center gap-8">
-                <span class="text-2xl font-headline font-semibold text-primary tracking-tight">OJT Management</span>
+    <header class="fixed top-0 lg:left-64 left-0 right-0 z-40 bg-surface/90 backdrop-blur-sm border-b border-[#cec3d0]/15">
+        <div class="flex justify-between items-center px-4 md:px-8 py-4 w-full">
+            <div class="flex items-center gap-4">
+                <button id="sidebar-toggle" class="lg:hidden p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center text-primary rounded-lg hover:bg-black/5 transition-colors" aria-label="Toggle menu">
+                    <span class="material-symbols-outlined">menu</span>
+                </button>
+                <span class="text-xl md:text-2xl font-headline font-semibold text-primary tracking-tight">OJT Management</span>
                 <nav class="hidden md:flex items-center gap-6">
                     <a class="text-sm font-semibold text-on-surface/60 hover:text-primary transition-colors duration-200" href="#">Dashboard</a>
                     <a class="text-sm font-semibold text-primary border-b-2 border-primary pb-1" href="#">Student List</a>
@@ -64,9 +70,9 @@
     </header>
 
     <!-- Main Content -->
-    <main class="ml-64 pt-24 px-8 pb-12 min-h-screen border-none">
+    <main class="lg:ml-64 ml-0 pt-24 px-4 sm:px-6 lg:px-8 pb-12 min-h-screen border-none max-w-7xl mx-auto w-full">
         <!-- Page Header -->
-        <div class="flex flex-col md:flex-row md:items-end md:justify-between mb-8 gap-4">
+        <div class="flex flex-col sm:flex-row items-stretch sm:items-end justify-between mb-8 gap-4">
             <div>
                 <h1 class="text-4xl font-extrabold font-headline text-slate-900 tracking-tight">Student Directory</h1>
                 <p class="text-slate-500 font-medium mt-1 text-sm">Manage and track all OJT intern placements and progress.</p>
@@ -81,7 +87,7 @@
         </div>
 
         <!-- Top Control Bar -->
-        <div class="flex flex-col md:flex-row gap-4 mb-6">
+        <div class="flex flex-col sm:flex-row gap-4 mb-6">
             <!-- Search Bar -->
             <div class="relative flex-1">
                 <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">search</span>
@@ -91,9 +97,9 @@
             </div>
             
             <!-- Filters -->
-            <div class="flex gap-4">
-                <div class="relative">
-                    <select class="appearance-none bg-white border border-slate-200 rounded-xl py-3 pl-4 pr-10 text-sm font-medium text-slate-700 min-w-[140px] focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-sm cursor-pointer transition-all">
+            <div class="flex gap-3 w-full sm:w-auto">
+                <div class="relative flex-1 sm:flex-initial">
+                    <select class="w-full sm:w-auto appearance-none bg-white border border-slate-200 rounded-xl py-3 pl-4 pr-10 text-sm font-medium text-slate-700 sm:min-w-[140px] focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-sm cursor-pointer transition-all">
                         <option value="all">All Courses</option>
                         <option value="bscs">BSCS</option>
                         <option value="bsit">BSIT</option>
@@ -101,8 +107,8 @@
                     <span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">expand_more</span>
                 </div>
 
-                <div class="relative">
-                    <select class="appearance-none bg-white border border-slate-200 rounded-xl py-3 pl-4 pr-10 text-sm font-medium text-slate-700 min-w-[140px] focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-sm cursor-pointer transition-all">
+                <div class="relative flex-1 sm:flex-initial">
+                    <select class="w-full sm:w-auto appearance-none bg-white border border-slate-200 rounded-xl py-3 pl-4 pr-10 text-sm font-medium text-slate-700 sm:min-w-[140px] focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-sm cursor-pointer transition-all">
                         <option value="all">All Years</option>
                         <option value="3rd">3rd Year</option>
                         <option value="4th">4th Year</option>
@@ -114,12 +120,12 @@
 
         <!-- Data Table (Card Container) -->
         <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-            <div class="overflow-x-auto">
+            <div class="w-full overflow-x-auto -mx-4 sm:mx-0 min-w-full inline-block align-middle">
                 <table class="w-full text-left border-collapse whitespace-nowrap">
                     <thead>
                         <tr class="bg-slate-50/80 border-b border-slate-200">
                             <th class="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Student Name</th>
-                            <th class="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Course & Year</th>
+                            <th class="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider hidden md:table-cell">Course & Year</th>
                             <th class="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Placement Status</th>
                             <th class="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">OJT Progress</th>
                             <th class="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider text-right">Actions</th>
@@ -139,7 +145,7 @@
                                     </div>
                                 </div>
                             </td>
-                            <td class="px-6 py-4">
+                            <td class="px-6 py-4 hidden md:table-cell">
                                 <p class="text-sm font-medium text-slate-900">{{ $student->course }}</p>
                             </td>
                             <td class="px-6 py-4">
@@ -230,8 +236,8 @@
     </main>
 
     <!-- ASSIGN PLACEMENT MODAL -->
-    <div id="assign-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm transition-opacity duration-300">
-        <div class="bg-white rounded-2xl shadow-2xl border border-purple-100 p-6 w-full max-w-md mx-4">
+    <div id="assign-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm transition-opacity duration-300 p-4">
+        <div class="bg-white rounded-xl shadow-2xl border border-purple-100 p-4 sm:p-6 w-full max-w-lg mx-auto max-h-[90vh] overflow-y-auto">
             <div class="flex justify-between items-center mb-6">
                 <h2 class="text-2xl font-bold font-headline text-[#300050]">Assign Placement</h2>
                 <button onclick="closeAssignModal()" class="text-gray-400 hover:text-rose-500 transition">
@@ -302,6 +308,25 @@
         function closeAssignModal() {
             document.getElementById('assign-modal').classList.add('hidden');
         }
+
+        // Sidebar Toggling Code
+        const sidebarEl = document.getElementById('sidebar');
+        const overlayEl = document.getElementById('sidebar-overlay');
+        const toggleBtnEl = document.getElementById('sidebar-toggle');
+
+        function openSidebar() {
+            sidebarEl.classList.remove('-translate-x-full');
+            overlayEl.classList.remove('hidden');
+            document.body.classList.add('overflow-hidden');
+        }
+        function closeSidebar() {
+            sidebarEl.classList.add('-translate-x-full');
+            overlayEl.classList.add('hidden');
+            document.body.classList.remove('overflow-hidden');
+        }
+        toggleBtnEl?.addEventListener('click', () => {
+            sidebarEl.classList.contains('-translate-x-full') ? openSidebar() : closeSidebar();
+        });
     </script>
 </body>
 

@@ -39,4 +39,9 @@ class StudentProfile extends Model
     {
         return $this->belongsTo(Course::class, 'course', 'course_name');
     }
+
+    public function evaluations()
+    {
+        return $this->hasMany(StudentEvaluation::class, 'student_id');
+    }
 }

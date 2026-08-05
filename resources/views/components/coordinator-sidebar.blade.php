@@ -1,6 +1,6 @@
     <!-- SideNavBar -->
-    <aside
-        class="fixed left-0 top-0 h-screen w-64 z-50 bg-[#300050] text-[#ffffff] flex flex-col py-6 gap-2 shadow-[32px_0_64px_rgba(30,26,31,0.05)]">
+    <aside id="sidebar"
+        class="fixed left-0 top-0 h-screen w-64 z-50 bg-[#300050] text-[#ffffff] flex flex-col py-6 gap-2 shadow-[32px_0_64px_rgba(30,26,31,0.05)] -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-in-out">
         <div class="px-6 mb-8 flex items-center gap-3">
             <img alt="University Logo" class="h-8 w-8 object-contain" src="{{ asset('images/logo.png') }}" onerror="this.src='https://ui-avatars.com/api/?name=OJT&background=3a0ca3&color=fff'" />
             <div>

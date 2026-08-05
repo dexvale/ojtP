@@ -28,37 +28,46 @@
     </style>
 </head>
 
-<body class="bg-slate-50 text-slate-800 antialiased" data-theme="student">
+<body class="bg-surface font-body text-on-surface antialiased" data-theme="student">
     <!-- SideNavBar (Student Component) -->
     @include('components.student-sidebar')
 
+    <!-- Sidebar overlay for mobile -->
+    <div id="sidebar-overlay" class="fixed inset-0 bg-black/40 z-30 hidden lg:hidden" onclick="closeSidebar()"></div>
+
     <!-- TopNavBar -->
-    <header class="fixed top-0 left-64 right-0 z-40 bg-white/95 backdrop-blur-sm border-b border-slate-200">
-        <div class="flex justify-between items-center px-8 py-4 w-full">
-            <div>
-                <span class="text-2xl font-headline font-semibold text-primary tracking-tight">OJT Student Portal</span>
-            </div>
-            <div class="flex items-center gap-6">
-                <div class="flex items-center gap-3">
-                    <button class="p-2 text-primary hover:bg-slate-100 rounded-full transition-all active:scale-95">
-                        <span class="material-symbols-outlined" data-icon="notifications">notifications</span>
-                    </button>
-                    <div class="flex items-center gap-3 pl-2 border-l border-slate-200">
-                        <div class="text-right hidden sm:block">
-                            <p class="text-sm font-bold text-slate-800">{{ auth()->user()->studentProfile->first_name ?? 'Student' }}</p>
-                            <p class="text-[10px] uppercase tracking-wider text-slate-400 font-bold">OJT Intern</p>
-                        </div>
-                        <img alt="User profile avatar"
-                            class="w-9 h-9 rounded-full object-cover ring-2 ring-primary/10"
-                            src="https://ui-avatars.com/api/?name={{ urlencode(auth()->user()->studentProfile->first_name ?? 'Student') }}&background=3a0ca3&color=fff">
-                    </div>
+    <header class="fixed top-0 w-full z-50 bg-[#fff7fd] flex justify-between items-center px-6 lg:px-8 py-4 border-b border-[#cec3d0]/20 backdrop-blur-sm lg:pl-64 pl-0">
+        <div class="flex items-center gap-4">
+            <!-- Hamburger for mobile only -->
+            <button id="sidebar-toggle" class="lg:hidden p-2 text-primary rounded-lg hover:bg-surface-container transition-colors" aria-label="Toggle menu">
+                <span class="material-symbols-outlined">menu</span>
+            </button>
+            <!-- Logo & Branding -->
+            <div class="flex items-center gap-2.5">
+                <div class="w-8 h-8 rounded-lg bg-primary flex items-center justify-center overflow-hidden">
+                    <img alt="University Logo" class="h-8 w-8 object-contain" src="{{ asset('images/logo.png') }}" />
                 </div>
+                <span class="text-xl font-headline font-semibold text-primary hidden sm:block">OJT Portal</span>
             </div>
+        </div>
+
+        <div class="flex items-center gap-3">
+            <div class="hidden md:flex bg-surface-container rounded-lg px-4 py-2 items-center gap-2 border border-outline/15">
+                <span class="material-symbols-outlined text-outline text-[18px]">search</span>
+                <input class="bg-transparent border-none focus:ring-0 text-sm w-44 text-on-surface-variant placeholder:text-outline/60" placeholder="Search resources..." type="text"/>
+            </div>
+            <button class="relative p-2 text-primary rounded-lg hover:bg-surface-container transition-colors" aria-label="Notifications">
+                <span class="material-symbols-outlined">notifications</span>
+                <span class="absolute top-1.5 right-1.5 w-2 h-2 bg-error rounded-full"></span>
+            </button>
+            <button class="p-2 text-primary rounded-lg hover:bg-surface-container transition-colors" aria-label="Profile">
+                <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24;">account_circle</span>
+            </button>
         </div>
     </header>
 
     <!-- Main Content -->
-    <main class="ml-64 pt-24 px-8 pb-12 min-h-screen border-none">
+    <main class="lg:ml-64 ml-0 pt-20 px-4 sm:px-6 lg:px-8 pb-12 min-h-screen border-none max-w-7xl mx-auto w-full">
         
         <!-- Page Header -->
         <div class="mb-8">
@@ -183,8 +192,8 @@
     </main>
 
     <!-- SUBMISSION UPLOAD MODAL -->
-    <div id="submitModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm transition-opacity duration-300">
-        <div class="bg-white rounded-2xl shadow-2xl border border-purple-100 p-6 w-full max-w-md mx-4">
+    <div id="submitModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm transition-opacity duration-300 p-4">
+        <div class="bg-white rounded-xl shadow-2xl border border-purple-100 p-4 sm:p-6 w-full max-w-lg mx-auto max-h-[90vh] overflow-y-auto">
             <div class="flex justify-between items-center mb-5">
                 <h2 class="text-xl font-bold font-headline text-[#300050] flex items-center gap-2">
                     <span class="material-symbols-outlined text-purple-600">cloud_upload</span>
@@ -224,6 +233,32 @@
         </div>
     </div>
 
+    <!-- ═══════════════════════════════
+         MOBILE BOTTOM NAV
+    ═══════════════════════════════ -->
+    <nav class="lg:hidden fixed bottom-0 w-full bg-white/90 backdrop-blur-lg border-t border-surface-variant/20 flex justify-around items-center py-2.5 z-50">
+        <a href="{{ route('student.dashboard') }}" class="flex flex-col items-center gap-0.5 text-outline px-3 py-1">
+            <span class="material-symbols-outlined text-xl">dashboard</span>
+            <span class="text-[10px] font-bold">Home</span>
+        </a>
+        <a href="{{ route('student.logs.index') }}" class="flex flex-col items-center gap-0.5 text-outline px-3 py-1">
+            <span class="material-symbols-outlined text-xl">description</span>
+            <span class="text-[10px] font-bold">Logs</span>
+        </a>
+        <button class="flex flex-col items-center gap-0.5 text-outline px-3 py-1">
+            <span class="material-symbols-outlined text-xl">add_circle</span>
+            <span class="text-[10px] font-bold">New</span>
+        </button>
+        <button class="flex flex-col items-center gap-0.5 text-outline px-3 py-1">
+            <span class="material-symbols-outlined text-xl">business</span>
+            <span class="text-[10px] font-bold">Hub</span>
+        </button>
+        <a href="{{ route('student.profile') }}" class="flex flex-col items-center gap-0.5 text-outline px-3 py-1">
+            <span class="material-symbols-outlined text-xl">person</span>
+            <span class="text-[10px] font-bold">Profile</span>
+        </a>
+    </nav>
+
     <script>
         function updateFileNameDisplay(input, elementId) {
             const fileName = input.files[0] ? input.files[0].name : "Choose or drag completed file";
@@ -235,6 +270,25 @@
             document.getElementById('submitForm').action = `/student/requirements/${reqId}/submit`;
             document.getElementById('submitModal').classList.remove('hidden');
         }
+
+        // ── Mobile sidebar toggle ──
+        const sidebar   = document.getElementById('sidebar');
+        const overlay   = document.getElementById('sidebar-overlay');
+        const toggleBtn = document.getElementById('sidebar-toggle');
+
+        function openSidebar() {
+            sidebar.classList.remove('-translate-x-full');
+            overlay.classList.remove('hidden');
+            document.body.classList.add('overflow-hidden');
+        }
+        function closeSidebar() {
+            sidebar.classList.add('-translate-x-full');
+            overlay.classList.add('hidden');
+            document.body.classList.remove('overflow-hidden');
+        }
+        toggleBtn?.addEventListener('click', () => {
+            sidebar.classList.contains('-translate-x-full') ? openSidebar() : closeSidebar();
+        });
 
         function closeSubmitModal() {
             document.getElementById('submitModal').classList.add('hidden');

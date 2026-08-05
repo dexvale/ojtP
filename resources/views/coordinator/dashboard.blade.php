@@ -65,7 +65,7 @@
                     </button>
                     <div class="flex items-center gap-3 pl-2 border-l border-[#cec3d0]/30">
                         <div class="text-right hidden sm:block">
-                            <p class="text-sm font-bold font-headline text-[#300050]" style="">Dr. Elena Vance
+                            <p class="text-sm font-bold font-headline text-[#300050]" style="">{{ auth()->user()->email }}
                             </p>
                             <p class="text-[10px] uppercase tracking-wider text-secondary font-bold" style="">
                                 OJT Coordinator</p>
@@ -103,11 +103,11 @@
                         style="">
                         <span class="material-symbols-outlined text-[14px]" data-icon="trending_up"
                             style="">trending_up</span>
-                        +4%
+                        {{ $placementRate }}% Placed
                     </span>
                 </div>
                 <div>
-                    <h3 class="text-4xl font-extrabold font-headline text-on-surface" style="">125</h3>
+                    <h3 class="text-4xl font-extrabold font-headline text-on-surface" style="">{{ $activeStudentsCount }}</h3>
                     <p class="text-xs font-bold uppercase tracking-widest text-on-surface/50 mt-1" style="">
                         Active Students</p>
                 </div>
@@ -126,7 +126,7 @@
                     </span>
                 </div>
                 <div>
-                    <h3 class="text-4xl font-extrabold font-headline text-on-surface" style="">18</h3>
+                    <h3 class="text-4xl font-extrabold font-headline text-on-surface" style="">{{ $pendingApprovalsCount }}</h3>
                     <p class="text-xs font-bold uppercase tracking-widest text-on-surface/50 mt-1" style="">
                         Pending Approvals</p>
                 </div>
@@ -141,7 +141,7 @@
                         23-24 Total</span>
                 </div>
                 <div>
-                    <h3 class="text-4xl font-extrabold font-headline text-on-surface" style="">42,000</h3>
+                    <h3 class="text-4xl font-extrabold font-headline text-on-surface" style="">{{ number_format($totalHoursTracked) }}</h3>
                     <p class="text-xs font-bold uppercase tracking-widest text-on-surface/50 mt-1" style="">
                         Hours Tracked</p>
                 </div>
@@ -201,30 +201,30 @@
                                             </div>
                                         </div>
                                     </td>
-                                    <td class="px-6 py-4 text-sm font-medium" style="">Assigned Company</td>
+                                    <td class="px-6 py-4 text-sm font-medium" style="">{{ $student->company ? $student->company->name : 'Not Assigned' }}</td>
                                     <td class="px-6 py-4 text-sm font-bold text-primary" style="">
                                         {{ $student->required_hours }} hrs
                                     </td>
                                     <td class="px-6 py-4" style="">
                                         <div class="w-full max-w-[120px]">
                                             <div class="flex justify-between items-center mb-1">
-                                                <span class="text-[10px] font-bold text-primary" style="">{{ $student->approved_hours_count ?? 0 }} /
+                                                <span class="text-[10px] font-bold text-primary" style="">{{ $student->approved_hours ?? 0 }} /
                                                     {{ $student->required_hours }}h</span>
                                                 <span class="text-[10px] font-bold text-on-surface/40"
-                                                    style="">{{ $student->required_hours > 0 ? round(($student->approved_hours_count / $student->required_hours) * 100) : 0 }}%</span>
+                                                    style="">{{ $student->required_hours > 0 ? round((($student->approved_hours ?? 0) / $student->required_hours) * 100) : 0 }}%</span>
                                             </div>
                                             <div class="h-1 w-full bg-outline/20 rounded-full overflow-hidden">
-                                                <div class="h-full bg-primary rounded-full" style="width: {{ $student->required_hours > 0 ? round(($student->approved_hours_count / $student->required_hours) * 100) : 0 }}%"></div>
+                                                <div class="h-full bg-primary rounded-full" style="width: {{ $student->required_hours > 0 ? min(100, round((($student->approved_hours ?? 0) / $student->required_hours) * 100)) : 0 }}%"></div>
                                             </div>
                                         </div>
                                     </td>
                                     <td class="px-6 py-4" style="">
                                         <span
                                             class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-secondary/10 text-secondary"
-                                            style="">{{ ($student->approved_hours_count ?? 0) >= $student->required_hours && $student->required_hours > 0 ? 'Completed' : 'In Progress' }}</span>
+                                            style="">{{ ($student->approved_hours ?? 0) >= $student->required_hours && $student->required_hours > 0 ? 'Completed' : 'In Progress' }}</span>
                                     </td>
                                     <td class="px-6 py-4 text-right" style="">
-                                        <span class="text-[11px] font-bold text-on-surface/60" style="">{{ $student->required_hours > 0 ? round(($student->approved_hours_count / $student->required_hours) * 100) : 0 }}%
+                                        <span class="text-[11px] font-bold text-on-surface/60" style="">{{ $student->required_hours > 0 ? min(100, round((($student->approved_hours ?? 0) / $student->required_hours) * 100)) : 0 }}%
                                             Complete</span>
                                     </td>
                                 </tr>
@@ -234,7 +234,7 @@
                     </div>
                     <div class="px-6 py-4 bg-surface/30 flex items-center justify-between border-t border-outline/10">
                         <span class="text-[11px] text-on-surface/50 font-bold uppercase tracking-widest"
-                            style="">Showing 3 of 125 students</span>
+                            style="">Showing {{ $students->count() }} of {{ $students->count() }} students</span>
                         <div class="flex gap-2">
                             <button
                                 class="p-1 px-4 border border-outline/20 rounded text-[10px] font-bold uppercase tracking-widest bg-white disabled:opacity-50"
@@ -303,77 +303,151 @@
                         <h3 class="font-headline font-bold text-on-surface" style="">Document Verification Queue</h3>
                         <span
                             class="bg-error text-white text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-tighter"
-                            style="">18 New</span>
+                            style="">{{ $pendingSubmissions->count() }} New</span>
                     </div>
                     <div class="p-5 space-y-6">
-                        <!-- Focused Item -->
-                        <div class="p-4 bg-white rounded-lg border-l-4 border-primary shadow-sm">
-                            <div class="flex items-center gap-3 mb-4">
-                                <img class="w-10 h-10 rounded-lg object-cover"
-                                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuDv7cgpO-4dwLNUVf-9uAZZBXfvIONLx7L0Iaz4lx6x7h26W2S6AfmaFxGzr6-FBlfuc8qYH_H4P_ms-S6WlLKOFx2ZizuWScrD3YsUqBGtuWoA6eYX-9LNwLpkq2BCwFCPVQabiKfYvzpMrbrZar1_RBIAcqt4n4-lscte1tzSjdUVxLrH_wlx4yQ8gQ-SLCvMXTe56UwzUzXoF4f_LsJiWLnai8HB3ocMxAEXX9klh4A4Mfp-TLju9AOJ2PBvodyfBY3EFoWE2fDy"
-                                    style="">
-                                <div>
-                                    <p class="text-sm font-bold text-on-surface" style="">Sarah Jenkins</p>
-                                    <p class="text-[10px] font-medium text-on-surface/40 uppercase tracking-wider"
-                                        style="">2 hours ago</p>
-                                </div>
-                            </div>
-                            <div class="space-y-4">
-                                <div
-                                    class="p-3 bg-surface rounded border border-outline/10 flex items-center gap-3 group cursor-pointer hover:border-primary transition-colors">
-                                    <div
-                                        class="w-10 h-12 bg-error/5 rounded flex items-center justify-center text-error">
-                                        <span class="material-symbols-outlined text-[32px]" data-icon="picture_as_pdf"
-                                            style="">picture_as_pdf</span>
+                        @if($pendingSubmissions->isNotEmpty())
+                            @php
+                                $firstSub = $pendingSubmissions->first();
+                                $initials = substr($firstSub->user->studentProfile->first_name ?? 'S', 0, 1) . substr($firstSub->user->studentProfile->last_name ?? 'P', 0, 1);
+                            @endphp
+                            <!-- Focused Item -->
+                            <div class="p-4 bg-white rounded-lg border-l-4 border-primary shadow-sm">
+                                <div class="flex items-center gap-3 mb-4">
+                                    <div class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary font-bold text-sm uppercase">
+                                        {{ $initials }}
                                     </div>
-                                    <div class="flex-1 overflow-hidden">
-                                        <p class="text-xs font-bold text-on-surface truncate" style="">
-                                            Weekly_Logbook_W12.pdf</p>
-                                        <p class="text-[10px] text-on-surface/50 font-medium" style="">Submitted Documents for Endorsement • 2.4 MB</p>
-                                    </div>
-                                    <span
-                                        class="material-symbols-outlined text-on-surface/40 opacity-0 group-hover:opacity-100 transition-opacity"
-                                        data-icon="visibility" style="">visibility</span>
-                                </div>
-                                <div class="flex gap-2">
-                                    <button
-                                        class="flex-1 py-2.5 bg-primary text-white rounded text-[10px] font-bold uppercase tracking-widest hover:brightness-110 transition-all active:scale-95"
-                                        style="">Endorse Document</button>
-                                    <button
-                                        class="flex-1 py-2.5 bg-outline/10 text-on-surface rounded text-[10px] font-bold uppercase tracking-widest hover:bg-error/10 hover:text-error transition-all active:scale-95"
-                                        style="">Return for Revision</button>
-                                </div>
-                            </div>
-                        </div>
-                        <!-- Next in Queue -->
-                        <div class="space-y-4 pt-4 border-t border-outline/10">
-                            <p class="text-[10px] font-bold text-on-surface/40 uppercase tracking-[0.2em]"
-                                style="">Next in Queue</p>
-                            <div class="flex items-center justify-between group cursor-pointer">
-                                <div class="flex items-center gap-3">
-                                    <div class="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary font-bold text-xs"
-                                        style="">JD</div>
                                     <div>
-                                        <p class="text-xs font-bold text-on-surface" style="">John Doe</p>
-                                        <p class="text-[10px] text-on-surface/50 font-medium" style="">
-                                            Post-Training Narrative</p>
+                                        <p class="text-sm font-bold text-on-surface" style="">
+                                            {{ $firstSub->user->studentProfile->first_name ?? 'N/A' }} {{ $firstSub->user->studentProfile->last_name ?? '' }}
+                                        </p>
+                                        <p class="text-[10px] font-medium text-on-surface/40 uppercase tracking-wider"
+                                            style="">{{ $firstSub->created_at->diffForHumans() }}</p>
                                     </div>
                                 </div>
-                                <span
-                                    class="material-symbols-outlined text-on-surface/30 text-[18px] group-hover:translate-x-1 transition-transform"
-                                    data-icon="chevron_right" style="">chevron_right</span>
+                                <div class="space-y-4">
+                                    <a href="{{ asset('storage/' . $firstSub->file_path) }}" target="_blank"
+                                        class="p-3 bg-surface rounded border border-outline/10 flex items-center gap-3 group cursor-pointer hover:border-primary transition-colors block">
+                                        <div
+                                            class="w-10 h-12 bg-error/5 rounded flex items-center justify-center text-error flex-shrink-0">
+                                            <span class="material-symbols-outlined text-[32px]" data-icon="picture_as_pdf"
+                                                style="">picture_as_pdf</span>
+                                        </div>
+                                        <div class="flex-1 overflow-hidden">
+                                            <p class="text-xs font-bold text-on-surface truncate" style="">
+                                                {{ basename($firstSub->file_path) }}</p>
+                                            <p class="text-[10px] text-on-surface/50 font-medium truncate" style="">Submitted: {{ $firstSub->requirement->title }}</p>
+                                        </div>
+                                        <span
+                                            class="material-symbols-outlined text-on-surface/40 opacity-0 group-hover:opacity-100 transition-opacity"
+                                            data-icon="visibility" style="">visibility</span>
+                                    </a>
+                                    <div class="flex gap-2">
+                                        <form action="{{ route('coordinator.submissions.approve', $firstSub->id) }}" method="POST" class="flex-1">
+                                            @csrf
+                                            <button type="submit"
+                                                class="w-full py-2.5 bg-primary text-white rounded text-[10px] font-bold uppercase tracking-widest hover:brightness-110 transition-all active:scale-95"
+                                                style="">Endorse Document</button>
+                                        </form>
+                                        <button onclick="openRejectModal({{ $firstSub->id }})"
+                                            class="flex-1 py-2.5 bg-outline/10 text-on-surface rounded text-[10px] font-bold uppercase tracking-widest hover:bg-error/10 hover:text-error transition-all active:scale-95"
+                                            style="">Return for Revision</button>
+                                    </div>
+                                </div>
                             </div>
-                            <button
-                                class="w-full py-3 mt-2 text-[10px] font-bold uppercase tracking-widest text-primary hover:bg-primary/5 rounded-lg transition-colors border border-dashed border-primary/20"
+                            
+                            <!-- Next in Queue -->
+                            @if($pendingSubmissions->count() > 1)
+                                <div class="space-y-4 pt-4 border-t border-outline/10">
+                                    <p class="text-[10px] font-bold text-on-surface/40 uppercase tracking-[0.2em]"
+                                        style="">Next in Queue</p>
+                                    
+                                    @foreach($pendingSubmissions->skip(1)->take(3) as $nextSub)
+                                        @php
+                                            $nextInitials = substr($nextSub->user->studentProfile->first_name ?? 'S', 0, 1) . substr($nextSub->user->studentProfile->last_name ?? 'P', 0, 1);
+                                        @endphp
+                                        <div class="flex items-center justify-between group cursor-pointer" onclick="window.open('{{ asset('storage/' . $nextSub->file_path) }}', '_blank')">
+                                            <div class="flex items-center gap-3">
+                                                <div class="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary font-bold text-xs uppercase"
+                                                    style="">{{ $nextInitials }}</div>
+                                                <div>
+                                                    <p class="text-xs font-bold text-on-surface" style="">
+                                                        {{ $nextSub->user->studentProfile->first_name ?? 'N/A' }} {{ $nextSub->user->studentProfile->last_name ?? '' }}
+                                                    </p>
+                                                    <p class="text-[10px] text-on-surface/50 font-medium" style="">
+                                                        {{ $nextSub->requirement->title }}</p>
+                                                </div>
+                                            </div>
+                                            <span
+                                                class="material-symbols-outlined text-on-surface/30 text-[18px] group-hover:translate-x-1 transition-transform"
+                                                data-icon="chevron_right" style="">chevron_right</span>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            @endif
+                        @else
+                            <div class="p-8 text-center text-on-surface/50 font-medium italic">
+                                <span class="material-symbols-outlined text-4xl mb-2 text-on-surface/30" data-icon="verified_user">verified_user</span>
+                                <p class="text-sm">No pending submissions to verify.</p>
+                            </div>
+                        @endif
+
+                        <div class="pt-2">
+                            <a href="{{ route('coordinator.requirements') }}"
+                                class="block text-center w-full py-3 mt-2 text-[10px] font-bold uppercase tracking-widest text-primary hover:bg-primary/5 rounded-lg transition-colors border border-dashed border-primary/20"
                                 style="">
                                 View Full Queue
-                            </button>
+                            </a>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </main>
-</body>
 
+    <!-- REJECTION REMARKS MODAL -->
+    <div id="rejectModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm transition-opacity duration-300">
+        <div class="bg-white rounded-2xl shadow-2xl border border-purple-100 p-6 w-full max-w-md mx-4">
+            <div class="flex justify-between items-center mb-5">
+                <h2 class="text-xl font-bold font-headline text-slate-800 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-rose-600">warning</span>
+                    Return for Revision
+                </h2>
+                <button onclick="closeRejectModal()" class="text-gray-400 hover:text-rose-500 transition">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            
+            <form method="POST" id="rejectForm">
+                @csrf
+                <div class="mb-6">
+                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Provide Feedback / Remarks</label>
+                    <textarea name="remarks" required rows="4"
+                              class="w-full border border-slate-200 rounded-xl px-4 py-2.5 bg-slate-50/50 text-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all"
+                              placeholder="Describe why this document is being returned (e.g. missing signature, blurred scan) and what changes are needed."></textarea>
+                </div>
+
+                <div class="flex gap-3">
+                    <button type="button" onclick="closeRejectModal()" class="flex-1 px-5 py-2.5 rounded-xl border border-gray-200 text-gray-600 text-sm font-bold hover:bg-gray-50 transition">
+                        Cancel
+                    </button>
+                    <button type="submit" class="flex-1 bg-rose-600 hover:bg-rose-700 text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-md transition">
+                        Reject Submission
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function openRejectModal(id) {
+            document.getElementById('rejectForm').action = `/coordinator/submissions/${id}/reject`;
+            document.getElementById('rejectModal').classList.remove('hidden');
+        }
+
+        function closeRejectModal() {
+            document.getElementById('rejectModal').classList.add('hidden');
+        }
+    </script>
+</body>
 </html>

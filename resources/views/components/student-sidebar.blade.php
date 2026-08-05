@@ -1,4 +1,4 @@
-<aside id="sidebar" class="fixed left-0 top-0 h-screen w-64 z-40 bg-primary flex flex-col py-6 shadow-2xl pt-28 -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out">
+<aside id="sidebar" class="fixed left-0 top-0 h-screen w-64 z-40 bg-primary flex flex-col py-6 shadow-2xl pt-28 -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-in-out">
     <!-- Brand -->
     <div class="px-6 mb-8 flex items-center gap-3">
         <div class="w-10 h-10 rounded-xl bg-white/10 border border-white/15 flex items-center justify-center flex-shrink-0">

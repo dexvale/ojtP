@@ -77,4 +77,9 @@ class User extends Authenticatable
     {
         return $this->belongsToMany(Course::class, 'coordinator_course');
     }
+
+    public function requirementSubmissions()
+    {
+        return $this->hasMany(RequirementSubmission::class);
+    }
 }

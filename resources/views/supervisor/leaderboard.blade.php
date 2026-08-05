@@ -19,11 +19,16 @@
     <!-- SIDEBAR -->
     @include('components.supervisor-sidebar')
 
+    <!-- Sidebar overlay for mobile -->
+    <div id="sidebar-overlay" class="fixed inset-0 bg-black/40 z-40 hidden lg:hidden" onclick="closeSidebar()"></div>
+
     <!-- TOP NAVIGATION -->
-    <header class="fixed top-0 md:left-64 left-0 right-0 z-40 bg-[#fff7fd] border-b border-[#cec3d0]/15">
+    <header class="fixed top-0 lg:left-64 left-0 right-0 z-40 bg-[#fff7fd] border-b border-[#cec3d0]/15">
         <div class="flex justify-between items-center px-4 md:px-8 py-4 w-full">
             <div class="flex items-center gap-8">
-                <button class="md:hidden p-2 text-primary rounded outline-none hover:bg-surface-container"><span class="material-symbols-outlined">menu</span></button>
+                <button id="sidebar-toggle" class="lg:hidden p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center text-primary rounded outline-none hover:bg-surface-container" aria-label="Toggle menu">
+                    <span class="material-symbols-outlined">menu</span>
+                </button>
                 <span class="text-2xl font-headline font-semibold text-[#300050] tracking-tight hidden sm:block">Industry Supervisor</span>
             </div>
             <div class="flex items-center gap-6">
@@ -45,7 +50,7 @@
     </header>
 
     <!-- MAIN CONTENT -->
-    <main class="md:ml-64 pt-24 px-4 md:px-8 pb-12">
+    <main class="lg:ml-64 ml-0 pt-24 px-4 sm:px-6 lg:px-8 pb-12 w-full max-w-7xl mx-auto">
         <div class="mb-8 flex items-center gap-4">
             <a href="{{ route('supervisor.dashboard') }}" class="p-2 hover:bg-surface-container rounded-full text-on-surface/50 transition-colors">
                 <span class="material-symbols-outlined">arrow_back</span>
@@ -57,15 +62,16 @@
         </div>
 
         <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-            <table class="w-full text-left border-collapse">
-                <thead>
-                    <tr class="bg-gray-50/70 border-b border-gray-100">
-                        <th class="p-4 text-center text-xs font-semibold text-gray-400 uppercase tracking-wider w-[70px]">Rank</th>
-                        <th class="p-4 text-xs font-semibold text-gray-400 uppercase tracking-wider">Intern</th>
-                        <th class="p-4 text-xs font-semibold text-gray-400 uppercase tracking-wider">Course Track</th>
-                        <th class="p-4 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider">Total Approved Hours</th>
-                    </tr>
-                </thead>
+            <div class="w-full overflow-x-auto -mx-4 sm:mx-0 min-w-full inline-block align-middle">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-gray-50/70 border-b border-gray-100">
+                            <th class="p-4 text-center text-xs font-semibold text-gray-400 uppercase tracking-wider w-[70px]">Rank</th>
+                            <th class="p-4 text-xs font-semibold text-gray-400 uppercase tracking-wider">Intern</th>
+                            <th class="p-4 text-xs font-semibold text-gray-400 uppercase tracking-wider hidden md:table-cell">Course Track</th>
+                            <th class="p-4 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider">Total Approved Hours</th>
+                        </tr>
+                    </thead>
                 <tbody class="divide-y divide-gray-50">
                     @forelse($leaderboard as $index => $intern)
                         <tr class="hover:bg-gray-50/40 transition-colors">
@@ -93,7 +99,7 @@
                                 </div>
                             </td>
 
-                            <td class="p-4 text-xs text-gray-600 font-medium capitalize">
+                            <td class="p-4 text-xs text-gray-600 font-medium capitalize hidden md:table-cell">
                                 {{ $intern->course ?? $intern->course_major ?? 'Computing Track' }}
                             </td>
 
@@ -108,7 +114,29 @@
                     @endforelse
                 </tbody>
             </table>
+            </div>
         </div>
     </main>
+
+    <script>
+        // Sidebar Toggling Code
+        const sidebarEl = document.getElementById('sidebar');
+        const overlayEl = document.getElementById('sidebar-overlay');
+        const toggleBtnEl = document.getElementById('sidebar-toggle');
+
+        function openSidebar() {
+            sidebarEl.classList.remove('-translate-x-full');
+            overlayEl.classList.remove('hidden');
+            document.body.classList.add('overflow-hidden');
+        }
+        function closeSidebar() {
+            sidebarEl.classList.add('-translate-x-full');
+            overlayEl.classList.add('hidden');
+            document.body.classList.remove('overflow-hidden');
+        }
+        toggleBtnEl?.addEventListener('click', () => {
+            sidebarEl.classList.contains('-translate-x-full') ? openSidebar() : closeSidebar();
+        });
+    </script>
 </body>
 </html>

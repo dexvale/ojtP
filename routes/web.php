@@ -41,9 +41,7 @@ Route::middleware(['auth', 'no.cache', 'role:Admin,coordinator'])->group(functio
     Route::get('/coordinator/students/{id}', [\App\Http\Controllers\Coordinator\DashboardController::class, 'showStudent'])->name('coordinator.students.show');
     Route::post('/coordinator/students/{student}/assign', [\App\Http\Controllers\Coordinator\StudentPlacementController::class, 'assign'])->name('coordinator.students.assign');
 
-    Route::get('/coordinator/reports', function () {
-        return view('coordinator.reports');
-    })->name('coordinator.reports');
+    Route::get('/coordinator/reports', [\App\Http\Controllers\Coordinator\DashboardController::class, 'reports'])->name('coordinator.reports');
 
     Route::get('/coordinator/companies', [\App\Http\Controllers\Coordinator\CompanyController::class, 'index'])->name('coordinator.companies');
     Route::post('/coordinator/companies', [\App\Http\Controllers\Coordinator\CompanyController::class, 'store'])->name('coordinator.companies.store');
@@ -87,4 +85,6 @@ Route::middleware(['auth', 'no.cache', 'role:Advisor'])->group(function () {
     
     Route::post('/supervisor/logs/{log}/approve', [\App\Http\Controllers\Supervisor\DashboardController::class, 'approve'])->name('supervisor.logs.approve');
     Route::post('/supervisor/logs/{log}/reject', [\App\Http\Controllers\Supervisor\DashboardController::class, 'reject'])->name('supervisor.logs.reject');
+    Route::post('/supervisor/interns/{student}/evaluate', [\App\Http\Controllers\Supervisor\EvaluationController::class, 'store'])->name('supervisor.interns.evaluate');
+    Route::post('/supervisor/evaluate', [\App\Http\Controllers\Supervisor\EvaluationController::class, 'storeFromForm'])->name('supervisor.evaluate');
 });
