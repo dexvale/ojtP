@@ -156,6 +156,7 @@
                                             class="text-xs font-semibold text-purple-700 hover:text-purple-900 view-log-btn"
                                             data-date="{{ \Carbon\Carbon::parse($log->log_date)->format('M d, Y') }}"
                                             data-summary="{{ $log->tasks_performed }}"
+                                            data-remarks="{{ $log->remarks ?? '' }}"
                                             data-hours="{{ number_format($log->hours_rendered, 2) }}"
                                             data-times="AM: {{ $log->morning_in ? \Carbon\Carbon::parse($log->morning_in)->format('h:i A') : '--' }} - {{ $log->morning_out ? \Carbon\Carbon::parse($log->morning_out)->format('h:i A') : '--' }} | PM: {{ $log->afternoon_in ? \Carbon\Carbon::parse($log->afternoon_in)->format('h:i A') : '--' }} - {{ $log->afternoon_out ? \Carbon\Carbon::parse($log->afternoon_out)->format('h:i A') : '--' }}"
                                             data-photo="{{ $log->photo_path ? asset('storage/' . $log->photo_path) : '' }}">
@@ -167,6 +168,10 @@
                                             @method('DELETE')
                                             <button type="submit" class="text-xs font-semibold text-red-600 hover:text-red-900">Delete</button>
                                         </form>
+                                    @elseif(strtoupper($log->status) === 'REJECTED')
+                                        <a href="{{ route('student.logs.edit', $log->id) }}" class="text-xs font-semibold text-amber-600 hover:text-amber-900">
+                                            Edit / Resubmit
+                                        </a>
                                     @endif
                                 </div>
                             </td>
@@ -220,6 +225,12 @@
                 <span class="block text-xs font-bold text-outline uppercase tracking-wider mb-2">Activity Summary</span>
                 <div class="mt-1 w-full bg-gray-50 rounded-lg p-3 border border-gray-100 min-h-[4.5rem]">
                     <p id="modal-summary" class="text-sm text-gray-700 whitespace-pre-wrap break-words overflow-visible"></p>
+                </div>
+            </div>
+            <div id="modal-remarks-container" class="pt-2 hidden">
+                <span class="block text-xs font-bold text-error uppercase tracking-wider mb-2">Supervisor Remarks</span>
+                <div class="mt-1 w-full bg-error/10 rounded-lg p-3 border border-error/20 min-h-[4.5rem]">
+                    <p id="modal-remarks" class="text-sm text-error whitespace-pre-wrap break-words overflow-visible"></p>
                 </div>
             </div>
             <div id="modal-photo-container" class="pt-4 hidden border-t border-surface-variant/10">
@@ -285,6 +296,8 @@
     const modal = document.getElementById('view-log-modal');
     const modalDate = document.getElementById('modal-date');
     const modalSummary = document.getElementById('modal-summary');
+    const modalRemarksContainer = document.getElementById('modal-remarks-container');
+    const modalRemarks = document.getElementById('modal-remarks');
     const modalHours = document.getElementById('modal-hours');
     const modalTimes = document.getElementById('modal-times');
     const modalPhotoContainer = document.getElementById('modal-photo-container');
@@ -297,6 +310,15 @@
             modalSummary.textContent = this.getAttribute('data-summary');
             modalHours.textContent = this.getAttribute('data-hours') + ' hrs';
             modalTimes.textContent = this.getAttribute('data-times');
+            
+            const remarks = this.getAttribute('data-remarks');
+            if (remarks) {
+                modalRemarks.textContent = remarks;
+                modalRemarksContainer.classList.remove('hidden');
+            } else {
+                modalRemarks.textContent = '';
+                modalRemarksContainer.classList.add('hidden');
+            }
             
             const photoUrl = this.getAttribute('data-photo');
             if (photoUrl) {

@@ -70,19 +70,12 @@
     </header>
 
     <!-- Main Content -->
-    <main class="lg:ml-64 ml-0 pt-24 px-4 sm:px-6 lg:px-8 pb-12 min-h-screen border-none max-w-7xl mx-auto w-full">
+    <main class="lg:ml-64 ml-0 pt-24 px-4 sm:px-6 lg:px-8 pb-12 min-h-screen border-none">
         <!-- Page Header -->
         <div class="flex flex-col sm:flex-row items-stretch sm:items-end justify-between mb-8 gap-4">
             <div>
                 <h1 class="text-4xl font-extrabold font-headline text-slate-900 tracking-tight">Student Directory</h1>
                 <p class="text-slate-500 font-medium mt-1 text-sm">Manage and track all OJT intern placements and progress.</p>
-            </div>
-            <div class="flex gap-3">
-                <button
-                    class="flex items-center gap-2 px-5 py-2.5 bg-primary text-white rounded-lg text-sm font-semibold hover:shadow-lg hover:-translate-y-0.5 transition-all active:scale-95">
-                    <span class="material-symbols-outlined text-[18px]">add</span>
-                    New Student
-                </button>
             </div>
         </div>
 
@@ -149,16 +142,33 @@
                                 <p class="text-sm font-medium text-slate-900">{{ $student->course }}</p>
                             </td>
                             <td class="px-6 py-4">
-                                @if($student->company)
-                                    <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-green-50 border border-green-100 text-green-700 text-xs font-semibold">
-                                        <span class="material-symbols-outlined text-sm">corporate_fare</span>
-                                        <span class="truncate max-w-[150px]">{{ $student->company->name }}</span>
+                                @if($student->placement_status === 'Approved' && $student->company)
+                                    <div class="flex flex-col gap-1">
+                                        <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-green-50 border border-green-100 text-green-700 text-xs font-semibold w-fit">
+                                            <span class="material-symbols-outlined text-sm">corporate_fare</span>
+                                            <span class="truncate max-w-[160px]">{{ $student->company->name }}</span>
+                                        </div>
+                                        @if($student->department)
+                                            <span class="text-[11px] text-slate-500 font-medium pl-1">
+                                                &bull; {{ $student->department }}
+                                            </span>
+                                        @endif
                                     </div>
+                                @elseif($student->placement_status === 'Pending')
+                                    <a href="{{ route('coordinator.placements') }}" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-50 border border-amber-200 text-amber-800 text-xs font-semibold hover:bg-amber-100 transition">
+                                        <span class="material-symbols-outlined text-sm text-amber-600">hourglass_top</span>
+                                        <span>Pending Endorsement</span>
+                                    </a>
+                                @elseif($student->placement_status === 'Rejected')
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-rose-50 border border-rose-100 text-rose-700 text-xs font-semibold">
+                                        <span class="material-symbols-outlined text-sm">error</span>
+                                        <span>Needs Revision</span>
+                                    </span>
                                 @else
-                                    <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-50 border border-amber-100 text-amber-700 text-xs font-semibold">
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-50 border border-slate-200 text-slate-500 text-xs font-semibold">
                                         <span class="material-symbols-outlined text-sm">pending</span>
                                         <span>Unassigned</span>
-                                    </div>
+                                    </span>
                                 @endif
                             </td>
                             <td class="px-6 py-4">
@@ -196,23 +206,10 @@
                                 </div>
                             </td>
                             <td class="px-6 py-4 text-right">
-                                <div class="flex items-center justify-end gap-2">
-                                    @if(!$student->company_id)
-                                        <button onclick="openAssignModal({{ $student->id }}, '{{ addslashes($student->first_name . ' ' . $student->last_name) }}', {{ $student->academicCourse->id ?? 'null' }})" class="border border-purple-200 hover:bg-purple-50 text-purple-700 font-semibold text-sm rounded-lg px-3 py-2 transition-colors duration-150 flex items-center gap-1.5">
-                                            <span class="material-symbols-outlined text-sm">business_center</span>
-                                            <span>Assign Placement</span>
-                                        </button>
-                                    @else
-                                        <button onclick="openAssignModal({{ $student->id }}, '{{ addslashes($student->first_name . ' ' . $student->last_name) }}', {{ $student->academicCourse->id ?? 'null' }})" class="text-gray-400 hover:text-purple-700 p-2 rounded-lg hover:bg-gray-50 transition-colors" title="Change Company Assignment">
-                                            <span class="material-symbols-outlined text-sm">edit</span>
-                                        </button>
-                                    @endif
-
-                                    <a href="{{ route('coordinator.students.show', $student->id) }}" class="border border-gray-200 text-gray-700 font-semibold text-sm rounded-lg px-3 py-2 hover:bg-gray-50 transition-colors duration-150 flex items-center gap-1">
-                                        <span>View Profile</span>
-                                        <span class="material-symbols-outlined text-sm">chevron_right</span>
-                                    </a>
-                                </div>
+                                <a href="{{ route('coordinator.students.show', $student->id) }}" class="border border-gray-200 text-gray-700 font-semibold text-xs rounded-lg px-3 py-2 hover:bg-gray-50 hover:text-primary transition-colors duration-150 inline-flex items-center gap-1">
+                                    <span>View Profile</span>
+                                    <span class="material-symbols-outlined text-sm">chevron_right</span>
+                                </a>
                             </td>
                         </tr>
                         @endforeach
@@ -222,7 +219,7 @@
             
             <!-- Pagination Footer -->
             <div class="px-6 py-4 border-t border-slate-200 bg-slate-50/50 flex items-center justify-between">
-                <p class="text-xs text-slate-500 font-medium">Showing <span class="font-bold text-slate-700">1</span> to <span class="font-bold text-slate-700">4</span> of <span class="font-bold text-slate-700">248</span> interns</p>
+                <p class="text-xs text-slate-500 font-medium">Showing <span class="font-bold text-slate-700">1</span> to <span class="font-bold text-slate-700">{{ $students->count() }}</span> of <span class="font-bold text-slate-700">{{ $students->count() }}</span> interns</p>
                 <div class="flex gap-2">
                     <button class="px-3 py-1.5 border border-slate-200 rounded-lg text-xs font-semibold text-slate-400 bg-white cursor-not-allowed">
                         Previous
@@ -235,80 +232,7 @@
         </div>
     </main>
 
-    <!-- ASSIGN PLACEMENT MODAL -->
-    <div id="assign-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm transition-opacity duration-300 p-4">
-        <div class="bg-white rounded-xl shadow-2xl border border-purple-100 p-4 sm:p-6 w-full max-w-lg mx-auto max-h-[90vh] overflow-y-auto">
-            <div class="flex justify-between items-center mb-6">
-                <h2 class="text-2xl font-bold font-headline text-[#300050]">Assign Placement</h2>
-                <button onclick="closeAssignModal()" class="text-gray-400 hover:text-rose-500 transition">
-                    <span class="material-symbols-outlined">close</span>
-                </button>
-            </div>
-            
-            <p class="text-sm text-gray-600 mb-6">Assigning company to: <span id="assign-student-name" class="font-bold text-purple-900"></span></p>
-
-            <form id="assign-form" method="POST" action="">
-                @csrf
-                <div class="mb-6">
-                    <label class="block text-sm font-bold text-[#300050] mb-2">Select Company</label>
-                    <select name="company_id" id="assign_company_select" required class="w-full border border-purple-100 rounded-xl px-4 py-3 bg-purple-50/30 text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all">
-                        <option value="">-- Select Company --</option>
-                        @foreach($companies as $company)
-                            <option value="{{ $company->id }}" data-courses="{{ json_encode($company->courses->pluck('id')->toArray()) }}">{{ $company->name }}</option>
-                        @endforeach
-                    </select>
-                </div>
-
-                <div class="flex gap-3 mt-8">
-                    <button type="button" onclick="closeAssignModal()" class="flex-1 px-5 py-2.5 rounded-xl border border-gray-200 text-gray-600 text-sm font-bold hover:bg-gray-50 transition">
-                        Cancel
-                    </button>
-                    <button type="submit" class="flex-1 bg-purple-950 hover:bg-purple-900 text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-md transition">
-                        Save Assignment
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-
     <script>
-        function openAssignModal(studentId, studentName, courseId) {
-            document.getElementById('assign-student-name').innerText = studentName;
-            document.getElementById('assign-form').action = '/coordinator/students/' + studentId + '/assign';
-            
-            const select = document.getElementById('assign_company_select');
-            const options = select.options;
-            
-            for (let i = 0; i < options.length; i++) {
-                const opt = options[i];
-                if (opt.value === "") {
-                    opt.style.display = "";
-                    continue;
-                }
-                
-                try {
-                    const courses = JSON.parse(opt.getAttribute('data-courses') || '[]');
-                    if (!courseId || courses.includes(courseId)) {
-                        opt.style.display = "";
-                        opt.disabled = false;
-                    } else {
-                        opt.style.display = "none";
-                        opt.disabled = true;
-                    }
-                } catch (e) {
-                    opt.style.display = "";
-                    opt.disabled = false;
-                }
-            }
-            
-            select.value = "";
-            document.getElementById('assign-modal').classList.remove('hidden');
-        }
-
-        function closeAssignModal() {
-            document.getElementById('assign-modal').classList.add('hidden');
-        }
-
         // Sidebar Toggling Code
         const sidebarEl = document.getElementById('sidebar');
         const overlayEl = document.getElementById('sidebar-overlay');

@@ -39,6 +39,7 @@ class DashboardController extends Controller
 
         $pendingApprovalsCount = (clone $submissionsQuery)->count();
         $pendingSubmissions = $submissionsQuery->with(['requirement', 'user.studentProfile'])
+            ->whereHas('requirement')
             ->orderBy('created_at', 'asc')
             ->get();
 

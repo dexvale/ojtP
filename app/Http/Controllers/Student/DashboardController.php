@@ -39,13 +39,26 @@ class DashboardController extends Controller
             }
         }
 
+        $requirements = collect();
+        if ($profile) {
+            $requirements = \App\Models\Requirement::whereHas('courses', function ($query) use ($profile) {
+                $query->where('course_name', $profile->course);
+            })->orderBy('created_at', 'desc')->take(3)->get();
+        }
+
+        $studentSubmissions = \App\Models\RequirementSubmission::where('user_id', auth()->id())
+            ->get()
+            ->keyBy('requirement_id');
+
         return view('student.dashboard', compact(
             'requiredHours',
             'approvedHours',
             'lackingHours',
             'completionPercentage',
             'recentLogs',
-            'paceMessage'
+            'paceMessage',
+            'requirements',
+            'studentSubmissions'
         ));
     }
 

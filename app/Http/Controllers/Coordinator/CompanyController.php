@@ -37,7 +37,7 @@ class CompanyController extends Controller
             'contact_person' => 'nullable|string|max:255',
             'contact_number' => 'nullable|string|max:255',
             'allocation_slots' => 'required|integer|min:0',
-            'advisor_email' => 'nullable|string|email|max:255|unique:users,email',
+            'advisor_email' => 'nullable|string|email:rfc,dns|max:255|unique:users,email',
             'advisor_password' => 'nullable|string|min:8',
             'courses' => 'required|array|min:1',
             'courses.*' => 'exists:courses,id'
@@ -116,7 +116,7 @@ class CompanyController extends Controller
     public function storeSupervisor(Request $request)
     {
         $request->validate([
-            'email' => 'required|string|email|max:255|unique:users',
+            'email' => 'required|string|email:rfc,dns|max:255|unique:users',
             'password' => 'required|string|min:8',
             'company_id' => 'required|exists:companies,id'
         ]);

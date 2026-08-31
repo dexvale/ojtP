@@ -245,55 +245,7 @@
                         </div>
                     </div>
                 </div>
-                <!-- Generate Reports Section -->
-                <div class="bg-surface-container p-8 rounded-lg shadow-sm border border-outline/10">
-                    <div class="flex items-center gap-3 mb-6">
-                        <span class="material-symbols-outlined text-primary text-3xl" data-icon="summarize"
-                            style="">summarize</span>
-                        <h3 class="font-headline font-bold text-xl" style="">Generate Reports</h3>
-                    </div>
-                    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-                        <div class="md:col-span-2">
-                            <label
-                                class="block text-[10px] font-bold text-on-surface/50 uppercase tracking-widest mb-2"
-                                style="">Report Type</label>
-                            <select
-                                class="w-full rounded-lg border border-outline/20 bg-white text-sm font-medium py-3 focus:ring-1 focus:ring-primary/20">
-                                <option>Weekly Progress Summary</option>
-                                <option>Final Completion Report</option>
-                                <option>Document Compliance Audit</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label
-                                class="block text-[10px] font-bold text-on-surface/50 uppercase tracking-widest mb-2"
-                                style="">Format</label>
-                            <div class="flex gap-2">
-                                <button
-                                    class="flex-1 py-3 bg-white border border-outline/20 rounded-lg text-[10px] font-bold uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-surface transition-colors"
-                                    style="">
-                                    <span class="material-symbols-outlined text-[16px]" data-icon="picture_as_pdf"
-                                        style="">picture_as_pdf</span>
-                                    PDF
-                                </button>
-                                <button
-                                    class="flex-1 py-3 bg-white border border-outline/20 rounded-lg text-[10px] font-bold uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-surface transition-colors"
-                                    style="">
-                                    <span class="material-symbols-outlined text-[16px]" data-icon="table_chart"
-                                        style="">table_chart</span>
-                                    XLS
-                                </button>
-                            </div>
-                        </div>
-                        <div class="flex flex-col justify-end">
-                            <button
-                                class="w-full py-3 bg-secondary text-white rounded-lg text-[10px] font-bold uppercase tracking-widest shadow-sm hover:brightness-110 transition-all active:scale-95"
-                                style="">
-                                Generate
-                            </button>
-                        </div>
-                    </div>
-                </div>
+
             </div>
             <!-- Right Column: Approval Queue -->
             <div class="lg:col-span-4">
@@ -336,7 +288,7 @@
                                         <div class="flex-1 overflow-hidden">
                                             <p class="text-xs font-bold text-on-surface truncate" style="">
                                                 {{ basename($firstSub->file_path) }}</p>
-                                            <p class="text-[10px] text-on-surface/50 font-medium truncate" style="">Submitted: {{ $firstSub->requirement->title }}</p>
+                                            <p class="text-[10px] text-on-surface/50 font-medium truncate" style="">Submitted: {{ $firstSub->requirement->title ?? 'Unknown Requirement' }}</p>
                                         </div>
                                         <span
                                             class="material-symbols-outlined text-on-surface/40 opacity-0 group-hover:opacity-100 transition-opacity"
@@ -375,7 +327,7 @@
                                                         {{ $nextSub->user->studentProfile->first_name ?? 'N/A' }} {{ $nextSub->user->studentProfile->last_name ?? '' }}
                                                     </p>
                                                     <p class="text-[10px] text-on-surface/50 font-medium" style="">
-                                                        {{ $nextSub->requirement->title }}</p>
+                                                        {{ $nextSub->requirement->title ?? 'Unknown Requirement' }}</p>
                                                 </div>
                                             </div>
                                             <span

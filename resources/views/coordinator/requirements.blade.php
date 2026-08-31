@@ -140,13 +140,13 @@
                                                 <div class="font-bold text-slate-800">{{ $sub->user->studentProfile->first_name ?? 'N/A' }} {{ $sub->user->studentProfile->last_name ?? '' }}</div>
                                                 <div class="text-[10px] text-slate-400 font-medium">{{ $sub->user->studentProfile->course ?? '' }}</div>
                                             </td>
-                                            <td class="py-4 px-4 font-semibold text-purple-950">{{ $sub->requirement->title }}</td>
+                                            <td class="py-4 px-4 font-semibold text-purple-950">{{ $sub->requirement->title ?? 'Unknown Requirement' }}</td>
                                             <td class="py-4 px-4">
-                                                <a href="{{ asset('storage/' . $sub->file_path) }}" target="_blank"
+                                                <button onclick="openReviewModal({{ $sub->id }}, '{{ asset('storage/' . $sub->file_path) }}')"
                                                    class="inline-flex items-center gap-1.5 px-3 py-1 bg-purple-50 hover:bg-purple-100 border border-purple-100 rounded-lg text-purple-700 text-xs font-bold transition shadow-sm">
                                                     <span class="material-symbols-outlined text-[16px]">picture_as_pdf</span>
-                                                    View Document
-                                                </a>
+                                                    Review Document
+                                                </button>
                                             </td>
                                             <td class="py-4 px-4 text-right space-x-2">
                                                 <form action="{{ route('coordinator.submissions.approve', $sub->id) }}" method="POST" class="inline">
@@ -416,6 +416,47 @@
         </div>
     </div>
 
+    <!-- DOCUMENT REVIEW LIGHTBOX MODAL -->
+    <div id="reviewModal" class="hidden fixed inset-0 z-[60] flex items-center justify-center bg-black/80 backdrop-blur-sm transition-opacity duration-300 p-4 sm:p-8">
+        <div class="bg-surface rounded-2xl shadow-2xl flex flex-col w-full max-w-5xl h-full max-h-[90vh] overflow-hidden relative">
+            
+            <!-- Header -->
+            <div class="px-6 py-4 border-b border-outline/10 flex justify-between items-center bg-white">
+                <h2 class="text-lg font-bold font-headline text-slate-800 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-purple-600">plagiarism</span>
+                    Document Verification Lightbox
+                </h2>
+                <button onclick="closeReviewModal()" class="p-2 text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-full transition">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            
+            <!-- Body: PDF Viewer -->
+            <div class="flex-1 bg-slate-200/50 w-full relative">
+                <iframe id="reviewIframe" src="" class="absolute inset-0 w-full h-full border-none"></iframe>
+            </div>
+
+            <!-- Footer: Actions -->
+            <div class="px-6 py-4 bg-white border-t border-outline/10 flex justify-between items-center">
+                <p class="text-xs text-slate-500 font-medium">Please review the document carefully before endorsing.</p>
+                <div class="flex items-center gap-3">
+                    <button type="button" id="reviewRejectBtn" class="px-6 py-2.5 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded-xl text-sm font-bold transition flex items-center gap-2">
+                        <span class="material-symbols-outlined text-[18px]">close</span>
+                        Return for Revision
+                    </button>
+                    
+                    <form method="POST" id="reviewApproveForm" class="m-0">
+                        @csrf
+                        <button type="submit" class="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-bold shadow-md transition flex items-center gap-2">
+                            <span class="material-symbols-outlined text-[18px]">verified</span>
+                            Endorse Document
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         function updateFileNameDisplay(input, elementId) {
             const fileName = input.files[0] ? input.files[0].name : "Click to upload template";
@@ -450,6 +491,24 @@
 
         function closeRejectModal() {
             document.getElementById('rejectModal').classList.add('hidden');
+        }
+
+        function openReviewModal(id, pdfUrl) {
+            document.getElementById('reviewIframe').src = pdfUrl + "#toolbar=0";
+            document.getElementById('reviewApproveForm').action = `/coordinator/submissions/${id}/approve`;
+            
+            // Set reject button action inside review modal
+            document.getElementById('reviewRejectBtn').onclick = function() {
+                closeReviewModal();
+                openRejectModal(id);
+            };
+            
+            document.getElementById('reviewModal').classList.remove('hidden');
+        }
+
+        function closeReviewModal() {
+            document.getElementById('reviewModal').classList.add('hidden');
+            document.getElementById('reviewIframe').src = "";
         }
     </script>
 </body>

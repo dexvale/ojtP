@@ -156,6 +156,12 @@
 
                         <div>
                             @if(!$sub)
+                                @if($req->template_path && str_ends_with(strtolower($req->template_path), '.pdf'))
+                                    <a href="{{ route('student.requirements.fill', $req->id) }}"
+                                            class="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-xs font-bold shadow-sm transition active:scale-95">
+                                        Fill Form (Online)
+                                    </a>
+                                @endif
                                 <button onclick="openSubmitModal({{ $req->id }}, '{{ $req->title }}')"
                                         class="px-4 py-2 bg-[#300050] hover:bg-purple-950 text-white rounded-lg text-xs font-bold shadow-sm transition active:scale-95">
                                     Submit File
@@ -172,6 +178,12 @@
                                     View Approved File
                                 </a>
                             @elseif($sub->status === 'Rejected')
+                                @if($req->template_path && str_ends_with(strtolower($req->template_path), '.pdf'))
+                                    <a href="{{ route('student.requirements.fill', $req->id) }}"
+                                            class="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-xs font-bold shadow-sm transition active:scale-95">
+                                        Fill Form (Online)
+                                    </a>
+                                @endif
                                 <button onclick="openSubmitModal({{ $req->id }}, '{{ $req->title }}')"
                                         class="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-xs font-bold shadow-md transition active:scale-95">
                                     Re-submit Document

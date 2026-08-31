@@ -28,6 +28,13 @@
         Internship Logs
     </a>
 
+    <a href="{{ route('student.placement') }}" 
+       class="mx-2 my-1 px-4 py-3 flex items-center gap-3 rounded-lg transition-all duration-200 
+              {{ request()->routeIs('student.placement*') ? 'bg-white/10 text-white font-semibold' : 'text-white/60 hover:text-white hover:bg-white/5 font-medium' }}">
+        <span class="material-symbols-outlined">corporate_fare</span>
+        Company Placement
+    </a>
+
     <a href="{{ route('student.requirements') }}" 
        class="mx-2 my-1 px-4 py-3 flex items-center gap-3 rounded-lg transition-all duration-200 
               {{ request()->routeIs('student.requirements*') ? 'bg-white/10 text-white font-semibold' : 'text-white/60 hover:text-white hover:bg-white/5 font-medium' }}">

@@ -48,13 +48,13 @@ class UserSeeder extends Seeder
         // Fetch courses seeded by CourseSeeder
         $itCourse = Course::where('course_name', 'BS in Information Technology')->first();
         $csCourse = Course::where('course_name', 'BS in Computer Science')->first();
-        $cpeCourse = Course::where('course_name', 'BS in Computer Engineering')->first();
+       
 
         // Connect Companies and Courses
-        if ($itCourse && $csCourse && $cpeCourse) {
+        if ($itCourse && $csCourse) {
             $company1->courses()->sync([$itCourse->id, $csCourse->id]);
             $company2->courses()->sync([$itCourse->id, $csCourse->id]);
-            $company3->courses()->sync([$csCourse->id, $cpeCourse->id]);
+            $company3->courses()->sync([$csCourse->id]);
         }
 
         // 2. Create a Department Coordinator (managing IT & CS courses)
@@ -75,13 +75,32 @@ class UserSeeder extends Seeder
             'role'     => 'Admin',                     
         ]);
 
-        // 4. Create a Test Supervisor Account
-        $supervisor = User::create([
-            'email'    => 'johndoe@company.com', 
-            'password' => Hash::make('super123'),
-            'role'     => 'Advisor', 
+        // 4. Create Test Supervisor Accounts for each company/department
+        $supervisor1 = User::create([
+            'email'      => 'johndoe@company.com', 
+            'password'   => Hash::make('super123'),
+            'role'       => 'Advisor', 
             'company_id' => $company1->id,
+            'department' => 'Software Engineering',
         ]);
+
+        $supervisor2 = User::create([
+            'email'      => 'bob@spacetech.com', 
+            'password'   => Hash::make('super123'),
+            'role'       => 'Advisor', 
+            'company_id' => $company2->id,
+            'department' => 'Aerospace Systems',
+        ]);
+
+        $supervisor3 = User::create([
+            'email'      => 'charlie@quantumdev.com', 
+            'password'   => Hash::make('super123'),
+            'role'       => 'Advisor', 
+            'company_id' => $company3->id,
+            'department' => 'Cybersecurity Operations',
+        ]);
+
+        $supervisor = $supervisor1; // backwards compatibility alias
 
         // 5. Create Student Accounts & Profiles
         
@@ -99,7 +118,9 @@ class UserSeeder extends Seeder
             'course'            => 'BS in Information Technology',
             'required_hours'    => 600,
             'company_id'        => $company1->id,
-            'supervisor_id'     => $supervisor->id,
+            'supervisor_id'     => $supervisor1->id,
+            'department'        => 'Software Engineering',
+            'placement_status'  => 'Approved',
         ]);
 
         // Student 2 (IT - Managed, Liam Smith)
@@ -116,6 +137,9 @@ class UserSeeder extends Seeder
             'course'            => 'BS in Information Technology',
             'required_hours'    => 600,
             'company_id'        => $company2->id,
+            'supervisor_id'     => $supervisor2->id,
+            'department'        => 'Aerospace Systems',
+            'placement_status'  => 'Approved',
         ]);
 
         // Student 3 (CS - Managed, Sophia Johnson)
@@ -132,9 +156,12 @@ class UserSeeder extends Seeder
             'course'            => 'BS in Computer Science',
             'required_hours'    => 485,
             'company_id'        => $company3->id,
+            'supervisor_id'     => $supervisor3->id,
+            'department'        => 'Cybersecurity Operations',
+            'placement_status'  => 'Approved',
         ]);
 
-        // Student 4 (CpE - NOT Managed, Emma Watson)
+        // Student 4 (Unassigned Student for testing placement submission)
         $studentUser4 = User::create([
             'email'    => 'emma@student.bisu.edu.ph',
             'password' => Hash::make('student123'),
@@ -145,9 +172,12 @@ class UserSeeder extends Seeder
             'first_name'        => 'Emma',
             'middle_name'       => 'Watson',
             'last_name'         => 'Brown',
-            'course'            => 'BS in Computer Engineering',
-            'required_hours'    => 500,
-            'company_id'        => $company1->id,
+            'course'            => 'BS in Information Technology',
+            'required_hours'    => 600,
+            'company_id'        => null,
+            'supervisor_id'     => null,
+            'department'        => null,
+            'placement_status'  => 'Unassigned',
         ]);
 
         // Student 5 (CS - Managed, Robert Chen) - COMPLETED
@@ -164,6 +194,9 @@ class UserSeeder extends Seeder
             'course'            => 'BS in Computer Science',
             'required_hours'    => 485,
             'company_id'        => $company3->id,
+            'supervisor_id'     => $supervisor3->id,
+            'department'        => 'Cybersecurity Operations',
+            'placement_status'  => 'Approved',
         ]);
 
         // Student 6 (IT - Managed, Emily Rivera) - COMPLETED
@@ -180,6 +213,9 @@ class UserSeeder extends Seeder
             'course'            => 'BS in Information Technology',
             'required_hours'    => 600,
             'company_id'        => $company1->id,
+            'supervisor_id'     => $supervisor1->id,
+            'department'        => 'Software Engineering',
+            'placement_status'  => 'Approved',
         ]);
 
         // 6. Create Requirements
@@ -201,9 +237,9 @@ class UserSeeder extends Seeder
         ]);
 
         // Associate requirements with courses
-        if ($itCourse && $csCourse && $cpeCourse) {
+        if ($itCourse && $csCourse) {
             $req1->courses()->sync([$itCourse->id, $csCourse->id]);
-            $req2->courses()->sync([$itCourse->id, $csCourse->id, $cpeCourse->id]);
+            $req2->courses()->sync([$itCourse->id, $csCourse->id]);
             $req3->courses()->sync([$itCourse->id, $csCourse->id]);
             $req4->courses()->sync([$itCourse->id]);
         }

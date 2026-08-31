@@ -26,11 +26,19 @@ Route::middleware(['auth', 'no.cache'])->group(function () {
     Route::put('/student/profile', [\App\Http\Controllers\Student\ProfileController::class, 'update'])->name('student.profile.update');
     
     Route::get('/student/logs', [\App\Http\Controllers\Student\OjtLogController::class, 'index'])->name('student.logs.index');
+    Route::get('/student/logs/{ojtLog}/edit', [\App\Http\Controllers\Student\OjtLogController::class, 'edit'])->name('student.logs.edit');
+    Route::put('/student/logs/{ojtLog}', [\App\Http\Controllers\Student\OjtLogController::class, 'update'])->name('student.logs.update');
     Route::delete('/student/logs/{ojtLog}', [\App\Http\Controllers\Student\OjtLogController::class, 'destroy'])->name('student.logs.destroy');
+
+    // Student Placement routes
+    Route::get('/student/placement', [\App\Http\Controllers\Student\PlacementController::class, 'index'])->name('student.placement');
+    Route::post('/student/placement/apply', [\App\Http\Controllers\Student\PlacementController::class, 'apply'])->name('student.placement.apply');
 
     // Student Requirements routes
     Route::get('/student/requirements', [\App\Http\Controllers\Student\StudentRequirementController::class, 'index'])->name('student.requirements');
     Route::post('/student/requirements/{id}/submit', [\App\Http\Controllers\Student\StudentRequirementController::class, 'submit'])->name('student.requirements.submit');
+    Route::get('/student/requirements/{id}/fill', [\App\Http\Controllers\Student\StudentRequirementController::class, 'fill'])->name('student.requirements.fill');
+    Route::post('/student/requirements/{id}/submit-form', [\App\Http\Controllers\Student\StudentRequirementController::class, 'submitForm'])->name('student.requirements.submitForm');
 });
 
 // Coordinator Routes
@@ -40,6 +48,11 @@ Route::middleware(['auth', 'no.cache', 'role:Admin,coordinator'])->group(functio
     Route::get('/coordinator/students', [\App\Http\Controllers\Coordinator\DashboardController::class, 'students'])->name('coordinator.students');
     Route::get('/coordinator/students/{id}', [\App\Http\Controllers\Coordinator\DashboardController::class, 'showStudent'])->name('coordinator.students.show');
     Route::post('/coordinator/students/{student}/assign', [\App\Http\Controllers\Coordinator\StudentPlacementController::class, 'assign'])->name('coordinator.students.assign');
+
+    // Coordinator Placement Endorsements
+    Route::get('/coordinator/placements', [\App\Http\Controllers\Coordinator\CoordinatorPlacementController::class, 'index'])->name('coordinator.placements');
+    Route::post('/coordinator/placements/{student}/approve', [\App\Http\Controllers\Coordinator\CoordinatorPlacementController::class, 'approve'])->name('coordinator.placements.approve');
+    Route::post('/coordinator/placements/{student}/reject', [\App\Http\Controllers\Coordinator\CoordinatorPlacementController::class, 'reject'])->name('coordinator.placements.reject');
 
     Route::get('/coordinator/reports', [\App\Http\Controllers\Coordinator\DashboardController::class, 'reports'])->name('coordinator.reports');
 

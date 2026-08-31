@@ -25,7 +25,7 @@ class RegisterController extends Controller
             'last_name' => 'required|string|max:100',
             'student_id' => 'required|string|max:50|unique:student_profiles,student_id_number',
             'course' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users,email',
+            'email' => 'required|string|email:rfc,dns|max:255|unique:users,email',
             'password' => 'required|string|min:8|confirmed',
         ]);
 

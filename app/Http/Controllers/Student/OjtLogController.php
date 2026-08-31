@@ -150,6 +150,118 @@ class OjtLogController extends Controller
         return redirect()->back()->with('success', 'OJT shift log entry has been successfully deleted.');
     }
 
+    public function edit(OjtLog $ojtLog)
+    {
+        if ($ojtLog->user_id !== auth()->id()) {
+            abort(403);
+        }
+
+        if (strtoupper($ojtLog->status) !== 'REJECTED') {
+            return redirect()->route('student.logs.index')->with('error', 'You can only edit rejected logs.');
+        }
+
+        return view('student.edit-log', compact('ojtLog'));
+    }
+
+    public function update(Request $request, OjtLog $ojtLog)
+    {
+        if ($ojtLog->user_id !== auth()->id()) {
+            abort(403);
+        }
+
+        if (strtoupper($ojtLog->status) !== 'REJECTED') {
+            return redirect()->route('student.logs.index')->with('error', 'You can only edit rejected logs.');
+        }
+
+        $validated = $request->validate([
+            'am_clock_in' => 'required_with:am_clock_out|nullable|date_format:H:i',
+            'am_clock_out' => 'nullable|after:am_clock_in|date_format:H:i',
+            'pm_clock_in' => 'required_with:pm_clock_out|nullable|date_format:H:i|after:am_clock_out',
+            'pm_clock_out' => 'nullable|after:pm_clock_in|date_format:H:i',
+            'activity_summary' => 'required|string|min:20',
+            'photo_attachment' => 'nullable|image|mimes:jpeg,png,jpg|max:5120',
+        ]);
+
+        $photoPath = $ojtLog->photo_path;
+        if ($request->hasFile('photo_attachment')) {
+            $file = $request->file('photo_attachment');
+            $fileName = uniqid() . '.jpg';
+            $dirPath = storage_path('app/public/ojt_photos');
+            
+            if (!file_exists($dirPath)) {
+                mkdir($dirPath, 0755, true);
+            }
+            
+            $targetPath = $dirPath . '/' . $fileName;
+            
+            if ($this->compressAndSaveImage($file->getPathname(), $targetPath, 800, 75)) {
+                // Delete old photo
+                if ($photoPath) {
+                    \Illuminate\Support\Facades\Storage::disk('public')->delete($photoPath);
+                }
+                $photoPath = 'ojt_photos/' . $fileName;
+            } else {
+                $newPath = $file->store('ojt_photos', 'public');
+                if ($photoPath) {
+                    \Illuminate\Support\Facades\Storage::disk('public')->delete($photoPath);
+                }
+                $photoPath = $newPath;
+            }
+        }
+
+        $totalMinutes = 0;
+        
+        if ($request->filled('am_clock_in') && $request->filled('am_clock_out')) {
+            $amIn = Carbon::createFromFormat('H:i', $request->am_clock_in);
+            $amOut = Carbon::createFromFormat('H:i', $request->am_clock_out);
+            if ($amOut->lessThan($amIn)) $amOut->addDay();
+            $totalMinutes += $amIn->diffInMinutes($amOut);
+        }
+
+        if ($request->filled('pm_clock_in') && $request->filled('pm_clock_out')) {
+            $pmIn = Carbon::createFromFormat('H:i', $request->pm_clock_in);
+            $pmOut = Carbon::createFromFormat('H:i', $request->pm_clock_out);
+            if ($pmOut->lessThan($pmIn)) $pmOut->addDay();
+            $totalMinutes += $pmIn->diffInMinutes($pmOut);
+        }
+
+        $ot_minutes = 0;
+        if ($request->filled('ot_clock_in') && $request->filled('ot_clock_out')) {
+            $ot_in = Carbon::createFromFormat('H:i', $request->ot_clock_in);
+            $ot_out = Carbon::createFromFormat('H:i', $request->ot_clock_out);
+            
+            if ($ot_out->lessThan($ot_in)) $ot_out->addDay();
+            $ot_minutes = $ot_in->diffInMinutes($ot_out);
+            $totalMinutes += $ot_minutes;
+        }
+
+        $totalHrs = floor($totalMinutes / 60);
+        $totalMins = $totalMinutes % 60;
+        $humanDecimalTotal = (float) sprintf('%d.%02d', $totalHrs, $totalMins);
+
+        $otHrs = floor($ot_minutes / 60);
+        $otMins = $ot_minutes % 60;
+        $humanDecimalOT = (float) sprintf('%d.%02d', $otHrs, $otMins);
+
+        $ojtLog->update([
+            'morning_in' => $request->am_clock_in,
+            'morning_out' => $request->am_clock_out,
+            'afternoon_in' => $request->pm_clock_in,
+            'afternoon_out' => $request->pm_clock_out,
+            'ot_clock_in' => $request->ot_clock_in,
+            'ot_clock_out' => $request->ot_clock_out,
+            'ot_duration' => $humanDecimalOT,
+            'hours_rendered' => $humanDecimalTotal,
+            'tasks_performed' => $request->activity_summary,
+            'photo_path' => $photoPath,
+            'status' => 'Pending',
+            'remarks' => null, // Clear remarks on resubmit
+            'has_overtime' => $request->has('has_overtime')
+        ]);
+
+        return redirect()->route('student.logs.index')->with('success', 'Log updated and resubmitted successfully.');
+    }
+
     /**
      * Compress and resize an image before storing it.
      *

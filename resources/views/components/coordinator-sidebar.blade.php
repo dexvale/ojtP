@@ -20,9 +20,16 @@
                 <span>Student List</span>
             </a>
             <a href="{{ route('coordinator.companies') }}" 
-               class="mx-2 my-1 px-4 py-3 flex items-center gap-3 text-sm font-medium rounded-lg transition-all duration-300 {{ request()->routeIs('coordinator.companies') ? 'bg-[#faf1f8]/10 text-[#ffffff] translate-x-1' : 'text-[#faf1f8]/70 hover:text-[#ffffff] hover:bg-[#ffffff]/5' }}">
+               class="mx-2 my-1 px-4 py-3 flex items-center gap-3 text-sm font-medium rounded-lg transition-all duration-300 {{ request()->routeIs('coordinator.companies*') ? 'bg-[#faf1f8]/10 text-[#ffffff] translate-x-1' : 'text-[#faf1f8]/70 hover:text-[#ffffff] hover:bg-[#ffffff]/5' }}">
                 <span class="material-symbols-outlined" data-icon="business">business</span>
                 <span>Company Directory</span>
+            </a>
+            <a href="{{ route('coordinator.placements') }}" 
+               class="mx-2 my-1 px-4 py-3 flex items-center justify-between text-sm font-medium rounded-lg transition-all duration-300 {{ request()->routeIs('coordinator.placements*') ? 'bg-[#faf1f8]/10 text-[#ffffff] translate-x-1' : 'text-[#faf1f8]/70 hover:text-[#ffffff] hover:bg-[#ffffff]/5' }}">
+                <div class="flex items-center gap-3">
+                    <span class="material-symbols-outlined" data-icon="verified_user">verified_user</span>
+                    <span>Endorsements</span>
+                </div>
             </a>
             @if(!auth()->user()->managedCourses()->exists())
             <a href="{{ route('admin.coordinators') }}" 

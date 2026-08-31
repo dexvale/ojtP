@@ -165,52 +165,52 @@
                     Required Documents
                 </h2>
                 <div class="space-y-3">
-                    <!-- Medical Certificate -->
-                    <div class="bg-surface-container-lowest p-4 rounded-lg flex items-center justify-between border border-surface-variant/10 hover:shadow-md transition-shadow">
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-lg bg-tertiary-container/40 flex items-center justify-center text-tertiary flex-shrink-0">
-                                <span class="material-symbols-outlined text-xl">medical_services</span>
+                    @forelse($requirements as $requirement)
+                        @php
+                            $submission = $studentSubmissions->get($requirement->id);
+                            $icon = 'description';
+                            if (stripos($requirement->title, 'medical') !== false) {
+                                $icon = 'medical_services';
+                            } elseif (stripos($requirement->title, 'consent') !== false) {
+                                $icon = 'family_history';
+                            }
+                        @endphp
+                        <div class="bg-surface-container-lowest p-4 rounded-lg flex items-center justify-between border border-surface-variant/10 hover:shadow-md transition-shadow">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-lg bg-tertiary-container/40 flex items-center justify-center text-tertiary flex-shrink-0">
+                                    <span class="material-symbols-outlined text-xl">{{ $icon }}</span>
+                                </div>
+                                <div>
+                                    <p class="font-bold text-sm">{{ $requirement->title }}</p>
+                                    @if($submission)
+                                        <p class="text-xs text-on-surface-variant">Uploaded on {{ $submission->created_at->format('M d, Y') }}</p>
+                                    @else
+                                        <p class="text-xs text-on-surface-variant">Pending Submission</p>
+                                    @endif
+                                </div>
                             </div>
-                            <div>
-                                <p class="font-bold text-sm">Medical Certificate</p>
-                                <p class="text-xs text-on-surface-variant">Uploaded on Mar 12, 2024</p>
+                            
+                            <div class="flex gap-1 items-center">
+                                @if($submission)
+                                    @if($submission->status === 'Verified' || $submission->status === 'Approved')
+                                        <span class="px-3 py-1 bg-tertiary-container text-on-tertiary-container text-[10px] font-bold rounded-lg uppercase tracking-wide flex-shrink-0">Verified</span>
+                                    @elseif($submission->status === 'Pending' || $submission->status === 'Pending Verification')
+                                        <span class="px-3 py-1 bg-amber-50 text-amber-700 border border-amber-100 text-[10px] font-bold rounded-lg uppercase tracking-wide flex-shrink-0">Pending</span>
+                                    @elseif($submission->status === 'Rejected')
+                                        <span class="px-3 py-1 bg-error/10 text-error border border-error/20 text-[10px] font-bold rounded-lg uppercase tracking-wide flex-shrink-0">Rejected</span>
+                                    @endif
+                                @else
+                                    <a href="{{ route('student.requirements') }}" class="p-1.5 hover:bg-surface-container rounded-lg text-primary transition-colors" aria-label="Upload file" title="Go to Requirements">
+                                        <span class="material-symbols-outlined text-xl">upload_file</span>
+                                    </a>
+                                @endif
                             </div>
                         </div>
-                        <span class="px-3 py-1 bg-tertiary-container text-on-tertiary-container text-[10px] font-bold rounded-lg uppercase tracking-wide flex-shrink-0">Verified</span>
-                    </div>
-                    <!-- Parent's Consent -->
-                    <div class="bg-surface-container-lowest p-4 rounded-lg flex items-center justify-between border border-surface-variant/10 hover:shadow-md transition-shadow">
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-lg bg-tertiary-container/40 flex items-center justify-center text-tertiary flex-shrink-0">
-                                <span class="material-symbols-outlined text-xl">family_history</span>
-                            </div>
-                            <div>
-                                <p class="font-bold text-sm">Parent's Consent</p>
-                                <p class="text-xs text-on-surface-variant">Uploaded on Mar 10, 2024</p>
-                            </div>
+                    @empty
+                        <div class="text-center p-4">
+                            <p class="text-sm text-on-surface-variant">No required documents at this time.</p>
                         </div>
-                        <span class="px-3 py-1 bg-tertiary-container text-on-tertiary-container text-[10px] font-bold rounded-lg uppercase tracking-wide flex-shrink-0">Verified</span>
-                    </div>
-                    <!-- Resume / MOA -->
-                    <div class="bg-surface-container-lowest p-4 rounded-lg flex items-center justify-between border border-surface-variant/10 hover:shadow-md transition-shadow">
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-lg bg-surface-container flex items-center justify-center text-primary flex-shrink-0">
-                                <span class="material-symbols-outlined text-xl">description</span>
-                            </div>
-                            <div>
-                                <p class="font-bold text-sm">Resume / MOA</p>
-                                <p class="text-xs text-on-surface-variant">Optional Submission</p>
-                            </div>
-                        </div>
-                        <div class="flex gap-1">
-                            <button class="p-1.5 hover:bg-surface-container rounded-lg text-primary transition-colors" aria-label="Upload file">
-                                <span class="material-symbols-outlined text-xl">upload_file</span>
-                            </button>
-                            <button class="p-1.5 hover:bg-surface-container rounded-lg text-outline transition-colors" aria-label="Preview">
-                                <span class="material-symbols-outlined text-xl">visibility</span>
-                            </button>
-                        </div>
-                    </div>
+                    @endforelse
                 </div>
             </section>
 
@@ -535,7 +535,7 @@
                                     @endif
                                 </td>
                                 <td class="py-4 px-4 text-right">
-                                    <button class="text-secondary text-xs font-bold hover:underline underline-offset-4">View Entry</button>
+                                    <a href="{{ route('student.logs.index') }}" class="text-secondary text-xs font-bold hover:underline underline-offset-4">View Entry</a>
                                 </td>
                             </tr>
                             @empty

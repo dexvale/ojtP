@@ -22,9 +22,6 @@ class CourseSeeder extends Seeder
             'required_hours' => 485,
         ]);
 
-        Course::create([
-            'course_name' => 'BS in Computer Engineering',
-            'required_hours' => 500,
-        ]);
+        
     }
 }

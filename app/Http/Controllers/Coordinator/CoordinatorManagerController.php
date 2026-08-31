@@ -21,7 +21,7 @@ class CoordinatorManagerController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'email' => 'required|string|email|max:255|unique:users',
+            'email' => 'required|string|email:rfc,dns|max:255|unique:users',
             'password' => 'required|string|min:8',
             'courses' => 'required|array|min:1',
             'courses.*' => 'exists:courses,id'

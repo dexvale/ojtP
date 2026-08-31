@@ -7,7 +7,7 @@
     <title>OJT Portal | Company Directory</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <link
-        href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,600;6..72,700;6..72,800&family=Public+Sans:wght@400;500;600&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,600;6..72,700;6..72,800&family=Public+Sans:wght@400;500;600;700&display=swap"
         rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
         rel="stylesheet">
@@ -29,19 +29,22 @@
 </head>
 
 <body class="bg-surface text-on-surface" data-theme="portal">
-    <!-- SideNavBar (Shared Component) -->
+    <!-- SideNavBar -->
     @include('components.coordinator-sidebar')
 
     <!-- TopNavBar -->
-    <header class="fixed top-0 left-64 right-0 z-40 bg-surface/90 backdrop-blur-sm border-b border-[#cec3d0]/15">
-        <div class="flex justify-between items-center px-8 py-4 w-full">
-            <div class="flex items-center gap-8">
-                <span class="text-2xl font-headline font-semibold text-primary tracking-tight">OJT Management</span>
+    <header class="fixed top-0 lg:left-64 left-0 right-0 z-40 bg-surface/90 backdrop-blur-sm border-b border-[#cec3d0]/15">
+        <div class="flex justify-between items-center px-4 md:px-8 py-4 w-full">
+            <div class="flex items-center gap-4">
+                <button id="sidebar-toggle" class="lg:hidden p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center text-primary rounded-lg hover:bg-black/5 transition-colors" aria-label="Toggle menu">
+                    <span class="material-symbols-outlined">menu</span>
+                </button>
+                <span class="text-xl md:text-2xl font-headline font-semibold text-primary tracking-tight">OJT Management</span>
                 <nav class="hidden md:flex items-center gap-6">
-                    <a class="text-sm font-semibold text-on-surface/60 hover:text-primary transition-colors duration-200" href="#">Dashboard</a>
-                    <a class="text-sm font-semibold text-on-surface/60 hover:text-primary transition-colors duration-200" href="#">Student List</a>
-                    <a class="text-sm font-semibold text-primary border-b-2 border-primary pb-1" href="#">Company Directory</a>
-                    <a class="text-sm font-semibold text-on-surface/60 hover:text-primary transition-colors duration-200" href="#">Reports</a>
+                    <a class="text-sm font-semibold text-on-surface/60 hover:text-primary transition-colors duration-200" href="{{ route('coordinator.dashboard') }}">Dashboard</a>
+                    <a class="text-sm font-semibold text-on-surface/60 hover:text-primary transition-colors duration-200" href="{{ route('coordinator.students') }}">Student List</a>
+                    <a class="text-sm font-semibold text-primary border-b-2 border-primary pb-1" href="{{ route('coordinator.companies') }}">Company Directory</a>
+                    <a class="text-sm font-semibold text-on-surface/60 hover:text-primary transition-colors duration-200" href="{{ route('coordinator.reports') }}">Reports</a>
                 </nav>
             </div>
             <div class="flex items-center gap-6">
@@ -64,10 +67,10 @@
     </header>
 
     <!-- Main Content -->
-    <main class="ml-64 pt-24 px-8 pb-12 min-h-screen border-none">
+    <main class="lg:ml-64 ml-0 pt-24 px-4 sm:px-6 lg:px-8 pb-12 min-h-screen border-none">
         
         <!-- Page Header & Global Actions -->
-        <div class="flex flex-col md:flex-row md:items-end md:justify-between mb-8 gap-4">
+        <div class="flex flex-col sm:flex-row items-stretch sm:items-end justify-between mb-8 gap-4">
             <div>
                 <h1 class="text-4xl font-extrabold font-headline text-slate-900 tracking-tight">Company Directory</h1>
                 <p class="text-slate-500 font-medium mt-1 text-sm">Manage partner organizations, track MOA renewals, and monitor intern allocation slots.</p>
@@ -84,52 +87,59 @@
 
         @if(session('flash_password'))
             <div id="credential-flash-banner" class="bg-purple-50 border border-purple-200 rounded-xl p-5 mb-8 shadow-sm relative overflow-hidden">
-                <div class="absolute top-0 left-0 w-1 h-full bg-purple-600"></div>
+                <div class="absolute top-0 left-0 w-1.5 h-full bg-purple-600"></div>
                 <button onclick="document.getElementById('credential-flash-banner').remove()" class="absolute top-4 right-4 text-purple-400 hover:text-purple-600 transition-colors">
                     <span class="material-symbols-outlined text-[20px]">close</span>
                 </button>
                 
-                <h3 class="text-lg font-bold text-[#300050] mb-4 flex items-center gap-2">
+                <h3 class="text-base font-bold text-[#300050] mb-3 flex items-center gap-2">
                     <span class="material-symbols-outlined text-purple-600">key</span>
                     Advisor Credentials Provisioned
                 </h3>
                 
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-5">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                     <div class="bg-white p-3 rounded-lg border border-purple-100">
-                        <span class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Workplace</span>
-                        <span class="text-sm font-semibold text-slate-800">{{ session('flash_company') }}</span>
+                        <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Workplace</span>
+                        <span class="text-xs font-semibold text-slate-800">{{ session('flash_company') }}</span>
                     </div>
                     <div class="bg-white p-3 rounded-lg border border-purple-100">
-                        <span class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Login Email</span>
-                        <span class="text-sm font-semibold text-slate-800">{{ session('flash_email') }}</span>
+                        <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Login Email</span>
+                        <span class="text-xs font-semibold text-slate-800">{{ session('flash_email') }}</span>
                     </div>
                     <div class="bg-white p-3 rounded-lg border border-purple-100">
-                        <span class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Temporary Password</span>
-                        <span class="text-sm font-semibold text-slate-800 font-mono bg-purple-100/50 px-2 py-0.5 rounded text-purple-700">{{ session('flash_password') }}</span>
+                        <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Temporary Password</span>
+                        <span class="text-xs font-semibold text-slate-800 font-mono bg-purple-100/50 px-2 py-0.5 rounded text-purple-700">{{ session('flash_password') }}</span>
                     </div>
                 </div>
 
-                <button onclick="navigator.clipboard.writeText('Email: {{ session('flash_email') }}\nPassword: {{ session('flash_password') }}'); alert('Credentials copied to clipboard!');" class="inline-flex items-center gap-2 px-4 py-2 bg-white text-purple-700 border border-purple-200 rounded-lg text-sm font-bold hover:bg-purple-100 transition-colors shadow-sm">
-                    <span class="material-symbols-outlined text-[18px]">content_copy</span>
-                    Copy Connection Details
+                <button onclick="navigator.clipboard.writeText('Email: {{ session('flash_email') }}\nPassword: {{ session('flash_password') }}'); alert('Credentials copied to clipboard!');" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white text-purple-700 border border-purple-200 rounded-lg text-xs font-bold hover:bg-purple-100 transition-colors shadow-sm">
+                    <span class="material-symbols-outlined text-[16px]">content_copy</span>
+                    Copy Credentials
                 </button>
             </div>
         @endif
 
+        @if(session('success') && !session('flash_password'))
+            <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-4 mb-6 flex items-center gap-3 text-emerald-800 text-sm shadow-sm">
+                <span class="material-symbols-outlined text-emerald-600">check_circle</span>
+                <p class="font-medium">{{ session('success') }}</p>
+            </div>
+        @endif
+
         <!-- Top Control Bar -->
-        <div class="flex flex-col md:flex-row gap-4 mb-8 border border-slate-200 bg-white p-4 rounded-xl shadow-sm">
+        <div class="flex flex-col sm:flex-row gap-4 mb-6">
             <!-- Search Bar -->
             <div class="relative flex-1">
                 <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">search</span>
-                <input type="text" 
-                    class="w-full bg-slate-50 border-none rounded-lg py-3 pl-12 pr-4 text-sm focus:ring-2 focus:ring-primary/20 transition-all"
-                    placeholder="Search companies or contact persons...">
+                <input type="text" id="companySearchInput" onkeyup="filterCompaniesTable()"
+                    class="w-full bg-white border border-slate-200 rounded-xl py-3 pl-12 pr-4 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-sm transition-all"
+                    placeholder="Search companies, locations, or contact persons...">
             </div>
             
             <!-- Filters -->
-            <div class="flex flex-col sm:flex-row gap-4">
-                <div class="relative">
-                    <select class="appearance-none bg-slate-50 border-none rounded-lg py-3 pl-4 pr-10 text-sm font-medium text-slate-700 min-w-[200px] sm:min-w-[180px] focus:ring-2 focus:ring-primary/20 cursor-pointer transition-all">
+            <div class="flex gap-3 w-full sm:w-auto">
+                <div class="relative flex-1 sm:flex-initial">
+                    <select id="moaFilterSelect" onchange="filterCompaniesTable()" class="w-full sm:w-auto appearance-none bg-white border border-slate-200 rounded-xl py-3 pl-4 pr-10 text-sm font-medium text-slate-700 sm:min-w-[160px] focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-sm cursor-pointer transition-all">
                         <option value="all">All MOA Statuses</option>
                         <option value="active">Active MOA</option>
                         <option value="pending">Expired / Pending</option>
@@ -137,9 +147,9 @@
                     <span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">expand_more</span>
                 </div>
 
-                <div class="relative">
-                    <select class="appearance-none bg-slate-50 border-none rounded-lg py-3 pl-4 pr-10 text-sm font-medium text-slate-700 min-w-[200px] sm:min-w-[180px] focus:ring-2 focus:ring-primary/20 cursor-pointer transition-all">
-                        <option value="all">All Slot Availability</option>
+                <div class="relative flex-1 sm:flex-initial">
+                    <select id="slotsFilterSelect" onchange="filterCompaniesTable()" class="w-full sm:w-auto appearance-none bg-white border border-slate-200 rounded-xl py-3 pl-4 pr-10 text-sm font-medium text-slate-700 sm:min-w-[160px] focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-sm cursor-pointer transition-all">
+                        <option value="all">All Slot Status</option>
                         <option value="available">Has Available Slots</option>
                         <option value="full">Full Capacity</option>
                     </select>
@@ -148,90 +158,156 @@
             </div>
         </div>
 
-        <!-- Company Profiles Grid -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- Data Table (Card Container) -->
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+            <div class="w-full overflow-x-auto min-w-full inline-block align-middle">
+                <table class="w-full text-left border-collapse whitespace-nowrap" id="companiesTable">
+                    <thead>
+                        <tr class="bg-slate-50/80 border-b border-slate-200">
+                            <th class="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Company / Organization</th>
+                            <th class="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Location</th>
+                            <th class="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider hidden md:table-cell">Contact Person</th>
+                            <th class="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider hidden lg:table-cell">Partner Tracks</th>
+                            <th class="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Allocation Slots</th>
+                            <th class="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider text-right">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100" id="companiesTableBody">
+                        @forelse($companies as $company)
+                        @php
+                            $filled = $company->filled_slots ?? 0;
+                            $totalSlots = $company->allocation_slots ?? 0;
+                            $slotPercent = $totalSlots > 0 ? min(100, round(($filled / $totalSlots) * 100)) : 0;
+                            $initials = substr(implode('', array_map(fn($w) => strtoupper($w[0] ?? ''), explode(' ', trim($company->name)))), 0, 2);
+                            if(empty($initials)) { $initials = 'CO'; }
+                        @endphp
+                        <tr class="hover:bg-slate-50/50 transition-colors group company-row"
+                            data-name="{{ strtolower($company->name) }}"
+                            data-location="{{ strtolower($company->location ?? '') }}"
+                            data-contact="{{ strtolower($company->contact_person ?? '') }}"
+                            data-moa="active"
+                            data-available="{{ ($totalSlots - $filled) > 0 ? 'available' : 'full' }}">
+                            
+                            <!-- Company Name -->
+                            <td class="px-6 py-4">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-xl bg-purple-100 text-primary flex items-center justify-center font-bold text-sm shadow-sm uppercase flex-shrink-0">
+                                        {{ $initials }}
+                                    </div>
+                                    <div>
+                                        <div class="flex items-center gap-2">
+                                            <p class="text-sm font-bold text-slate-900 group-hover:text-primary transition-colors">{{ $company->name }}</p>
+                                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider bg-green-50 text-green-700 border border-green-200">
+                                                MOA: Active
+                                            </span>
+                                        </div>
+                                        <p class="text-xs text-slate-500 font-medium">{{ $company->industry ?? 'General Operations' }}</p>
+                                    </div>
+                                </div>
+                            </td>
 
-            @forelse($companies as $company)
-            <!-- Dynamic Card -->
-            <div class="bg-white rounded-2xl shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 border border-slate-200 overflow-hidden flex flex-col">
-                <div class="p-6 pb-4 flex justify-between items-start gap-4">
-                    <div class="flex gap-4 items-center">
-                        <div class="w-12 h-12 rounded-xl bg-purple-100 text-primary flex items-center justify-center font-bold text-lg flex-shrink-0">
-                            {{ substr(implode('', array_map(fn($w) => strtoupper($w[0] ?? ''), explode(' ', trim($company->name)))), 0, 2) }}
-                        </div>
-                        <div>
-                            <h3 class="font-bold text-slate-900 text-base leading-tight">{{ $company->name }}</h3>
-                            <p class="text-xs text-slate-500 font-medium mt-0.5">{{ $company->industry }}</p>
-                        </div>
-                    </div>
-                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide bg-green-100 text-green-800 border border-green-200 flex-shrink-0">
-                        MOA: Active
-                    </span>
-                </div>
-                <div class="px-6 pb-5 space-y-2.5">
-                    <div class="flex items-start gap-3">
-                        <span class="material-symbols-outlined text-[18px] text-slate-400 mt-0.5">location_on</span>
-                        <p class="text-sm text-slate-600">{{ $company->location }}</p>
-                    </div>
-                    <div class="flex items-start gap-3">
-                        <span class="material-symbols-outlined text-[18px] text-slate-400 mt-0.5">person</span>
-                        <p class="text-sm text-slate-600">{{ $company->contact_person }} • {{ $company->contact_number }}</p>
-                    </div>
-                </div>
-                <div class="px-6 py-5 border-t border-slate-100 bg-slate-50/50 mt-auto">
-                    <div class="flex justify-between items-center mb-2">
-                        <span class="text-xs font-semibold text-slate-600">Allocation Slots</span>
-                        <span class="text-xs font-bold text-slate-900">{{ $company->filled_slots ?? 0 }} / {{ $company->allocation_slots }} Filled</span>
-                    </div>
-                    <div class="h-2 w-full bg-slate-200 rounded-full overflow-hidden">
-                        <div class="h-full bg-primary rounded-full transition-all duration-500" style="width: {{ $company->allocation_slots > 0 ? (($company->filled_slots ?? 0) / $company->allocation_slots) * 100 : 0 }}%"></div>
-                    </div>
-                </div>
-                <!-- Action Buttons Row -->
-                <div class="grid grid-cols-3 gap-2 mt-5 pt-4 border-t border-gray-100 p-3 bg-white">
-                    
-                    <!-- Edit Button -->
-                    <button onclick="openEditModal({{ $company }})" class="flex items-center justify-center gap-1 py-2 text-xs font-medium text-gray-600 transition-colors bg-white border border-gray-200 rounded-md hover:bg-gray-50">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
-                        Edit
+                            <!-- Location -->
+                            <td class="px-6 py-4">
+                                <div class="flex items-center gap-1.5 text-slate-700 text-sm">
+                                    <span class="material-symbols-outlined text-sm text-slate-400">location_on</span>
+                                    <span class="truncate max-w-[180px]">{{ $company->location ?? 'Not specified' }}</span>
+                                </div>
+                            </td>
+
+                            <!-- Contact Person -->
+                            <td class="px-6 py-4 hidden md:table-cell">
+                                <div>
+                                    <p class="text-sm font-medium text-slate-800">{{ $company->contact_person ?? 'Not Assigned' }}</p>
+                                    <p class="text-xs text-slate-400 font-mono">{{ $company->contact_number ?? 'N/A' }}</p>
+                                </div>
+                            </td>
+
+                            <!-- Partner Tracks / Courses -->
+                            <td class="px-6 py-4 hidden lg:table-cell">
+                                <div class="flex flex-wrap gap-1 max-w-[180px]">
+                                    @forelse($company->courses as $course)
+                                        <span class="px-2 py-0.5 rounded-md bg-purple-50 text-purple-700 text-[10px] font-bold uppercase border border-purple-100">
+                                            {{ preg_replace('/^(BS in|Bachelor of Science in)\s*/i', '', $course->course_name) }}
+                                        </span>
+                                    @empty
+                                        <span class="text-xs text-slate-400 italic">All Programs</span>
+                                    @endforelse
+                                </div>
+                            </td>
+
+                            <!-- Slots Capacity -->
+                            <td class="px-6 py-4">
+                                <div class="w-full max-w-[150px] flex flex-col gap-1.5">
+                                    <div class="flex justify-between items-center text-xs font-medium">
+                                        <span class="font-mono text-slate-700 font-bold">{{ $filled }} <span class="text-[10px] text-slate-400 font-normal">/ {{ $totalSlots }} slots</span></span>
+                                        <span class="text-xs font-bold font-mono {{ $slotPercent >= 100 ? 'text-rose-600' : 'text-emerald-700' }}">{{ $slotPercent }}%</span>
+                                    </div>
+                                    <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden p-[1px] border border-slate-100">
+                                        <div class="{{ $slotPercent >= 100 ? 'bg-rose-500' : 'bg-primary' }} h-full rounded-full transition-all duration-500" style="width: {{ $slotPercent }}%"></div>
+                                    </div>
+                                </div>
+                            </td>
+
+                            <!-- Actions -->
+                            <td class="px-6 py-4 text-right">
+                                <div class="flex items-center justify-end gap-2">
+                                    <!-- Edit Button -->
+                                    <button onclick="openEditModal({{ $company }})" class="p-2 text-slate-400 hover:text-purple-700 rounded-lg hover:bg-slate-50 transition-colors" title="Edit Company Details">
+                                        <span class="material-symbols-outlined text-[18px]">edit</span>
+                                    </button>
+
+                                    <!-- Info / View Profile Button -->
+                                    <a href="{{ route('coordinator.companies.show', $company->id) }}" class="border border-slate-200 text-slate-700 font-semibold text-xs rounded-lg px-3 py-1.5 hover:bg-slate-50 hover:text-primary transition-colors flex items-center gap-1">
+                                        <span>Details</span>
+                                        <span class="material-symbols-outlined text-sm">chevron_right</span>
+                                    </a>
+
+                                    <!-- Delete Button -->
+                                    <form action="{{ route('coordinator.companies.destroy', $company->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this company and its associated advisor accounts?');" class="inline">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="p-2 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 transition-colors" title="Delete Company">
+                                            <span class="material-symbols-outlined text-[18px]">delete</span>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        @empty
+                        <tr id="emptyRow">
+                            <td colspan="6" class="py-12 text-center text-slate-400">
+                                <div class="flex flex-col items-center justify-center">
+                                    <span class="material-symbols-outlined text-4xl text-slate-300 mb-2">apartment</span>
+                                    <p class="font-headline font-bold text-slate-700 text-base">No Companies Registered</p>
+                                    <p class="text-xs text-slate-400 mt-0.5">Click "Register New Company" above to add partner organizations.</p>
+                                </div>
+                            </td>
+                        </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination Footer -->
+            <div class="px-6 py-4 border-t border-slate-200 bg-slate-50/50 flex items-center justify-between">
+                <p class="text-xs text-slate-500 font-medium">Showing <span class="font-bold text-slate-700">{{ $companies->count() }}</span> partner companies</p>
+                <div class="flex gap-2">
+                    <button class="px-3 py-1.5 border border-slate-200 rounded-lg text-xs font-semibold text-slate-400 bg-white cursor-not-allowed">
+                        Previous
                     </button>
-
-                    <!-- Info Button -->
-                    <a href="{{ route('coordinator.companies.show', $company->id) }}" class="flex items-center justify-center gap-1 py-2 text-xs font-medium text-gray-600 transition-colors bg-white border border-gray-200 rounded-md hover:bg-gray-50">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
-                        Info
-                    </a>
-
-                    <!-- Delete Form -->
-                    <form action="{{ route('coordinator.companies.destroy', $company->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this company?');" class="w-full">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit" class="flex items-center justify-center w-full gap-1 py-2 text-xs font-medium text-red-600 transition-colors bg-red-50 border border-red-100 rounded-md hover:bg-red-100">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                            Del
-                        </button>
-                    </form>
-
+                    <button class="px-3 py-1.5 border border-slate-200 rounded-lg text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 hover:text-primary transition-colors">
+                        Next
+                    </button>
                 </div>
             </div>
-            @empty
-            <div class="col-span-full py-12 flex flex-col items-center justify-center text-center bg-white rounded-2xl border border-slate-200 border-dashed">
-                <div class="w-16 h-16 bg-purple-50 text-primary rounded-full flex items-center justify-center mb-4">
-                    <span class="material-symbols-outlined text-3xl">apartment</span>
-                </div>
-                <h3 class="text-lg font-bold text-slate-900 mb-1">No Companies Registered</h3>
-                <p class="text-slate-500 text-sm max-w-md">You haven't added any partner companies yet. Click the "Register New Company" button to start building your directory.</p>
-            </div>
-            @endforelse
-
         </div>
     </main>
 
     <!-- ADD COMPANY MODAL -->
-    <div id="addCompanyModal" class="{{ $errors->any() ? '' : 'hidden' }} fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm transition-opacity duration-300">
-        <div class="bg-white rounded-2xl shadow-2xl border border-purple-100 p-6 w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
+    <div id="addCompanyModal" class="{{ $errors->any() ? '' : 'hidden' }} fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm transition-opacity duration-300 p-4">
+        <div class="bg-white rounded-2xl shadow-2xl border border-purple-100 p-6 w-full max-w-md mx-auto max-h-[90vh] overflow-y-auto">
             <div class="flex justify-between items-center mb-6">
-                <h2 class="text-2xl font-bold font-headline text-[#300050]">Register New Company</h2>
+                <h2 class="text-2xl font-bold font-headline text-[#300050]">Register Partner Company</h2>
                 <button onclick="document.getElementById('addCompanyModal').classList.add('hidden')" class="text-gray-400 hover:text-rose-500 transition">
                     <span class="material-symbols-outlined">close</span>
                 </button>
@@ -250,71 +326,51 @@
 
             <form method="POST" action="{{ route('coordinator.companies.store') }}">
                 @csrf
-                <div class="space-y-4 mb-8">
+                <div class="space-y-4 mb-6">
                     <div>
-                        <label class="block text-sm font-bold text-[#300050] mb-1">Company Name</label>
-                        <input type="text" name="name" value="{{ old('name') }}" required class="w-full border border-purple-100 rounded-xl px-4 py-2.5 bg-purple-50/30 text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all" placeholder="e.g. TechNova Solutions">
+                        <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Company Name <span class="text-rose-500">*</span></label>
+                        <input type="text" name="name" value="{{ old('name') }}" required class="w-full border border-slate-200 rounded-xl px-4 py-2.5 bg-slate-50 text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition" placeholder="e.g. Nova Soft Solutions">
                     </div>
                     <div>
-                        <label class="block text-sm font-bold text-[#300050] mb-1">Industry</label>
-                        <input type="text" name="industry" value="{{ old('industry') }}" class="w-full border border-purple-100 rounded-xl px-4 py-2.5 bg-purple-50/30 text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all" placeholder="e.g. Information Technology">
+                        <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Industry</label>
+                        <input type="text" name="industry" value="{{ old('industry') }}" class="w-full border border-slate-200 rounded-xl px-4 py-2.5 bg-slate-50 text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition" placeholder="e.g. Software Development">
                     </div>
                     <div>
-                        <label class="block text-sm font-bold text-[#300050] mb-1">Location</label>
-                        <input type="text" name="location" value="{{ old('location') }}" class="w-full border border-purple-100 rounded-xl px-4 py-2.5 bg-purple-50/30 text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all" placeholder="e.g. IT Park, Cebu City">
+                        <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Office Location <span class="text-rose-500">*</span></label>
+                        <input type="text" name="location" value="{{ old('location') }}" class="w-full border border-slate-200 rounded-xl px-4 py-2.5 bg-slate-50 text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition" placeholder="e.g. Tagbilaran City, Bohol">
                     </div>
-                    <div class="grid grid-cols-2 gap-4">
+                    <div class="grid grid-cols-2 gap-3">
                         <div>
-                            <label class="block text-sm font-bold text-[#300050] mb-1">Contact Person</label>
-                            <input type="text" name="contact_person" value="{{ old('contact_person') }}" class="w-full border border-purple-100 rounded-xl px-4 py-2.5 bg-purple-50/30 text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all" placeholder="e.g. Mr. John Doe">
+                            <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Contact Person</label>
+                            <input type="text" name="contact_person" value="{{ old('contact_person') }}" class="w-full border border-slate-200 rounded-xl px-4 py-2.5 bg-slate-50 text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition" placeholder="e.g. Alice Margate">
                         </div>
                         <div>
-                            <label class="block text-sm font-bold text-[#300050] mb-1">Contact Number</label>
-                            <input type="text" name="contact_number" value="{{ old('contact_number') }}" class="w-full border border-purple-100 rounded-xl px-4 py-2.5 bg-purple-50/30 text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all" placeholder="e.g. 0912-345-6789">
+                            <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Contact Number</label>
+                            <input type="text" name="contact_number" value="{{ old('contact_number') }}" class="w-full border border-slate-200 rounded-xl px-4 py-2.5 bg-slate-50 text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition" placeholder="e.g. 09123456789">
                         </div>
                     </div>
                     <div>
-                        <label class="block text-sm font-bold text-[#300050] mb-1">Allocation Slots</label>
-                        <input type="number" name="allocation_slots" value="{{ old('allocation_slots', 5) }}" min="0" required class="w-full border border-purple-100 rounded-xl px-4 py-2.5 bg-purple-50/30 text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all">
+                        <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Allocation Slots <span class="text-rose-500">*</span></label>
+                        <input type="number" name="allocation_slots" value="{{ old('allocation_slots', 5) }}" min="0" required class="w-full border border-slate-200 rounded-xl px-4 py-2.5 bg-slate-50 text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition">
                     </div>
                     <div>
-                        <label class="block text-sm font-bold text-[#300050] mb-2">Scope to Academic Course(s)</label>
-                        <div class="space-y-2 bg-purple-50/30 p-4 rounded-xl border border-purple-100/50">
+                        <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">Scope to Academic Course(s)</label>
+                        <div class="space-y-2 bg-slate-50 p-3.5 rounded-xl border border-slate-200">
                             @foreach($managedCourses as $course)
                                 <label class="flex items-center gap-3 cursor-pointer group">
-                                    <input type="checkbox" name="courses[]" value="{{ $course->id }}" checked class="rounded border-purple-200 text-purple-600 focus:ring-purple-400 focus:ring-opacity-25 transition-all">
-                                    <span class="text-sm text-gray-700 font-medium group-hover:text-purple-900 transition-colors">{{ $course->course_name }}</span>
+                                    <input type="checkbox" name="courses[]" value="{{ $course->id }}" checked class="rounded border-slate-300 text-primary focus:ring-primary/20 transition-all">
+                                    <span class="text-xs text-slate-700 font-medium group-hover:text-primary transition-colors">{{ $course->course_name }}</span>
                                 </label>
                             @endforeach
                         </div>
-                        <p class="text-[10px] text-gray-400 mt-1 font-medium">Specify which course departments this company is accessible for.</p>
                     </div>
                 </div>
 
-                <hr class="my-4 border-gray-100">
-                <h3 class="text-sm font-bold text-[#300050] mb-4">🔑 Initial Advisor Account (Optional)</h3>
-                
-                <div class="space-y-4 mb-8">
-                    <div>
-                        <label class="block text-sm font-bold text-[#300050] mb-1">Advisor Email Address</label>
-                        <input type="email" name="advisor_email" value="{{ old('advisor_email') }}" placeholder="e.g. advisor@company.com" class="w-full border border-purple-100 rounded-xl px-4 py-2.5 bg-purple-50/30 text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-bold text-[#300050] mb-1">Initial Password</label>
-                        <div class="flex gap-2">
-                            <input type="text" name="advisor_password" id="advisor_password" placeholder="Set initial temporary password (min 8 chars)" class="flex-1 border border-purple-100 rounded-xl px-4 py-2.5 bg-purple-50/30 text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all">
-                            <button type="button" onclick="generateCompanyAdvisorPassword()" class="px-3 bg-purple-100 hover:bg-purple-200 text-purple-700 rounded-xl font-bold text-xs transition-colors">
-                                Generate
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="flex gap-3">
-                    <button type="button" onclick="document.getElementById('addCompanyModal').classList.add('hidden')" class="flex-1 px-5 py-2.5 rounded-xl border border-gray-200 text-gray-600 text-sm font-bold hover:bg-gray-50 transition">
+                <div class="flex gap-3 pt-2 border-t border-slate-100">
+                    <button type="button" onclick="document.getElementById('addCompanyModal').classList.add('hidden')" class="flex-1 px-5 py-2.5 rounded-xl border border-slate-200 text-slate-600 text-xs font-bold hover:bg-slate-50 transition">
                         Cancel
                     </button>
-                    <button type="submit" class="flex-1 bg-purple-950 hover:bg-purple-900 text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-md transition">
+                    <button type="submit" class="flex-1 bg-primary hover:opacity-90 text-white px-5 py-2.5 rounded-xl text-xs font-bold shadow-md transition">
                         Save Company
                     </button>
                 </div>
@@ -323,8 +379,8 @@
     </div>
 
     <!-- EDIT COMPANY MODAL -->
-    <div id="editCompanyModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm transition-opacity duration-300">
-        <div class="bg-white rounded-2xl shadow-2xl border border-purple-100 p-6 w-full max-w-md mx-4">
+    <div id="editCompanyModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm transition-opacity duration-300 p-4">
+        <div class="bg-white rounded-2xl shadow-2xl border border-purple-100 p-6 w-full max-w-md mx-auto max-h-[90vh] overflow-y-auto">
             <div class="flex justify-between items-center mb-6">
                 <h2 class="text-2xl font-bold font-headline text-[#300050]">Edit Company</h2>
                 <button onclick="document.getElementById('editCompanyModal').classList.add('hidden')" class="text-gray-400 hover:text-rose-500 transition">
@@ -335,40 +391,40 @@
             <form id="editCompanyForm" method="POST" action="">
                 @csrf
                 @method('PUT')
-                <div class="space-y-4 mb-8">
+                <div class="space-y-4 mb-6">
                     <div>
-                        <label class="block text-sm font-bold text-[#300050] mb-1">Company Name</label>
-                        <input type="text" name="name" id="edit_name" required class="w-full border border-purple-100 rounded-xl px-4 py-2.5 bg-purple-50/30 text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all">
+                        <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Company Name <span class="text-rose-500">*</span></label>
+                        <input type="text" name="name" id="edit_name" required class="w-full border border-slate-200 rounded-xl px-4 py-2.5 bg-slate-50 text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition">
                     </div>
                     <div>
-                        <label class="block text-sm font-bold text-[#300050] mb-1">Industry</label>
-                        <input type="text" name="industry" id="edit_industry" class="w-full border border-purple-100 rounded-xl px-4 py-2.5 bg-purple-50/30 text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all">
+                        <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Industry</label>
+                        <input type="text" name="industry" id="edit_industry" class="w-full border border-slate-200 rounded-xl px-4 py-2.5 bg-slate-50 text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition">
                     </div>
                     <div>
-                        <label class="block text-sm font-bold text-[#300050] mb-1">Location</label>
-                        <input type="text" name="location" id="edit_location" class="w-full border border-purple-100 rounded-xl px-4 py-2.5 bg-purple-50/30 text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all">
+                        <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Location</label>
+                        <input type="text" name="location" id="edit_location" class="w-full border border-slate-200 rounded-xl px-4 py-2.5 bg-slate-50 text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition">
                     </div>
-                    <div class="grid grid-cols-2 gap-4">
+                    <div class="grid grid-cols-2 gap-3">
                         <div>
-                            <label class="block text-sm font-bold text-[#300050] mb-1">Contact Person</label>
-                            <input type="text" name="contact_person" id="edit_contact_person" class="w-full border border-purple-100 rounded-xl px-4 py-2.5 bg-purple-50/30 text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all">
+                            <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Contact Person</label>
+                            <input type="text" name="contact_person" id="edit_contact_person" class="w-full border border-slate-200 rounded-xl px-4 py-2.5 bg-slate-50 text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition">
                         </div>
                         <div>
-                            <label class="block text-sm font-bold text-[#300050] mb-1">Contact Number</label>
-                            <input type="text" name="contact_number" id="edit_contact_number" class="w-full border border-purple-100 rounded-xl px-4 py-2.5 bg-purple-50/30 text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all">
+                            <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Contact Number</label>
+                            <input type="text" name="contact_number" id="edit_contact_number" class="w-full border border-slate-200 rounded-xl px-4 py-2.5 bg-slate-50 text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition">
                         </div>
                     </div>
                     <div>
-                        <label class="block text-sm font-bold text-[#300050] mb-1">Allocation Slots</label>
-                        <input type="number" name="allocation_slots" id="edit_allocation_slots" min="0" required class="w-full border border-purple-100 rounded-xl px-4 py-2.5 bg-purple-50/30 text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all">
+                        <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Allocation Slots <span class="text-rose-500">*</span></label>
+                        <input type="number" name="allocation_slots" id="edit_allocation_slots" min="0" required class="w-full border border-slate-200 rounded-xl px-4 py-2.5 bg-slate-50 text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition">
                     </div>
                 </div>
 
-                <div class="flex gap-3">
-                    <button type="button" onclick="document.getElementById('editCompanyModal').classList.add('hidden')" class="flex-1 px-5 py-2.5 rounded-xl border border-gray-200 text-gray-600 text-sm font-bold hover:bg-gray-50 transition">
+                <div class="flex gap-3 pt-2 border-t border-slate-100">
+                    <button type="button" onclick="document.getElementById('editCompanyModal').classList.add('hidden')" class="flex-1 px-5 py-2.5 rounded-xl border border-slate-200 text-slate-600 text-xs font-bold hover:bg-slate-50 transition">
                         Cancel
                     </button>
-                    <button type="submit" class="flex-1 bg-purple-950 hover:bg-purple-900 text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-md transition">
+                    <button type="submit" class="flex-1 bg-primary hover:opacity-90 text-white px-5 py-2.5 rounded-xl text-xs font-bold shadow-md transition">
                         Update Details
                     </button>
                 </div>
@@ -388,14 +444,39 @@
             document.getElementById('editCompanyModal').classList.remove('hidden');
         }
 
-        function generateCompanyAdvisorPassword() {
-            const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+";
-            let pass = "";
-            for (let i = 0; i < 10; i++) {
-                pass += chars.charAt(Math.floor(Math.random() * chars.length));
-            }
-            document.getElementById('advisor_password').value = pass;
+        function filterCompaniesTable() {
+            const query = document.getElementById('companySearchInput').value.toLowerCase();
+            const moa = document.getElementById('moaFilterSelect').value;
+            const slots = document.getElementById('slotsFilterSelect').value;
+            const rows = document.querySelectorAll('.company-row');
+            let visibleCount = 0;
+
+            rows.forEach(row => {
+                const name = row.dataset.name || '';
+                const location = row.dataset.location || '';
+                const contact = row.dataset.contact || '';
+                const rowMoa = row.dataset.moa || 'active';
+                const rowSlots = row.dataset.available || 'available';
+
+                const matchesQuery = name.includes(query) || location.includes(query) || contact.includes(query);
+                const matchesMoa = (moa === 'all') || (moa === rowMoa);
+                const matchesSlots = (slots === 'all') || (slots === rowSlots);
+
+                if (matchesQuery && matchesMoa && matchesSlots) {
+                    row.style.display = '';
+                    visibleCount++;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
         }
+
+        // Sidebar Toggle
+        const sidebarEl = document.getElementById('sidebar');
+        const toggleBtnEl = document.getElementById('sidebar-toggle');
+        toggleBtnEl?.addEventListener('click', () => {
+            sidebarEl.classList.toggle('-translate-x-full');
+        });
     </script>
 </body>
 

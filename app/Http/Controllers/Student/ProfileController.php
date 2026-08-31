@@ -27,7 +27,7 @@ class ProfileController extends Controller
             'last_name' => 'required|string|max:255',
             'contact_address' => 'required|string|max:255',
             'contact_number' => 'required|string|max:20',
-            'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
+            'email' => 'required|string|email:rfc,dns|max:255|unique:users,email,' . $user->id,
             'father_name' => 'nullable|string|max:255',
             'mother_name' => 'nullable|string|max:255',
             'emergency_contact_person' => 'required|string|max:255',

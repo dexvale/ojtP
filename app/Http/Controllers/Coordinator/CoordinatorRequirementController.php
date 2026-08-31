@@ -24,6 +24,7 @@ class CoordinatorRequirementController extends Controller
         $requirements = $reqQuery->get();
 
         $submissionsQuery = RequirementSubmission::with(['requirement', 'user.studentProfile'])
+            ->whereHas('requirement')
             ->orderBy('created_at', 'desc');
 
         if ($coordinator->role === 'Coordinator' && $coordinator->managedCourses()->exists()) {
@@ -73,9 +74,19 @@ class CoordinatorRequirementController extends Controller
             Storage::disk('public')->delete($requirement->template_path);
         }
 
+        // Delete all associated student submission files to prevent orphaned files
+        foreach($requirement->submissions as $sub) {
+            if ($sub->file_path) {
+                Storage::disk('public')->delete($sub->file_path);
+            }
+        }
+
+        // Explicitly delete submissions from the database
+        $requirement->submissions()->delete();
+
         $requirement->delete();
 
-        return redirect()->back()->with('success', 'Requirement template deleted successfully.');
+        return redirect()->back()->with('success', 'Requirement template and all associated submissions deleted successfully.');
     }
 
     public function approve($id)

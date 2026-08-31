@@ -9,9 +9,16 @@ class InternsController extends Controller
 {
     public function index()
     {
-        $companyId = auth()->user()->company_id ?? null;
+        $user = auth()->user();
+        $companyId = $user->company_id ?? null;
 
-        $interns = StudentProfile::where('company_id', $companyId)
+        $query = StudentProfile::where('company_id', $companyId);
+
+        if (StudentProfile::where('supervisor_id', $user->id)->exists()) {
+            $query->where('supervisor_id', $user->id);
+        }
+
+        $interns = $query
             ->with(['user', 'academicCourse', 'evaluations'])
             ->withSum(['ojtLogs as approved_hours' => function ($query) {
                 $query->where('status', 'Approved');

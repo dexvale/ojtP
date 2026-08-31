@@ -5,7 +5,14 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 
-#[Fillable(['user_id', 'student_id_number', 'first_name', 'middle_name', 'last_name', 'course', 'required_hours', 'supervisor_id', 'company_id', 'contact_address', 'contact_number', 'father_name', 'mother_name', 'emergency_contact_person', 'emergency_contact_number', 'internship_start'])]
+#[Fillable([
+    'user_id', 'student_id_number', 'first_name', 'middle_name', 'last_name',
+    'course', 'required_hours', 'supervisor_id', 'company_id', 'department',
+    'placement_status', 'placement_remarks', 'acceptance_letter_path',
+    'pending_company_name', 'pending_supervisor_name', 'pending_supervisor_email', 'pending_supervisor_contact',
+    'contact_address', 'contact_number', 'father_name', 'mother_name',
+    'emergency_contact_person', 'emergency_contact_number', 'internship_start'
+])]
 class StudentProfile extends Model
 {
     public function user()
