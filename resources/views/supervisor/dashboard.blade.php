@@ -19,29 +19,35 @@
 </head>
 <body class="bg-surface text-on-surface" data-theme="portal">
 
-    <!-- SIDEBAR (Supervisor Version) -->
+    <!-- Mobile Sidebar Backdrop Overlay -->
+    <div id="sidebar-overlay" class="fixed inset-0 bg-black/40 backdrop-blur-xs z-40 hidden lg:hidden transition-opacity"></div>
+
     <!-- SIDEBAR (Supervisor Version - Shared Component) -->
     @include('components.supervisor-sidebar')
 
     <!-- TOP NAVIGATION -->
-    <header class="fixed top-0 md:left-64 left-0 right-0 z-40 bg-[#fff7fd] border-b border-[#cec3d0]/15">
-        <div class="flex justify-between items-center px-4 md:px-8 py-4 w-full">
-            <div class="flex items-center gap-8">
-                <button class="md:hidden p-2 text-primary rounded outline-none hover:bg-surface-container"><span class="material-symbols-outlined">menu</span></button>
-                <span class="text-2xl font-headline font-semibold text-[#300050] tracking-tight hidden sm:block">Industry Supervisor</span>
+    <header class="fixed top-0 lg:left-64 left-0 right-0 z-30 bg-[#fff7fd]/95 backdrop-blur-sm border-b border-[#cec3d0]/15">
+        <div class="flex justify-between items-center px-4 md:px-8 py-3.5 w-full">
+            <div class="flex items-center gap-3 md:gap-4">
+                <button id="sidebar-toggle" class="lg:hidden p-2 text-[#300050] rounded-lg hover:bg-black/5 transition-colors active:scale-95" aria-label="Toggle Menu">
+                    <span class="material-symbols-outlined">menu</span>
+                </button>
+                <span class="text-xl md:text-2xl font-headline font-semibold text-[#300050] tracking-tight">Industry Supervisor</span>
             </div>
-            <div class="flex items-center gap-6">
+            <div class="flex items-center gap-3 sm:gap-6">
                 <!-- Notifications & Profile -->
                 <div class="flex items-center gap-3">
-                    <button class="p-2 text-[#300050] hover:bg-[#faf1f8] rounded-full transition-all active:scale-95">
+                    <button class="p-2 text-[#300050] hover:bg-[#faf1f8] rounded-full transition-all active:scale-95" title="Notifications">
                         <span class="material-symbols-outlined">notifications</span>
                     </button>
                     <div class="flex items-center gap-3 pl-2 border-l border-[#cec3d0]/30">
                         <div class="text-right hidden sm:block">
-                            <p class="text-sm font-bold font-headline text-[#300050]">Mr. David Miller</p>
-                            <p class="text-[10px] uppercase tracking-wider text-secondary font-bold">Tech Lead - IT Dept</p>
+                            <p class="text-sm font-bold font-headline text-[#300050]">{{ auth()->user()->display_name }}</p>
+                            <p class="text-[10px] uppercase tracking-wider text-secondary font-bold">{{ auth()->user()->department ? auth()->user()->department . ' • ' : '' }}{{ auth()->user()->company->name ?? 'Supervisor' }}</p>
                         </div>
-                        <div class="w-9 h-9 border border-outline/30 rounded-full flex items-center justify-center bg-surface-container text-primary font-bold">DM</div>
+                        <img alt="User profile avatar"
+                            class="w-8 h-8 sm:w-9 sm:h-9 rounded-full object-cover ring-2 ring-primary/10 flex-shrink-0"
+                            src="{{ auth()->user()->avatar_url }}">
                     </div>
                 </div>
             </div>
@@ -49,7 +55,7 @@
     </header>
 
     <!-- MAIN DASHBOARD CONTENT -->
-    <main class="md:ml-64 pt-24 px-4 md:px-8 pb-12">
+    <main class="lg:ml-64 ml-0 pt-20 md:pt-24 px-4 sm:px-6 lg:px-8 pb-12">
         <!-- Header Section -->
         <div class="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4">
             <div>
@@ -144,11 +150,13 @@
                             $approvedHours = $profile->user->ojt_logs_sum_hours_rendered ?? 0;
                             $requiredHours = $profile->academicCourse->required_hours ?? $profile->required_hours ?? 400;
                             $progressPercent = min(($approvedHours / max($requiredHours, 1)) * 100, 100);
+                            $studentName = $profile->user->display_name ?? trim($profile->first_name . ' ' . $profile->last_name);
+                            $initials = substr(implode('', array_map(fn($w) => strtoupper($w[0] ?? ''), explode(' ', $studentName))), 0, 2);
                         @endphp
                         <!-- Rank {{ $index + 1 }} -->
                         <div class="flex items-center gap-4 group">
                             <div class="w-12 h-12 rounded-full border {{ $index === 0 ? 'border-warning/50 bg-warning/10 text-warning' : 'border-outline/30 bg-surface text-on-surface/60' }} shadow-sm flex items-center justify-center font-extrabold text-sm relative flex-shrink-0">
-                                {{ strtoupper(substr($profile->user->name, 0, 2)) }}
+                                {{ $initials }}
                                 <div class="absolute -top-2 -right-2 bg-surface-container rounded-full shadow-sm border border-outline/20 flex items-center justify-center {{ $index === 0 ? 'p-1' : 'w-6 h-6' }}">
                                     @if($index === 0)
                                         <span class="material-symbols-outlined text-[14px] text-warning" style="font-variation-settings: 'FILL' 1;">military_tech</span>
@@ -160,7 +168,7 @@
                             <div class="flex-1 min-w-0">
                                 <div class="flex justify-between items-end mb-1">
                                     <div class="truncate mr-2">
-                                        <p class="text-sm font-bold text-on-surface group-hover:text-primary transition-colors truncate">{{ $profile->user->name }}</p>
+                                        <p class="text-sm font-bold text-on-surface group-hover:text-primary transition-colors truncate">{{ $studentName }}</p>
                                         <p class="text-[10px] font-semibold text-on-surface/50 truncate">{{ $profile->course ?? 'Intern' }}</p>
                                     </div>
                                     <span class="text-[10px] font-bold {{ $index === 0 ? 'text-primary bg-primary/5 border border-primary/10' : 'text-on-surface/70 bg-surface border border-outline/20' }} px-2 py-0.5 rounded whitespace-nowrap">{{ number_format($approvedHours, 2) }}/{{ $requiredHours }} hrs</span>
@@ -230,6 +238,19 @@
             var chart = new ApexCharts(document.querySelector("#weeklyTrendsChart"), options);
             chart.render();
         });
+
+        // Responsive Sidebar Toggle
+        const sidebarEl = document.getElementById('sidebar');
+        const overlayEl = document.getElementById('sidebar-overlay');
+        const toggleBtnEl = document.getElementById('sidebar-toggle');
+
+        function toggleSidebar() {
+            sidebarEl.classList.toggle('-translate-x-full');
+            overlayEl.classList.toggle('hidden');
+        }
+
+        toggleBtnEl?.addEventListener('click', toggleSidebar);
+        overlayEl?.addEventListener('click', toggleSidebar);
     </script>
 </body>
 </html>

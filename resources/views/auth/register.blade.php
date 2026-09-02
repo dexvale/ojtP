@@ -48,17 +48,12 @@
     </style>
 </head>
 
-<body
-    class="bg-surface text-on-surface min-h-screen flex flex-col items-center justify-center p-6 sm:p-12 relative overflow-x-hidden" data-theme="student">
-    <!-- Ambient Background Decorations -->
-    <div
-        class="absolute top-0 right-0 w-[500px] h-[500px] bg-primary-container/5 rounded-full blur-[120px] -z-10 translate-x-1/2 -translate-y-1/2">
-    </div>
-    <div
-        class="absolute bottom-0 left-0 w-[400px] h-[400px] bg-secondary/5 rounded-full blur-[100px] -z-10 -translate-x-1/2 translate-y-1/2">
-    </div>
-    <main
-        class="w-full max-w-5xl flex flex-col md:flex-row shadow-2xl rounded-xl overflow-hidden bg-surface-container-lowest">
+<body class="bg-surface text-on-surface min-h-screen flex flex-col" data-theme="student">
+    <main class="flex-grow flex items-center justify-center px-6 py-12 relative overflow-hidden">
+        <!-- Ambient Background Decorations -->
+        <div class="absolute top-0 right-0 w-[500px] h-[500px] bg-primary-container/5 rounded-full blur-[120px] -z-10 translate-x-1/2 -translate-y-1/2"></div>
+        <div class="absolute bottom-0 left-0 w-[400px] h-[400px] bg-secondary/5 rounded-full blur-[100px] -z-10 -translate-x-1/2 translate-y-1/2"></div>
+        <div class="w-full max-w-5xl xl:max-w-6xl 2xl:max-w-7xl flex flex-col md:flex-row shadow-2xl rounded-xl overflow-hidden bg-surface-container-lowest">
         @include('components.auth-brand-sidebar')
         <!-- Signup Form Area -->
         <div class="md:w-8/12 p-8 md:p-16 bg-surface-container-lowest">
@@ -186,8 +181,12 @@
                     </div>
                 </div>
             </form>
+            </div>
         </div>
     </main>
+
+    <x-auth-footer />
+
     <script>
         function togglePassword(fieldId) {
             const input = document.getElementById(fieldId);
@@ -203,21 +202,7 @@
             }
         }
     </script>
-    <!-- Footer Area -->
-    <footer class="mt-12 flex flex-col items-center gap-4 w-full">
-        <div class="h-px w-24 bg-outline-variant/20 mb-4"></div>
-        <div class="flex gap-8">
-            <a class="font-label text-[10px] uppercase tracking-widest text-on-surface-variant/70 hover:text-primary-container transition-colors"
-                href="#">Privacy Policy</a>
-            <a class="font-label text-[10px] uppercase tracking-widest text-on-surface-variant/70 hover:text-primary-container transition-colors"
-                href="#">Terms of Service</a>
-            <a class="font-label text-[10px] uppercase tracking-widest text-on-surface-variant/70 hover:text-primary-container transition-colors"
-                href="#">Accessibility</a>
-        </div>
-        <p class="font-label text-[10px] uppercase tracking-[0.2em] text-on-surface-variant/50">
-            © 2024 Bohol Island State University Academic Editorial Office.
-        </p>
-    </footer>
 </body>
 
 </html>
+

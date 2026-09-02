@@ -16,29 +16,35 @@
 </head>
 <body class="bg-surface text-on-surface" data-theme="portal">
 
-    <!-- SIDEBAR -->
+    <!-- Mobile Sidebar Backdrop Overlay -->
+    <div id="sidebar-overlay" class="fixed inset-0 bg-black/40 backdrop-blur-xs z-40 hidden lg:hidden transition-opacity"></div>
+
     <!-- SIDEBAR (Supervisor Version - Shared Component) -->
     @include('components.supervisor-sidebar')
 
     <!-- TOP NAVIGATION -->
-    <header class="fixed top-0 md:left-64 left-0 right-0 z-40 bg-[#fff7fd] border-b border-[#cec3d0]/15">
-        <div class="flex justify-between items-center px-4 md:px-8 py-4 w-full">
-            <div class="flex items-center gap-8">
-                <button class="md:hidden p-2 text-primary rounded outline-none hover:bg-surface-container"><span class="material-symbols-outlined">menu</span></button>
-                <span class="text-2xl font-headline font-semibold text-[#300050] tracking-tight hidden sm:block">Industry Supervisor</span>
+    <header class="fixed top-0 lg:left-64 left-0 right-0 z-30 bg-[#fff7fd]/95 backdrop-blur-sm border-b border-[#cec3d0]/15">
+        <div class="flex justify-between items-center px-4 md:px-8 py-3.5 w-full">
+            <div class="flex items-center gap-3 md:gap-4">
+                <button id="sidebar-toggle" class="lg:hidden p-2 text-[#300050] rounded-lg hover:bg-black/5 transition-colors active:scale-95" aria-label="Toggle Menu">
+                    <span class="material-symbols-outlined">menu</span>
+                </button>
+                <span class="text-xl md:text-2xl font-headline font-semibold text-[#300050] tracking-tight">Industry Supervisor</span>
             </div>
-            <div class="flex items-center gap-6">
+            <div class="flex items-center gap-3 sm:gap-6">
                 <!-- Notifications & Profile -->
                 <div class="flex items-center gap-3">
-                    <button class="p-2 text-[#300050] hover:bg-[#faf1f8] rounded-full transition-all active:scale-95">
+                    <button class="p-2 text-[#300050] hover:bg-[#faf1f8] rounded-full transition-all active:scale-95" title="Notifications">
                         <span class="material-symbols-outlined">notifications</span>
                     </button>
                     <div class="flex items-center gap-3 pl-2 border-l border-[#cec3d0]/30">
                         <div class="text-right hidden sm:block">
-                            <p class="text-sm font-bold font-headline text-[#300050]">Mr. David Miller</p>
-                            <p class="text-[10px] uppercase tracking-wider text-secondary font-bold">Tech Lead - IT Dept</p>
+                            <p class="text-sm font-bold font-headline text-[#300050]">{{ auth()->user()->display_name }}</p>
+                            <p class="text-[10px] uppercase tracking-wider text-secondary font-bold">{{ auth()->user()->department ? auth()->user()->department . ' • ' : '' }}{{ auth()->user()->company->name ?? 'Supervisor' }}</p>
                         </div>
-                        <div class="w-9 h-9 border border-outline/30 rounded-full flex items-center justify-center bg-surface-container text-primary font-bold">DM</div>
+                        <img alt="User profile avatar"
+                            class="w-8 h-8 sm:w-9 sm:h-9 rounded-full object-cover ring-2 ring-primary/10 flex-shrink-0"
+                            src="{{ auth()->user()->avatar_url }}">
                     </div>
                 </div>
             </div>
@@ -46,7 +52,7 @@
     </header>
 
     <!-- MAIN CONTENT -->
-    <main class="md:ml-64 pt-24 px-4 md:px-8 pb-12 overflow-x-hidden">
+    <main class="lg:ml-64 ml-0 pt-20 md:pt-24 px-4 sm:px-6 lg:px-8 pb-12 overflow-x-hidden">
         
         <!-- Wrapper for centralization max-w-4xl -->
         <div class="max-w-4xl mx-auto">
@@ -219,11 +225,19 @@
 
             </div>
             
-            <div class="mt-8">
-                {{ $logs->withQueryString()->links() }}
-            </div>
+    <script>
+        // Responsive Sidebar Toggle
+        const sidebarEl = document.getElementById('sidebar');
+        const overlayEl = document.getElementById('sidebar-overlay');
+        const toggleBtnEl = document.getElementById('sidebar-toggle');
 
-        </div>
-    </main>
+        function toggleSidebar() {
+            sidebarEl.classList.toggle('-translate-x-full');
+            overlayEl.classList.toggle('hidden');
+        }
+
+        toggleBtnEl?.addEventListener('click', toggleSidebar);
+        overlayEl?.addEventListener('click', toggleSidebar);
+    </script>
 </body>
 </html>

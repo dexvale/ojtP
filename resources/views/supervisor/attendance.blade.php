@@ -40,10 +40,12 @@
                     </button>
                     <div class="flex items-center gap-3 pl-2 border-l border-[#cec3d0]/30">
                         <div class="text-right hidden sm:block">
-                            <p class="text-sm font-bold font-headline text-[#300050]">Mr. David Miller</p>
-                            <p class="text-[10px] uppercase tracking-wider text-secondary font-bold">Tech Lead - IT Dept</p>
+                            <p class="text-sm font-bold font-headline text-[#300050]">{{ auth()->user()->display_name }}</p>
+                            <p class="text-[10px] uppercase tracking-wider text-secondary font-bold">{{ auth()->user()->department ? auth()->user()->department . ' • ' : '' }}{{ auth()->user()->company->name ?? 'Supervisor' }}</p>
                         </div>
-                        <div class="w-9 h-9 border border-outline/30 rounded-full flex items-center justify-center bg-surface-container text-primary font-bold">DM</div>
+                        <img alt="User profile avatar"
+                            class="w-9 h-9 rounded-full object-cover ring-2 ring-primary/10"
+                            src="{{ auth()->user()->avatar_url }}">
                     </div>
                 </div>
             </div>

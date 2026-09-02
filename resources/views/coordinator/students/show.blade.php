@@ -22,8 +22,20 @@
             <div class="flex items-center gap-8">
                 <span class="text-2xl font-headline font-semibold text-primary tracking-tight">OJT Management</span>
             </div>
-            <div class="flex items-center gap-6">
-                <a href="{{ route('coordinator.students') }}" class="text-sm font-semibold text-primary hover:underline">Back to Directory</a>
+            <div class="flex items-center gap-4 sm:gap-6">
+                <a href="{{ route('coordinator.students') }}" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-700 bg-white hover:bg-slate-50 hover:text-primary hover:border-primary/30 transition-all shadow-sm active:scale-95">
+                    <span class="material-symbols-outlined text-[16px]">arrow_back</span>
+                    Back to Directory
+                </a>
+                <div class="flex items-center gap-3 pl-3 border-l border-[#cec3d0]/30">
+                    <div class="text-right hidden sm:block">
+                        <p class="text-sm font-bold font-headline text-primary">{{ auth()->user()->display_name }}</p>
+                        <p class="text-[10px] uppercase tracking-wider text-secondary font-bold">{{ auth()->user()->display_role }}</p>
+                    </div>
+                    <img alt="User profile avatar"
+                        class="w-9 h-9 rounded-full object-cover ring-2 ring-primary/10"
+                        src="{{ auth()->user()->avatar_url }}">
+                </div>
             </div>
         </div>
     </header>

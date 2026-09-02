@@ -59,6 +59,7 @@ class UserSeeder extends Seeder
 
         // 2. Create a Department Coordinator (managing IT & CS courses)
         $coordinatorUser = User::create([
+            'name'     => 'Dr. Elena Vance',
             'email'    => 'coordinator@bisu.edu.ph', 
             'password' => Hash::make('admin123'),      
             'role'     => 'Coordinator',                     
@@ -70,6 +71,7 @@ class UserSeeder extends Seeder
 
         // 3. Create the master Super Admin (Dean / OJT Director) who manages all departments
         User::create([
+            'name'     => 'Dean Arthur Pendelton',
             'email'    => 'dean@bisu.edu.ph', 
             'password' => Hash::make('admin123'),      
             'role'     => 'Admin',                     
@@ -77,6 +79,7 @@ class UserSeeder extends Seeder
 
         // 4. Create Test Supervisor Accounts for each company/department
         $supervisor1 = User::create([
+            'name'       => 'Alice Margate',
             'email'      => 'johndoe@company.com', 
             'password'   => Hash::make('super123'),
             'role'       => 'Advisor', 
@@ -85,6 +88,7 @@ class UserSeeder extends Seeder
         ]);
 
         $supervisor2 = User::create([
+            'name'       => 'Bob Miller',
             'email'      => 'bob@spacetech.com', 
             'password'   => Hash::make('super123'),
             'role'       => 'Advisor', 
@@ -93,6 +97,7 @@ class UserSeeder extends Seeder
         ]);
 
         $supervisor3 = User::create([
+            'name'       => 'Charlie Vance',
             'email'      => 'charlie@quantumdev.com', 
             'password'   => Hash::make('super123'),
             'role'       => 'Advisor', 
@@ -218,250 +223,5 @@ class UserSeeder extends Seeder
             'placement_status'  => 'Approved',
         ]);
 
-        // 6. Create Requirements
-        $req1 = Requirement::create([
-            'title' => 'Parent Consent Form',
-            'description' => 'Signed liability waiver from parent or guardian.',
-        ]);
-        $req2 = Requirement::create([
-            'title' => 'Medical Certificate',
-            'description' => 'Medical clearance stating fit-to-work status.',
-        ]);
-        $req3 = Requirement::create([
-            'title' => 'Weekly Logbook W1',
-            'description' => 'Rendered hours logbook for Week 1.',
-        ]);
-        $req4 = Requirement::create([
-            'title' => 'Weekly Logbook W2',
-            'description' => 'Rendered hours logbook for Week 2.',
-        ]);
-
-        // Associate requirements with courses
-        if ($itCourse && $csCourse) {
-            $req1->courses()->sync([$itCourse->id, $csCourse->id]);
-            $req2->courses()->sync([$itCourse->id, $csCourse->id]);
-            $req3->courses()->sync([$itCourse->id, $csCourse->id]);
-            $req4->courses()->sync([$itCourse->id]);
-        }
-
-        // 7. Create Requirement Submissions
-        // Dexter: Consent (Approved), Logbook W1 (Pending)
-        RequirementSubmission::create([
-            'requirement_id' => $req1->id,
-            'user_id' => $studentUser1->id,
-            'file_path' => 'requirements/dexter_consent.pdf',
-            'status' => 'Approved',
-        ]);
-        RequirementSubmission::create([
-            'requirement_id' => $req3->id,
-            'user_id' => $studentUser1->id,
-            'file_path' => 'requirements/dexter_logbook_w1.pdf',
-            'status' => 'Pending',
-            'created_at' => now()->subHours(2), // 2 hours ago
-        ]);
-
-        // Liam: Medical (Pending)
-        RequirementSubmission::create([
-            'requirement_id' => $req2->id,
-            'user_id' => $studentUser2->id,
-            'file_path' => 'requirements/liam_medical.pdf',
-            'status' => 'Pending',
-            'created_at' => now()->subMinutes(45), // 45 mins ago
-        ]);
-
-        // Sophia: Weekly Logbook W1 (Rejected)
-        RequirementSubmission::create([
-            'requirement_id' => $req3->id,
-            'user_id' => $studentUser3->id,
-            'file_path' => 'requirements/sophia_logbook_w1.pdf',
-            'status' => 'Rejected',
-            'remarks' => 'Missing supervisor signature on Page 3.',
-        ]);
-
-        // Robert Chen: Consent, Medical, Logbook W1 (All Approved)
-        RequirementSubmission::create([
-            'requirement_id' => $req1->id,
-            'user_id' => $studentUser5->id,
-            'file_path' => 'requirements/robert_consent.pdf',
-            'status' => 'Approved',
-        ]);
-        RequirementSubmission::create([
-            'requirement_id' => $req2->id,
-            'user_id' => $studentUser5->id,
-            'file_path' => 'requirements/robert_medical.pdf',
-            'status' => 'Approved',
-        ]);
-        RequirementSubmission::create([
-            'requirement_id' => $req3->id,
-            'user_id' => $studentUser5->id,
-            'file_path' => 'requirements/robert_logbook_w1.pdf',
-            'status' => 'Approved',
-        ]);
-
-        // Emily Rivera: Consent, Medical, Logbook W1, Logbook W2 (All Approved)
-        RequirementSubmission::create([
-            'requirement_id' => $req1->id,
-            'user_id' => $studentUser6->id,
-            'file_path' => 'requirements/emily_consent.pdf',
-            'status' => 'Approved',
-        ]);
-        RequirementSubmission::create([
-            'requirement_id' => $req2->id,
-            'user_id' => $studentUser6->id,
-            'file_path' => 'requirements/emily_medical.pdf',
-            'status' => 'Approved',
-        ]);
-        RequirementSubmission::create([
-            'requirement_id' => $req3->id,
-            'user_id' => $studentUser6->id,
-            'file_path' => 'requirements/emily_logbook_w1.pdf',
-            'status' => 'Approved',
-        ]);
-        RequirementSubmission::create([
-            'requirement_id' => $req4->id,
-            'user_id' => $studentUser6->id,
-            'file_path' => 'requirements/emily_logbook_w2.pdf',
-            'status' => 'Approved',
-        ]);
-
-        // 8. Create OJT Logs (Rendered Hours)
-        // Dexter Vale: 4 Approved logs (32 hours), 1 Pending (8 hours)
-        for ($i = 1; $i <= 4; $i++) {
-            OjtLog::create([
-                'user_id' => $studentUser1->id,
-                'log_date' => "2026-08-" . sprintf("%02d", $i),
-                'hours_rendered' => 8.0,
-                'status' => 'Approved',
-                'tasks_performed' => 'Assisted in systems development and integration testing.',
-            ]);
-        }
-        OjtLog::create([
-            'user_id' => $studentUser1->id,
-            'log_date' => '2026-08-05',
-            'hours_rendered' => 8.0,
-            'status' => 'Pending',
-            'tasks_performed' => 'Working on coordinator dashboard features.',
-        ]);
-
-        // Liam Smith: 5 Approved logs (40 hours)
-        for ($i = 1; $i <= 5; $i++) {
-            OjtLog::create([
-                'user_id' => $studentUser2->id,
-                'log_date' => "2026-08-" . sprintf("%02d", $i),
-                'hours_rendered' => 8.0,
-                'status' => 'Approved',
-                'tasks_performed' => 'Aerospace hardware alignment check and calibration.',
-            ]);
-        }
-
-        // Sophia Johnson: 3 Approved logs (24 hours)
-        for ($i = 1; $i <= 3; $i++) {
-            OjtLog::create([
-                'user_id' => $studentUser3->id,
-                'log_date' => "2026-08-" . sprintf("%02d", $i),
-                'hours_rendered' => 8.0,
-                'status' => 'Approved',
-                'tasks_performed' => 'Reviewed security protocols and audit reports.',
-            ]);
-        }
-
-        // Emma Watson (CpE): 6 Approved logs (48 hours)
-        for ($i = 1; $i <= 6; $i++) {
-            OjtLog::create([
-                'user_id' => $studentUser4->id,
-                'log_date' => "2026-08-" . sprintf("%02d", $i),
-                'hours_rendered' => 8.0,
-                'status' => 'Approved',
-                'tasks_performed' => 'Microcontroller assembly and debugging.',
-            ]);
-        }
-
-        // Seed logs for Robert Chen
-        // June 2026 (20 logs, 160 hrs)
-        for ($day = 1; $day <= 20; $day++) {
-            OjtLog::create([
-                'user_id' => $studentUser5->id,
-                'log_date' => "2026-06-" . sprintf("%02d", $day),
-                'hours_rendered' => 8.0,
-                'status' => 'Approved',
-                'tasks_performed' => 'Reviewed security protocols and audit reports.',
-            ]);
-        }
-        // July 2026 (20 logs, 160 hrs)
-        for ($day = 1; $day <= 20; $day++) {
-            OjtLog::create([
-                'user_id' => $studentUser5->id,
-                'log_date' => "2026-07-" . sprintf("%02d", $day),
-                'hours_rendered' => 8.0,
-                'status' => 'Approved',
-                'tasks_performed' => 'Performed network penetration testing.',
-            ]);
-        }
-        // August 2026 (21 logs, 168 hrs)
-        for ($day = 1; $day <= 21; $day++) {
-            OjtLog::create([
-                'user_id' => $studentUser5->id,
-                'log_date' => "2026-08-" . sprintf("%02d", $day),
-                'hours_rendered' => 8.0,
-                'status' => 'Approved',
-                'tasks_performed' => 'Configured firewall rules and completed reports.',
-            ]);
-        }
-
-        // Seed logs for Emily Rivera
-        // June 2026 (25 logs, 200 hrs)
-        for ($day = 1; $day <= 25; $day++) {
-            OjtLog::create([
-                'user_id' => $studentUser6->id,
-                'log_date' => "2026-06-" . sprintf("%02d", $day),
-                'hours_rendered' => 8.0,
-                'status' => 'Approved',
-                'tasks_performed' => 'Assisted in front-end development and layouts.',
-            ]);
-        }
-        // July 2026 (25 logs, 200 hrs)
-        for ($day = 1; $day <= 25; $day++) {
-            OjtLog::create([
-                'user_id' => $studentUser6->id,
-                'log_date' => "2026-07-" . sprintf("%02d", $day),
-                'hours_rendered' => 8.0,
-                'status' => 'Approved',
-                'tasks_performed' => 'Designed database schemas and ran migrations.',
-            ]);
-        }
-        // August 2026 (26 logs, 208 hrs)
-        for ($day = 1; $day <= 26; $day++) {
-            OjtLog::create([
-                'user_id' => $studentUser6->id,
-                'log_date' => "2026-08-" . sprintf("%02d", $day),
-                'hours_rendered' => 8.0,
-                'status' => 'Approved',
-                'tasks_performed' => 'Conducted API testing and prepared documentation.',
-            ]);
-        }
-
-        // 9. Seed Evaluations (Supervisor evaluates Robert Chen & Emily Rivera)
-        // Robert Chen — evaluated by supervisor at Nova Soft Solutions (company1)
-        // But Robert is in company3 (Quantum Dev), so we need company3's supervisor
-        // For demo: use $supervisor (company1) to evaluate Dexter Vale (also company1)
-        StudentEvaluation::create([
-            'student_id'        => $profile1->id, // Dexter Vale (Nova Soft)
-            'supervisor_id'     => $supervisor->id,
-            'technical_score'   => 4.5,
-            'soft_skills_score' => 4.0,
-            'attitude_score'    => 5.0,
-            'comments'          => 'Dexter is a quick learner and shows excellent initiative on projects.',
-            'evaluated_at'      => now()->subDays(5),
-        ]);
-
-        StudentEvaluation::create([
-            'student_id'        => $profile2->id, // Liam Smith (SpaceTech, company2)
-            'supervisor_id'     => $supervisor->id,
-            'technical_score'   => 3.5,
-            'soft_skills_score' => 4.5,
-            'attitude_score'    => 4.0,
-            'comments'          => 'Liam communicates well and is punctual, but needs more hands-on practice.',
-            'evaluated_at'      => now()->subDays(3),
-        ]);
     }
 }

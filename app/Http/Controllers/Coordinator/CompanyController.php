@@ -79,9 +79,15 @@ class CompanyController extends Controller
 
     public function show(Company $company)
     {
-        $company->load(['studentProfiles.user', 'users' => function($query) {
-            $query->where('role', 'Advisor');
-        }]);
+        $company->load([
+            'courses',
+            'studentProfiles.user',
+            'studentProfiles.academicCourse',
+            'studentProfiles.supervisor',
+            'users' => function($query) {
+                $query->where('role', 'Advisor');
+            }
+        ]);
 
         return view('coordinator.company_show', compact('company'));
     }
@@ -116,7 +122,9 @@ class CompanyController extends Controller
     public function storeSupervisor(Request $request)
     {
         $request->validate([
+            'name' => 'nullable|string|max:255',
             'email' => 'required|string|email:rfc,dns|max:255|unique:users',
+            'department' => 'nullable|string|max:255',
             'password' => 'required|string|min:8',
             'company_id' => 'required|exists:companies,id'
         ]);
@@ -124,7 +132,9 @@ class CompanyController extends Controller
         $plainPassword = $request->password;
 
         $user = User::create([
+            'name' => $request->name,
             'email' => $request->email,
+            'department' => $request->department,
             'password' => Hash::make($plainPassword),
             'role' => 'Advisor', 
             'company_id' => $request->company_id,

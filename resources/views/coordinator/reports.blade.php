@@ -55,12 +55,12 @@
                     </button>
                     <div class="flex items-center gap-3 pl-2 border-l border-[#cec3d0]/30">
                         <div class="text-right hidden sm:block">
-                            <p class="text-sm font-bold font-headline text-primary">{{ auth()->user()->email }}</p>
-                            <p class="text-[10px] uppercase tracking-wider text-secondary font-bold">OJT Coordinator</p>
+                            <p class="text-sm font-bold font-headline text-primary">{{ auth()->user()->display_name }}</p>
+                            <p class="text-[10px] uppercase tracking-wider text-secondary font-bold">{{ auth()->user()->display_role }}</p>
                         </div>
                         <img alt="User profile avatar"
                             class="w-9 h-9 rounded-full object-cover ring-2 ring-primary/10"
-                            src="https://ui-avatars.com/api/?name=Elena+Vance&background=3a0ca3&color=fff">
+                            src="{{ auth()->user()->avatar_url }}">
                     </div>
                 </div>
             </div>

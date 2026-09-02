@@ -21,6 +21,7 @@ class CoordinatorManagerController extends Controller
     public function store(Request $request)
     {
         $request->validate([
+            'name' => 'nullable|string|max:255',
             'email' => 'required|string|email:rfc,dns|max:255|unique:users',
             'password' => 'required|string|min:8',
             'courses' => 'required|array|min:1',
@@ -28,6 +29,7 @@ class CoordinatorManagerController extends Controller
         ]);
 
         $coordinator = User::create([
+            'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
             'role' => 'Coordinator'

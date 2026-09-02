@@ -14,13 +14,38 @@ class CourseSeeder extends Seeder
     {
         Course::create([
             'course_name' => 'BS in Information Technology',
-            'required_hours' => 600,
+            'required_hours' => 486,
         ]);
 
         Course::create([
             'course_name' => 'BS in Computer Science',
-            'required_hours' => 485,
+            'required_hours' => 320,
         ]);
+
+        Course::create([
+            'course_name' => 'BS in Electrical Technology',
+            'required_hours' => 720,
+        ]);
+
+        Course::create([
+            'course_name' => 'BS in Electronics Technology',
+            'required_hours' => 720,
+        ]);
+
+        Course::create([
+            'course_name' => 'BSIT in Food Preparation and Service Management',
+            'required_hours' => 500,
+        ]);
+
+        Course::create([
+            'course_name' => 'BS in Criminology',
+            'required_hours' => 540,
+        ]);
+
+      
+
+
+      
 
         
     }

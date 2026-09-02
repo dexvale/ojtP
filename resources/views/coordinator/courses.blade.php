@@ -38,10 +38,15 @@
             <div class="flex items-center gap-8">
                 <span class="text-2xl font-headline font-semibold text-primary tracking-tight">OJT Management</span>
                 <nav class="hidden md:flex items-center gap-6">
-                    <a class="text-sm font-semibold text-on-surface/60 hover:text-primary transition-colors duration-200" href="{{ route('coordinator.dashboard') }}">Dashboard</a>
-                    <a class="text-sm font-semibold text-on-surface/60 hover:text-primary transition-colors duration-200" href="{{ route('coordinator.students') }}">Student List</a>
-                    <a class="text-sm font-semibold text-on-surface/60 hover:text-primary transition-colors duration-200" href="#">Company Directory</a>
-                    <a class="text-sm font-semibold text-primary border-b-2 border-primary pb-1" href="{{ route('courses.index') }}">Course Settings</a>
+                    @if(auth()->user()->role === 'Admin')
+                        <a class="text-sm font-semibold {{ request()->routeIs('admin.coordinators') ? 'text-primary border-b-2 border-primary pb-1' : 'text-on-surface/60 hover:text-primary transition-colors duration-200' }}" href="{{ route('admin.coordinators') }}">Manage Coordinators</a>
+                        <a class="text-sm font-semibold {{ request()->routeIs('courses.*') ? 'text-primary border-b-2 border-primary pb-1' : 'text-on-surface/60 hover:text-primary transition-colors duration-200' }}" href="{{ route('courses.index') }}">Course Settings</a>
+                    @else
+                        <a class="text-sm font-semibold text-on-surface/60 hover:text-primary transition-colors duration-200" href="{{ route('coordinator.dashboard') }}">Dashboard</a>
+                        <a class="text-sm font-semibold text-on-surface/60 hover:text-primary transition-colors duration-200" href="{{ route('coordinator.students') }}">Student List</a>
+                        <a class="text-sm font-semibold text-on-surface/60 hover:text-primary transition-colors duration-200" href="{{ route('coordinator.companies') }}">Company Directory</a>
+                        <a class="text-sm font-semibold text-on-surface/60 hover:text-primary transition-colors duration-200" href="{{ route('coordinator.reports') }}">Reports</a>
+                    @endif
                 </nav>
             </div>
             <div class="flex items-center gap-6">
@@ -51,12 +56,12 @@
                     </button>
                     <div class="flex items-center gap-3 pl-2 border-l border-[#cec3d0]/30">
                         <div class="text-right hidden sm:block">
-                            <p class="text-sm font-bold font-headline text-primary">Coordinator</p>
-                            <p class="text-[10px] uppercase tracking-wider text-secondary font-bold">Admin</p>
+                            <p class="text-sm font-bold font-headline text-primary">{{ auth()->user()->display_name }}</p>
+                            <p class="text-[10px] uppercase tracking-wider text-secondary font-bold">{{ auth()->user()->display_role }}</p>
                         </div>
                         <img alt="User profile avatar"
                             class="w-9 h-9 rounded-full object-cover ring-2 ring-primary/10"
-                            src="https://ui-avatars.com/api/?name=Admin&background=3a0ca3&color=fff">
+                            src="{{ auth()->user()->avatar_url }}">
                     </div>
                 </div>
             </div>

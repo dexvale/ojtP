@@ -124,19 +124,8 @@
 </div>
 </div>
 </main>
-<!-- Global Footer -->
-<footer class="w-full py-8 px-12 flex flex-col md:flex-row justify-between items-center gap-6 bg-surface-container-low/50 backdrop-blur-sm border-t border-primary/5">
-<div class="flex items-center gap-4">
-<span class="font-newsreader text-sm italic text-primary">Academic Editorial Office</span>
-<span class="hidden md:block w-px h-4 bg-outline-variant/30"></span>
-<p class="text-[10px] font-sans uppercase tracking-[0.2em] text-on-surface-variant/70">© 2024 University Academic Editorial Office. All rights reserved.</p>
-</div>
-<nav class="flex gap-8">
-<a class="text-[10px] font-sans uppercase tracking-widest text-on-surface-variant/70 hover:text-primary transition-all" href="#">Privacy Policy</a>
-<a class="text-[10px] font-sans uppercase tracking-widest text-on-surface-variant/70 hover:text-primary transition-all" href="#">Terms of Service</a>
-<a class="text-[10px] font-sans uppercase tracking-widest text-on-surface-variant/70 hover:text-primary transition-all" href="#">Accessibility</a>
-</nav>
-</footer>
+    <x-auth-footer />
+
 
 @if (session('success'))
 <div id="success-alert" class="fixed top-5 right-5 z-50 transform transition-all duration-300 ease-out translate-y-[-20px] opacity-0">

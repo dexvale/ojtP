@@ -75,21 +75,33 @@ class CoordinatorPlacementController extends Controller
             
             if ($existingSupervisor) {
                 $supervisor = $existingSupervisor;
-                // Ensure company_id and department are assigned
+                // Ensure company_id, department, and contact info are assigned
+                $updates = [];
                 if (!$supervisor->company_id && $companyId) {
-                    $supervisor->update(['company_id' => $companyId]);
+                    $updates['company_id'] = $companyId;
                 }
                 if (!$supervisor->department && $student->department) {
-                    $supervisor->update(['department' => $student->department]);
+                    $updates['department'] = $student->department;
+                }
+                if (!$supervisor->name && $student->pending_supervisor_name) {
+                    $updates['name'] = $student->pending_supervisor_name;
+                }
+                if (!$supervisor->contact_number && $student->pending_supervisor_contact) {
+                    $updates['contact_number'] = $student->pending_supervisor_contact;
+                }
+                if (!empty($updates)) {
+                    $supervisor->update($updates);
                 }
             } else {
                 $plainPassword = 'super' . rand(1000, 9999);
                 $supervisor = User::create([
-                    'email'      => $student->pending_supervisor_email,
-                    'password'   => Hash::make($plainPassword),
-                    'role'       => 'Advisor',
-                    'company_id' => $companyId,
-                    'department' => $student->department,
+                    'name'           => $student->pending_supervisor_name,
+                    'email'          => $student->pending_supervisor_email,
+                    'contact_number' => $student->pending_supervisor_contact,
+                    'password'       => Hash::make($plainPassword),
+                    'role'           => 'Advisor',
+                    'company_id'     => $companyId,
+                    'department'     => $student->department,
                 ]);
 
                 $flashPassword = $plainPassword;

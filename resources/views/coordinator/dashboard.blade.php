@@ -63,17 +63,13 @@
                         <span class="material-symbols-outlined" data-icon="notifications"
                             style="">notifications</span>
                     </button>
-                    <div class="flex items-center gap-3 pl-2 border-l border-[#cec3d0]/30">
                         <div class="text-right hidden sm:block">
-                            <p class="text-sm font-bold font-headline text-[#300050]" style="">{{ auth()->user()->email }}
-                            </p>
-                            <p class="text-[10px] uppercase tracking-wider text-secondary font-bold" style="">
-                                OJT Coordinator</p>
+                            <p class="text-sm font-bold font-headline text-primary">{{ auth()->user()->display_name }}</p>
+                            <p class="text-[10px] uppercase tracking-wider text-secondary font-bold">{{ auth()->user()->display_role }}</p>
                         </div>
                         <img alt="User profile avatar"
-                            class="w-9 h-9 rounded-full object-cover ring-2 ring-[#300050]/10"
-                            src="https://lh3.googleusercontent.com/aida-public/AB6AXuDDKv7C8q91OqemiUq0Q4YlTNFY71JjVlvL_DM-JaB1jNjaZY8BNxp65eI0f3Cg3JS2S64Sp5RgJAneCUpISeDEHSoUK_yh7z2SIt-fa7HG9Q7S77vNHgKJ71S8wwk-Czo3cTC0DlisGtQE62wU67RPBkK9oV62W2zpnzMJqbPhhGUZsBelRpMMTeLTas71X7Kyhqtnsx_ZG-6xXaUnLwlvdXsz68cKkM6fce2EqJHb4nIjOQ2ssdf6SpO3eOiUACueTYIYU8MEAWdS"
-                            style="">
+                            class="w-9 h-9 rounded-full object-cover ring-2 ring-primary/10"
+                            src="{{ auth()->user()->avatar_url }}">
                     </div>
                 </div>
             </div>

@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-#[Fillable(['email', 'password', 'role', 'company_id', 'department'])]
+#[Fillable(['name', 'email', 'password', 'role', 'company_id', 'department', 'contact_number'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -50,12 +50,40 @@ class User extends Authenticatable
         return $this->hasOne(StudentProfile::class);
     }
 
-    public function getNameAttribute()
+    public function getDisplayNameAttribute()
     {
+        if (!empty($this->attributes['name'])) {
+            return $this->attributes['name'];
+        }
+
         if ($this->role === 'Student' && $this->studentProfile) {
             return trim($this->studentProfile->first_name . ' ' . ($this->studentProfile->middle_name ? $this->studentProfile->middle_name . ' ' : '') . $this->studentProfile->last_name);
         }
-        return $this->email;
+
+        $emailPrefix = explode('@', $this->email)[0];
+        $formatted = ucwords(str_replace(['.', '_', '-'], ' ', $emailPrefix));
+
+        return $formatted ?: $this->email;
+    }
+
+    public function getDisplayRoleAttribute()
+    {
+        if ($this->role === 'Coordinator') {
+            return 'OJT Coordinator';
+        }
+        if ($this->role === 'Advisor') {
+            return 'Company Supervisor';
+        }
+        if ($this->role === 'Student') {
+            return 'OJT Intern';
+        }
+        return $this->role ?? 'User';
+    }
+
+    public function getAvatarUrlAttribute()
+    {
+        $name = urlencode($this->display_name ?: 'User');
+        return "https://ui-avatars.com/api/?name={$name}&background=3a0ca3&color=fff&bold=true";
     }
 
     public function internships()

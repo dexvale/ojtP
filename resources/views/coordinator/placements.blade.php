@@ -33,8 +33,8 @@
             </div>
             <div class="flex items-center gap-3">
                 <div class="text-right hidden sm:block">
-                    <p class="text-sm font-bold font-headline text-primary">{{ auth()->user()->email }}</p>
-                    <p class="text-[10px] uppercase tracking-wider text-secondary font-bold">OJT Coordinator</p>
+                    <p class="text-sm font-bold font-headline text-primary">{{ auth()->user()->display_name }}</p>
+                    <p class="text-[10px] uppercase tracking-wider text-secondary font-bold">{{ auth()->user()->display_role }}</p>
                 </div>
             </div>
         </div>

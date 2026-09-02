@@ -16,12 +16,17 @@ class DashboardController extends Controller
 
         if (!$companyId) {
             return view('supervisor.dashboard', [
-                'totalInterns' => 0, 'clockedInCount' => 0, 'pendingHours' => 0, 'topPerformers' => collect(), 'pendingLogs' => collect()
+                'totalInterns' => 0, 'clockedInCount' => 0, 'pendingHours' => 0, 'topPerformers' => collect(), 'pendingLogs' => collect(), 'attendanceCounts' => [0, 0, 0, 0, 0]
             ]);
         }
 
-        // 1. Get all user IDs of students assigned to this company
-        $internUserIds = \App\Models\StudentProfile::where('company_id', $companyId)->pluck('user_id');
+        // 1. Get student profiles query for this specific supervisor
+        $studentQuery = \App\Models\StudentProfile::where('company_id', $companyId);
+        if (\App\Models\StudentProfile::where('supervisor_id', $user->id)->exists()) {
+            $studentQuery->where('supervisor_id', $user->id);
+        }
+
+        $internUserIds = (clone $studentQuery)->pluck('user_id');
 
         // 2. Metrics Calculations
         $totalInterns = $internUserIds->count();
@@ -37,7 +42,7 @@ class DashboardController extends Controller
             ->sum('hours_rendered');
 
         // 3. Top Performers (Sum of approved hours per student, taking top 3)
-        $topPerformers = \App\Models\StudentProfile::where('company_id', $companyId)
+        $topPerformers = (clone $studentQuery)
             ->with(['academicCourse', 'user' => function($query) {
                 $query->withSum(['ojtLogs' => function($q) {
                     $q->where('status', 'Approved');
@@ -69,26 +74,33 @@ class DashboardController extends Controller
 
     public function attendance()
     {
-        $companyId = auth()->user()->company_id ?? null;
+        $user = auth()->user();
+        $companyId = $user->company_id ?? null;
         $todayDate = \Carbon\Carbon::today()->format('Y-m-d');
         $startOfWeek = \Carbon\Carbon::now()->startOfWeek(\Carbon\Carbon::MONDAY);
         $endOfWeek = \Carbon\Carbon::now()->endOfWeek(\Carbon\Carbon::SUNDAY);
 
-        // 1. Fetch Today's Live Status
-        $todayAttendance = \App\Models\StudentProfile::where('company_id', $companyId)
+        // 1. Get student profiles query for this specific supervisor
+        $studentQuery = \App\Models\StudentProfile::where('company_id', $companyId);
+        if (\App\Models\StudentProfile::where('supervisor_id', $user->id)->exists()) {
+            $studentQuery->where('supervisor_id', $user->id);
+        }
+
+        $internUserIds = (clone $studentQuery)->pluck('user_id');
+
+        // 2. Fetch Today's Live Status
+        $todayAttendance = (clone $studentQuery)
             ->with(['user', 'ojtLogs' => function($query) use ($todayDate) {
                 $query->whereDate('log_date', $todayDate);
             }])->get();
 
-        // 2. Fetch Weekly Logs for Matrix Mapping
-        $weeklyLogs = \App\Models\OjtLog::whereIn('user_id', function($query) use ($companyId) {
-            $query->select('user_id')->from('student_profiles')->where('company_id', $companyId);
-        })
-        ->whereBetween('log_date', [$startOfWeek->format('Y-m-d'), $endOfWeek->format('Y-m-d')])
-        ->get()
-        ->groupBy(['user_id', function($item) {
-            return \Carbon\Carbon::parse($item->log_date)->format('D'); // Groups by 'Mon', 'Tue', etc.
-        }]);
+        // 3. Fetch Weekly Logs for Matrix Mapping
+        $weeklyLogs = \App\Models\OjtLog::whereIn('user_id', $internUserIds)
+            ->whereBetween('log_date', [$startOfWeek->format('Y-m-d'), $endOfWeek->format('Y-m-d')])
+            ->get()
+            ->groupBy(['user_id', function($item) {
+                return \Carbon\Carbon::parse($item->log_date)->format('D'); // Groups by 'Mon', 'Tue', etc.
+            }]);
 
         return view('supervisor.attendance', compact('todayAttendance', 'weeklyLogs', 'startOfWeek'));
     }
@@ -102,7 +114,12 @@ class DashboardController extends Controller
         $companyId = $user->company_id ?? $user->supervisorProfile->company_id ?? null;
 
         if ($companyId) {
-            $internUserIds = \App\Models\StudentProfile::where('company_id', $companyId)->pluck('user_id');
+            $studentQuery = \App\Models\StudentProfile::where('company_id', $companyId);
+            if (\App\Models\StudentProfile::where('supervisor_id', $user->id)->exists()) {
+                $studentQuery->where('supervisor_id', $user->id);
+            }
+
+            $internUserIds = $studentQuery->pluck('user_id');
             
             $query = \App\Models\OjtLog::whereIn('user_id', $internUserIds)
                 ->where('status', $status)
@@ -223,15 +240,19 @@ class DashboardController extends Controller
             return redirect()->back()->with('error', 'You are not currently linked to an active industry partner company.');
         }
 
-        // Aggregate approved hours specifically for students inside this company
-        $leaderboard = \App\Models\StudentProfile::with('user')
-            ->where('company_id', $companyId)
+        $studentQuery = \App\Models\StudentProfile::with('user')->where('company_id', $companyId);
+        if (\App\Models\StudentProfile::where('supervisor_id', $user->id)->exists()) {
+            $studentQuery->where('supervisor_id', $user->id);
+        }
+
+        // Aggregate approved hours specifically for students assigned to this supervisor
+        $leaderboard = $studentQuery
             ->addSelect(['approved_hours' => \App\Models\OjtLog::selectRaw('COALESCE(SUM(hours_rendered), 0)')
                 ->whereColumn('user_id', 'student_profiles.user_id')
                 ->where('status', 'Approved')
             ])
             ->orderBy('approved_hours', 'desc')
-            ->get(); // Using get() since a single company typically has a manageable group of interns
+            ->get();
 
         return view('supervisor.leaderboard', compact('leaderboard'));
     }
