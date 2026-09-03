@@ -52,7 +52,7 @@
     </header>
 
     <!-- MAIN CONTENT -->
-    <main class="lg:ml-64 ml-0 pt-24 px-4 sm:px-6 lg:px-8 pb-12 w-full max-w-7xl mx-auto">
+    <main class="lg:ml-64 ml-0 pt-24 px-4 sm:px-6 lg:px-8 pb-12">
         <div class="mb-8 flex items-center gap-4">
             <a href="{{ route('supervisor.dashboard') }}" class="p-2 hover:bg-surface-container rounded-full text-on-surface/50 transition-colors">
                 <span class="material-symbols-outlined">arrow_back</span>

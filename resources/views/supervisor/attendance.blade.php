@@ -53,7 +53,7 @@
     </header>
 
     <!-- MAIN CONTENT -->
-    <main class="lg:ml-64 ml-0 pt-24 px-4 sm:px-6 lg:px-8 pb-12 w-full max-w-7xl mx-auto">
+    <main class="lg:ml-64 ml-0 pt-24 px-4 sm:px-6 lg:px-8 pb-12">
         
         <!-- Page Header -->
         <div class="flex flex-col sm:flex-row items-stretch sm:items-end justify-between mb-8 gap-4">

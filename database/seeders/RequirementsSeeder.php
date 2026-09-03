@@ -33,7 +33,7 @@ class RequirementsSeeder extends Seeder
             ['title' => 'Student Trainee Information Sheet'],
             [
                 'description'   => 'Comprehensive trainee personal information, contact records, and educational profile.',
-                'template_path' => 'templates/requirements/student-information-sheet .pdf',
+                'template_path' => 'templates/requirements/student-information-sheet.pdf',
             ]
         );
         if ($allCourses->isNotEmpty()) {

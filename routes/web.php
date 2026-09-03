@@ -85,6 +85,12 @@ Route::middleware(['auth', 'no.cache', 'role:Admin'])->group(function () {
     Route::get('/coordinator/manage', [\App\Http\Controllers\Coordinator\CoordinatorManagerController::class, 'index'])->name('admin.coordinators');
     Route::post('/coordinator/manage', [\App\Http\Controllers\Coordinator\CoordinatorManagerController::class, 'store'])->name('admin.coordinators.store');
     Route::delete('/coordinator/manage/{id}', [\App\Http\Controllers\Coordinator\CoordinatorManagerController::class, 'destroy'])->name('admin.coordinators.destroy');
+
+    // Academic Terms Management
+    Route::get('/admin/academic-terms', [\App\Http\Controllers\Admin\AcademicTermController::class, 'index'])->name('admin.academic_terms.index');
+    Route::post('/admin/academic-terms', [\App\Http\Controllers\Admin\AcademicTermController::class, 'store'])->name('admin.academic_terms.store');
+    Route::patch('/admin/academic-terms/{id}/activate', [\App\Http\Controllers\Admin\AcademicTermController::class, 'activate'])->name('admin.academic_terms.activate');
+    Route::delete('/admin/academic-terms/{id}', [\App\Http\Controllers\Admin\AcademicTermController::class, 'destroy'])->name('admin.academic_terms.destroy');
 });
 
 // Supervisor / Advisor Routes

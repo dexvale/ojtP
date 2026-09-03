@@ -54,7 +54,7 @@
     </header>
 
     <!-- MAIN CONTENT -->
-    <main class="lg:ml-64 ml-0 pt-20 md:pt-24 px-4 sm:px-6 lg:px-8 pb-12 w-full max-w-7xl mx-auto" x-data="{ 
+    <main class="lg:ml-64 ml-0 pt-20 md:pt-24 px-4 sm:px-6 lg:px-8 pb-12" x-data="{ 
         showEvalModal: false, 
         evalStudentId: null, 
         evalStudentName: '',

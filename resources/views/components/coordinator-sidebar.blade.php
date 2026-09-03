@@ -11,6 +11,11 @@
         <nav class="flex-1">
             @if(auth()->user()->role === 'Admin')
                 <!-- Dean / Admin Dedicated Navigation -->
+                <a href="{{ route('admin.academic_terms.index') }}" 
+                   class="mx-2 my-1 px-4 py-3 flex items-center gap-3 text-sm font-medium rounded-lg transition-all duration-300 {{ request()->routeIs('admin.academic_terms.*') ? 'bg-[#faf1f8]/10 text-[#ffffff] translate-x-1' : 'text-[#faf1f8]/70 hover:text-[#ffffff] hover:bg-[#ffffff]/5' }}">
+                    <span class="material-symbols-outlined" data-icon="calendar_month">calendar_month</span>
+                    <span>Academic Terms</span>
+                </a>
                 <a href="{{ route('admin.coordinators') }}" 
                    class="mx-2 my-1 px-4 py-3 flex items-center gap-3 text-sm font-medium rounded-lg transition-all duration-300 {{ request()->routeIs('admin.coordinators') ? 'bg-[#faf1f8]/10 text-[#ffffff] translate-x-1' : 'text-[#faf1f8]/70 hover:text-[#ffffff] hover:bg-[#ffffff]/5' }}">
                     <span class="material-symbols-outlined" data-icon="manage_accounts">manage_accounts</span>

@@ -105,18 +105,11 @@
                 <div>
                     <div class="flex flex-wrap items-center gap-3">
                         <h1 class="text-3xl font-extrabold font-headline text-slate-900">{{ $company->name }}</h1>
-                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] uppercase font-bold tracking-wider bg-green-50 text-green-700 border border-green-200">
-                            MOA: Active
-                        </span>
                     </div>
                     <p class="text-slate-500 font-medium text-sm mt-1 flex flex-wrap items-center gap-3">
                         <span class="flex items-center gap-1"><span class="material-symbols-outlined text-[16px] text-slate-400">corporate_fare</span> {{ $company->industry ?? 'General Industry' }}</span>
                         <span class="text-slate-300">•</span>
                         <span class="flex items-center gap-1"><span class="material-symbols-outlined text-[16px] text-slate-400">location_on</span> {{ $company->location ?? 'Not specified' }}</span>
-                        @if($company->contact_person)
-                            <span class="text-slate-300">•</span>
-                            <span class="flex items-center gap-1"><span class="material-symbols-outlined text-[16px] text-slate-400">person</span> {{ $company->contact_person }} ({{ $company->contact_number ?? 'N/A' }})</span>
-                        @endif
                     </p>
                 </div>
             </div>
@@ -132,24 +125,8 @@
         </div>
 
         <!-- 2. Summary Metric Matrix Blocks -->
+        <!-- 2. Quick Metrics Bento -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <!-- Allocation Capacity -->
-            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 flex items-center gap-5 relative overflow-hidden">
-                <div class="w-14 h-14 rounded-2xl bg-purple-50 text-primary flex items-center justify-center shrink-0">
-                    <span class="material-symbols-outlined text-3xl">pie_chart</span>
-                </div>
-                <div class="flex-1">
-                    <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Slot Capacity</p>
-                    <div class="flex items-end justify-between">
-                        <h3 class="text-3xl font-black text-slate-800 font-mono">{{ $filledCount }} <span class="text-sm text-slate-400 font-normal">/ {{ $totalSlots }}</span></h3>
-                        <span class="text-sm font-bold text-primary bg-purple-50 px-2 py-0.5 rounded">{{ $slotPercent }}%</span>
-                    </div>
-                    <div class="w-full bg-slate-100 h-1.5 rounded-full mt-3 overflow-hidden">
-                        <div class="bg-primary h-full rounded-full" style="width: {{ $slotPercent }}%"></div>
-                    </div>
-                </div>
-            </div>
-
             <!-- Active Interns Deployed -->
             <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 flex items-center gap-5 relative overflow-hidden">
                 <div class="w-14 h-14 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
@@ -171,6 +148,18 @@
                     <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Company Advisors</p>
                     <h3 class="text-3xl font-black text-slate-800 font-mono">{{ $company->users->count() }}</h3>
                     <p class="text-xs text-slate-500 mt-1">Authorized evaluators</p>
+                </div>
+            </div>
+
+            <!-- Partner Courses -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 flex items-center gap-5 relative overflow-hidden">
+                <div class="w-14 h-14 rounded-2xl bg-purple-50 text-primary flex items-center justify-center shrink-0">
+                    <span class="material-symbols-outlined text-3xl">school</span>
+                </div>
+                <div>
+                    <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Partner Programs</p>
+                    <h3 class="text-3xl font-black text-slate-800 font-mono">{{ $company->courses->count() }}</h3>
+                    <p class="text-xs text-slate-500 mt-1">Affiliated degree tracks</p>
                 </div>
             </div>
         </div>
@@ -260,20 +249,21 @@
                                         <span class="material-symbols-outlined text-[20px]">badge</span>
                                     </div>
                                     <div class="flex-1 min-w-0">
-                                        <p class="font-bold text-sm text-slate-800 truncate">{{ $advisor->name ?? $advisor->email }}</p>
-                                        <p class="text-xs text-slate-500 truncate font-mono mt-0.5">{{ $advisor->email }}</p>
-                                        @if($advisor->department)
-                                            <span class="inline-block mt-2 px-2 py-0.5 rounded bg-purple-50 text-purple-700 text-[10px] font-bold">
-                                                {{ $advisor->department }}
-                                            </span>
-                                        @endif
+                                        <p class="font-bold text-sm text-slate-900 truncate">{{ $advisor->name ?? 'Advisor' }}</p>
+                                        <div class="mt-2 space-y-1.5 text-xs">
+                                            <div class="flex items-center gap-1.5">
+                                                <span class="font-semibold text-slate-400">Email:</span>
+                                                <span class="font-mono text-slate-700 truncate select-all">{{ $advisor->email }}</span>
+                                            </div>
+                                            <div class="flex items-center gap-1.5">
+                                                <span class="font-semibold text-slate-400">Department:</span>
+                                                <span class="font-medium text-slate-800">{{ $advisor->department ?? 'General / Unassigned' }}</span>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
-                                <div class="mt-4 pt-3 border-t border-slate-200/60 flex items-center justify-between text-xs text-slate-400">
+                                <div class="mt-4 pt-3 border-t border-slate-200/60 flex items-center text-xs text-slate-400">
                                     <span>Added {{ $advisor->created_at->format('M d, Y') }}</span>
-                                    <span class="inline-flex items-center gap-1 text-emerald-600 font-bold">
-                                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Active
-                                    </span>
                                 </div>
                             </div>
                         @endforeach
@@ -313,20 +303,6 @@
                     <div>
                         <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Location</label>
                         <input type="text" name="location" id="edit_location" class="w-full border border-slate-200 rounded-xl px-4 py-2.5 bg-slate-50 text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition">
-                    </div>
-                    <div class="grid grid-cols-2 gap-3">
-                        <div>
-                            <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Contact Person</label>
-                            <input type="text" name="contact_person" id="edit_contact_person" class="w-full border border-slate-200 rounded-xl px-4 py-2.5 bg-slate-50 text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Contact Number</label>
-                            <input type="text" name="contact_number" id="edit_contact_number" class="w-full border border-slate-200 rounded-xl px-4 py-2.5 bg-slate-50 text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition">
-                        </div>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Allocation Slots <span class="text-rose-500">*</span></label>
-                        <input type="number" name="allocation_slots" id="edit_allocation_slots" min="0" required class="w-full border border-slate-200 rounded-xl px-4 py-2.5 bg-slate-50 text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition">
                     </div>
                 </div>
 
@@ -397,9 +373,6 @@
             document.getElementById('edit_name').value = company.name || '';
             document.getElementById('edit_industry').value = company.industry || '';
             document.getElementById('edit_location').value = company.location || '';
-            document.getElementById('edit_contact_person').value = company.contact_person || '';
-            document.getElementById('edit_contact_number').value = company.contact_number || '';
-            document.getElementById('edit_allocation_slots').value = company.allocation_slots || 0;
             document.getElementById('editCompanyModal').classList.remove('hidden');
         }
 

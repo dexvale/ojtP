@@ -46,7 +46,6 @@ class CoordinatorPlacementController extends Controller
                 [
                     'industry'              => 'General Operations',
                     'location'              => 'Bohol',
-                    'allocation_slots'      => 5,
                     'status'                => 'approved',
                     'created_by_student_id' => $student->user_id,
                 ]

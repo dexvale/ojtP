@@ -40,14 +40,17 @@ class RegisterController extends Controller
             $selectedCourse = $request->course;
             $courseRecord = \App\Models\Course::where('course_name', $selectedCourse)->first();
             $automaticallyAssignedHours = $courseRecord ? $courseRecord->required_hours : 0;
+            $activeTerm = \App\Models\AcademicTerm::current();
 
             $user->studentProfile()->create([
+                'academic_term_id'  => $activeTerm ? $activeTerm->id : null,
                 'student_id_number' => $request->student_id,
-                'first_name' => $request->first_name,
-                'middle_name' => $request->middle_name,
-                'last_name' => $request->last_name,
-                'course' => $selectedCourse,
-                'required_hours' => $automaticallyAssignedHours,
+                'first_name'        => $request->first_name,
+                'middle_name'       => $request->middle_name,
+                'last_name'         => $request->last_name,
+                'course'            => $selectedCourse,
+                'required_hours'    => $automaticallyAssignedHours,
+                'ojt_status'        => 'Active',
             ]);
         });
 

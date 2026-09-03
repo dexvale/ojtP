@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Coordinator;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\DB;
 use App\Models\Company;
 use App\Models\User;
 
@@ -13,7 +14,10 @@ class CompanyController extends Controller
     public function index()
     {
         $coordinator = auth()->user();
-        $query = Company::withCount(['studentProfiles as filled_slots']);
+        $query = Company::withCount(['studentProfiles as filled_slots'])
+            ->with(['users' => function($q) {
+                $q->where('role', 'Advisor');
+            }, 'courses']);
 
         if ($coordinator->role === 'Coordinator' && $coordinator->managedCourses()->exists()) {
             $courseIds = $coordinator->managedCourses->pluck('id')->toArray();
@@ -36,7 +40,6 @@ class CompanyController extends Controller
             'location' => 'nullable|string|max:255',
             'contact_person' => 'nullable|string|max:255',
             'contact_number' => 'nullable|string|max:255',
-            'allocation_slots' => 'required|integer|min:0',
             'advisor_email' => 'nullable|string|email:rfc,dns|max:255|unique:users,email',
             'advisor_password' => 'nullable|string|min:8',
             'courses' => 'required|array|min:1',
@@ -49,7 +52,7 @@ class CompanyController extends Controller
             'location' => $validated['location'] ?? null,
             'contact_person' => $validated['contact_person'] ?? null,
             'contact_number' => $validated['contact_number'] ?? null,
-            'allocation_slots' => $validated['allocation_slots'],
+            'status' => 'approved',
         ]);
 
         $company->courses()->sync($validated['courses']);
@@ -100,7 +103,7 @@ class CompanyController extends Controller
             'location' => 'nullable|string|max:255',
             'contact_person' => 'nullable|string|max:255',
             'contact_number' => 'nullable|string|max:255',
-            'allocation_slots' => 'required|integer|min:0'
+            'status' => 'nullable|string|in:approved,pending,inactive',
         ]);
 
         $company->update($validated);
@@ -110,13 +113,23 @@ class CompanyController extends Controller
 
     public function destroy(Company $company)
     {
-        // 1. Delete all user accounts with the 'Advisor' role that belong to this company
-        $company->users()->where('role', 'Advisor')->delete();
+        // 1. Guard check: prevent deletion if company has active or past student interns
+        if ($company->studentProfiles()->count() > 0) {
+            return redirect()->back()->with(
+                'error', 
+                'Cannot delete this company because it has active or historical student records. You can mark it as Inactive to prevent future placements while preserving student records.'
+            );
+        }
 
-        // 2. Delete the company record itself
-        $company->delete();
+        // 2. Safe transactional cleanup for unused company
+        DB::transaction(function () use ($company) {
+            // Delete unused advisor credentials belonging to this company
+            $company->users()->where('role', 'Advisor')->delete();
+            $company->courses()->detach();
+            $company->delete();
+        });
 
-        return redirect()->route('coordinator.companies')->with('success', 'Company and its associated advisor accounts have been cleanly removed together.');
+        return redirect()->route('coordinator.companies')->with('success', 'Company and its associated advisor credentials have been removed successfully.');
     }
 
     public function storeSupervisor(Request $request)

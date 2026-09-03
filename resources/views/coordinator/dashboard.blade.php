@@ -78,13 +78,28 @@
     <!-- Main Content -->
     <main class="ml-64 pt-24 px-8 pb-12">
         <!-- Dashboard Header -->
-        <div class="flex items-end justify-between mb-8">
+        <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
             <div>
-                <h2 class="text-4xl font-extrabold font-headline text-on-surface tracking-tight" style="">
-                    Coordinator Dashboard</h2>
-                <p class="text-on-surface/60 font-medium" style="">Monitoring progress for Academic Year
-                    2023-2024</p>
+                <h2 class="text-4xl font-extrabold font-headline text-on-surface tracking-tight">Coordinator Dashboard</h2>
+                <p class="text-on-surface/60 font-medium text-sm mt-1">Monitoring student internship progress & verified requirements</p>
             </div>
+            @if(isset($allTerms) && $allTerms->isNotEmpty())
+                <form method="GET" action="{{ route('coordinator.dashboard') }}" class="flex items-center gap-2 bg-white px-3.5 py-2 rounded-xl border border-purple-100 shadow-xs">
+                    <span class="material-symbols-outlined text-purple-700 text-sm">calendar_month</span>
+                    <label class="text-xs font-bold text-slate-500 uppercase tracking-wider">Term:</label>
+                    <div class="relative">
+                        <select name="term_id" onchange="this.form.submit()"
+                                class="bg-purple-50/50 border border-purple-200 rounded-lg px-3 py-1.5 text-xs font-bold text-[#300050] focus:ring-2 focus:ring-purple-500 focus:outline-none appearance-none pr-7 cursor-pointer">
+                            @foreach($allTerms as $t)
+                                <option value="{{ $t->id }}" {{ ($selectedTermId == $t->id) ? 'selected' : '' }}>
+                                    {{ $t->full_title }} {{ $t->is_active ? '★ (Active)' : '' }}
+                                </option>
+                            @endforeach
+                        </select>
+                        <span class="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 text-xs pointer-events-none">expand_more</span>
+                    </div>
+                </form>
+            @endif
         </div>
         <!-- Overview Bento Grid -->
         <section class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">

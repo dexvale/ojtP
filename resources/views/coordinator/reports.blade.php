@@ -68,24 +68,38 @@
     </header>
 
     <!-- Main Content -->
-    <main class="ml-64 pt-24 px-8 pb-12 min-h-screen border-none" x-data="{ activeTab: 'dtr', searchVal: '' }">
+    <main class="ml-64 pt-24 px-8 pb-12 min-h-screen border-none" x-data="{ activeTab: '{{ request('tab', 'dtr') }}', searchVal: '' }">
         <!-- Page Header & Global Actions -->
         <div class="flex flex-col lg:flex-row lg:items-end lg:justify-between mb-8 gap-6">
             <div>
                 <h1 class="text-4xl font-extrabold font-headline text-slate-900 tracking-tight">Reports & Exports</h1>
                 <p class="text-slate-500 font-medium mt-2 text-sm max-w-xl">Generate, review, and export official end-of-semester documentation.</p>
             </div>
-            <div class="flex flex-col sm:flex-row gap-3">
-                <button
-                    class="flex items-center justify-center gap-2 px-5 py-2.5 bg-green-600 text-white rounded-lg text-sm font-semibold hover:bg-green-700 hover:shadow-lg transition-all active:scale-95 shadow-sm">
-                    <span class="material-symbols-outlined text-[20px]">table_view</span>
-                    Export All Data (.xlsx)
-                </button>
-                <button
-                    class="flex items-center justify-center gap-2 px-5 py-2.5 bg-slate-800 text-white rounded-lg text-sm font-semibold hover:bg-slate-900 hover:shadow-lg transition-all active:scale-95 shadow-sm">
-                    <span class="material-symbols-outlined text-[20px]">picture_as_pdf</span>
-                    Generate Master PDF
-                </button>
+            <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                @if(isset($allTerms) && $allTerms->isNotEmpty())
+                    <form method="GET" action="{{ route('coordinator.reports') }}" class="flex items-center gap-2 bg-white px-3.5 py-2 rounded-xl border border-purple-100 shadow-xs">
+                        @if($selectedMonth)
+                            <input type="hidden" name="month" value="{{ $selectedMonth }}">
+                        @endif
+                        @if($selectedCourse && $selectedCourse !== 'All Courses')
+                            <input type="hidden" name="course" value="{{ $selectedCourse }}">
+                        @endif
+                        <input type="hidden" name="tab" :value="activeTab">
+                        <span class="material-symbols-outlined text-purple-700 text-sm">calendar_month</span>
+                        <label class="text-xs font-bold text-slate-500 uppercase tracking-wider">Term:</label>
+                        <div class="relative">
+                            <select name="term_id" onchange="this.form.submit()"
+                                    class="bg-purple-50/50 border border-purple-200 rounded-lg px-3 py-1.5 text-xs font-bold text-[#300050] focus:ring-2 focus:ring-purple-500 focus:outline-none appearance-none pr-7 cursor-pointer">
+                                @foreach($allTerms as $t)
+                                    <option value="{{ $t->id }}" {{ ($selectedTermId == $t->id) ? 'selected' : '' }}>
+                                        {{ $t->full_title }} {{ $t->is_active ? '★ (Active)' : '' }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            <span class="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 text-xs pointer-events-none">expand_more</span>
+                        </div>
+                    </form>
+                @endif
             </div>
         </div>
 
@@ -118,6 +132,10 @@
                 <!-- Toolbar -->
                  <div class="flex flex-col sm:flex-row justify-between gap-4">
                      <form method="GET" action="{{ route('coordinator.reports') }}" class="flex flex-wrap gap-3">
+                         @if($selectedTermId)
+                             <input type="hidden" name="term_id" value="{{ $selectedTermId }}">
+                         @endif
+                         <input type="hidden" name="tab" value="dtr">
                          <select name="month" onchange="this.form.submit()" class="form-select text-sm border-slate-200 text-slate-700 rounded-lg shadow-sm focus:ring-primary focus:border-primary px-4 py-2">
                              @foreach($months as $m)
                                  @php
@@ -137,10 +155,6 @@
                              @endforeach
                          </select>
                      </form>
-                     <button class="inline-flex items-center justify-center gap-2 px-4 py-2 bg-white border border-slate-200 text-slate-700 text-sm font-semibold rounded-lg shadow-sm hover:bg-slate-50 transition-colors">
-                         <span class="material-symbols-outlined text-[18px]">download</span>
-                         Export DTR (.csv)
-                     </button>
                  </div>
 
                 <!-- Table -->

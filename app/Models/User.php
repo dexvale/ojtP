@@ -82,6 +82,10 @@ class User extends Authenticatable
 
     public function getAvatarUrlAttribute()
     {
+        if ($this->role === 'Student' && $this->studentProfile?->profile_photo_path && \Illuminate\Support\Facades\Storage::disk('public')->exists($this->studentProfile->profile_photo_path)) {
+            return asset('storage/' . $this->studentProfile->profile_photo_path);
+        }
+
         $name = urlencode($this->display_name ?: 'User');
         return "https://ui-avatars.com/api/?name={$name}&background=3a0ca3&color=fff&bold=true";
     }

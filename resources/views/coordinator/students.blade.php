@@ -77,6 +77,24 @@
                 <h1 class="text-4xl font-extrabold font-headline text-slate-900 tracking-tight">Student Directory</h1>
                 <p class="text-slate-500 font-medium mt-1 text-sm">Manage and track all OJT intern placements and progress.</p>
             </div>
+
+            @if(isset($allTerms) && $allTerms->isNotEmpty())
+                <form method="GET" action="{{ route('coordinator.students') }}" class="flex items-center gap-2 bg-white px-3.5 py-2 rounded-xl border border-purple-100 shadow-xs">
+                    <span class="material-symbols-outlined text-purple-700 text-sm">calendar_month</span>
+                    <label class="text-xs font-bold text-slate-500 uppercase tracking-wider">Term:</label>
+                    <div class="relative">
+                        <select name="term_id" onchange="this.form.submit()"
+                                class="bg-purple-50/50 border border-purple-200 rounded-lg px-3 py-1.5 text-xs font-bold text-[#300050] focus:ring-2 focus:ring-purple-500 focus:outline-none appearance-none pr-7 cursor-pointer">
+                            @foreach($allTerms as $t)
+                                <option value="{{ $t->id }}" {{ ($selectedTermId == $t->id) ? 'selected' : '' }}>
+                                    {{ $t->full_title }} {{ $t->is_active ? '★ (Active)' : '' }}
+                                </option>
+                            @endforeach
+                        </select>
+                        <span class="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 text-xs pointer-events-none">expand_more</span>
+                    </div>
+                </form>
+            @endif
         </div>
 
         <!-- Top Control Bar -->
@@ -84,7 +102,7 @@
             <!-- Search Bar -->
             <div class="relative flex-1">
                 <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">search</span>
-                <input type="text" 
+                <input type="text" id="studentSearchInput" oninput="filterStudentsTable()"
                     class="w-full bg-white border border-slate-200 rounded-xl py-3 pl-12 pr-4 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-sm transition-all"
                     placeholder="Search by Student Name or ID...">
             </div>
@@ -92,19 +110,13 @@
             <!-- Filters -->
             <div class="flex gap-3 w-full sm:w-auto">
                 <div class="relative flex-1 sm:flex-initial">
-                    <select class="w-full sm:w-auto appearance-none bg-white border border-slate-200 rounded-xl py-3 pl-4 pr-10 text-sm font-medium text-slate-700 sm:min-w-[140px] focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-sm cursor-pointer transition-all">
+                    <select id="courseFilterSelect" onchange="filterStudentsTable()" class="w-full sm:w-auto appearance-none bg-white border border-slate-200 rounded-xl py-3 pl-4 pr-10 text-sm font-medium text-slate-700 sm:min-w-[160px] focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-sm cursor-pointer transition-all">
                         <option value="all">All Courses</option>
-                        <option value="bscs">BSCS</option>
-                        <option value="bsit">BSIT</option>
-                    </select>
-                    <span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">expand_more</span>
-                </div>
-
-                <div class="relative flex-1 sm:flex-initial">
-                    <select class="w-full sm:w-auto appearance-none bg-white border border-slate-200 rounded-xl py-3 pl-4 pr-10 text-sm font-medium text-slate-700 sm:min-w-[140px] focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-sm cursor-pointer transition-all">
-                        <option value="all">All Years</option>
-                        <option value="3rd">3rd Year</option>
-                        <option value="4th">4th Year</option>
+                        @if(isset($courses))
+                            @foreach($courses as $course)
+                                <option value="{{ strtolower($course->course_name) }}">{{ $course->course_name }}</option>
+                            @endforeach
+                        @endif
                     </select>
                     <span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">expand_more</span>
                 </div>
@@ -118,15 +130,18 @@
                     <thead>
                         <tr class="bg-slate-50/80 border-b border-slate-200">
                             <th class="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Student Name</th>
-                            <th class="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider hidden md:table-cell">Course & Year</th>
+                            <th class="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider hidden md:table-cell">Course</th>
                             <th class="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Placement Status</th>
                             <th class="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">OJT Progress</th>
                             <th class="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider text-right">Actions</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-slate-100">
-                        @foreach($students as $student)
-                        <tr class="hover:bg-slate-50/50 transition-colors group">
+                    <tbody class="divide-y divide-slate-100" id="studentsTableBody">
+                        @forelse($students as $student)
+                        <tr class="hover:bg-slate-50/50 transition-colors group student-row"
+                            data-name="{{ strtolower($student->first_name . ' ' . $student->last_name) }}"
+                            data-id="{{ strtolower($student->student_id_number ?? '') }}"
+                            data-course="{{ strtolower($student->course ?? '') }}">
                             <td class="px-6 py-4">
                                 <div class="flex items-center gap-3">
                                     <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold shadow-sm uppercase">
@@ -212,14 +227,24 @@
                                 </a>
                             </td>
                         </tr>
-                        @endforeach
+                        @empty
+                        <tr id="emptyRow">
+                            <td colspan="5" class="py-12 text-center text-slate-400">
+                                <div class="flex flex-col items-center justify-center">
+                                    <span class="material-symbols-outlined text-4xl text-slate-300 mb-2">school</span>
+                                    <p class="font-headline font-bold text-slate-700 text-base">No Students Found</p>
+                                    <p class="text-xs text-slate-400 mt-0.5">There are no students enrolled in your assigned courses for this term.</p>
+                                </div>
+                            </td>
+                        </tr>
+                        @endforelse
                     </tbody>
                 </table>
             </div>
             
             <!-- Pagination Footer -->
             <div class="px-6 py-4 border-t border-slate-200 bg-slate-50/50 flex items-center justify-between">
-                <p class="text-xs text-slate-500 font-medium">Showing <span class="font-bold text-slate-700">1</span> to <span class="font-bold text-slate-700">{{ $students->count() }}</span> of <span class="font-bold text-slate-700">{{ $students->count() }}</span> interns</p>
+                <p class="text-xs text-slate-500 font-medium">Showing <span class="font-bold text-slate-700" id="studentVisibleCount">{{ $students->count() }}</span> interns</p>
                 <div class="flex gap-2">
                     <button class="px-3 py-1.5 border border-slate-200 rounded-lg text-xs font-semibold text-slate-400 bg-white cursor-not-allowed">
                         Previous
@@ -251,6 +276,58 @@
         toggleBtnEl?.addEventListener('click', () => {
             sidebarEl.classList.contains('-translate-x-full') ? openSidebar() : closeSidebar();
         });
+
+        function filterStudentsTable() {
+            const query = document.getElementById('studentSearchInput').value.toLowerCase().trim();
+            const courseSelect = document.getElementById('courseFilterSelect');
+            const selectedCourse = courseSelect ? courseSelect.value.toLowerCase() : 'all';
+            const rows = document.querySelectorAll('.student-row');
+            let visibleCount = 0;
+
+            rows.forEach(row => {
+                const name = row.dataset.name || '';
+                const id = row.dataset.id || '';
+                const course = row.dataset.course || '';
+
+                const matchesQuery = !query || name.includes(query) || id.includes(query);
+                const matchesCourse = (selectedCourse === 'all') || (course === selectedCourse);
+
+                if (matchesQuery && matchesCourse) {
+                    row.style.display = '';
+                    visibleCount++;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+
+            // Handle "No matching results" row
+            let noMatchRow = document.getElementById('noMatchRow');
+            const tbody = document.getElementById('studentsTableBody');
+            if (visibleCount === 0 && rows.length > 0) {
+                if (!noMatchRow) {
+                    noMatchRow = document.createElement('tr');
+                    noMatchRow.id = 'noMatchRow';
+                    noMatchRow.innerHTML = `
+                        <td colspan="5" class="py-12 text-center text-slate-400">
+                            <div class="flex flex-col items-center justify-center">
+                                <span class="material-symbols-outlined text-4xl text-slate-300 mb-2">search_off</span>
+                                <p class="font-headline font-bold text-slate-700 text-base">No Matching Students</p>
+                                <p class="text-xs text-slate-400 mt-0.5">Try adjusting your search keywords or course filter.</p>
+                            </div>
+                        </td>
+                    `;
+                    tbody.appendChild(noMatchRow);
+                }
+                noMatchRow.style.display = '';
+            } else if (noMatchRow) {
+                noMatchRow.style.display = 'none';
+            }
+
+            const countEl = document.getElementById('studentVisibleCount');
+            if (countEl) {
+                countEl.textContent = visibleCount;
+            }
+        }
     </script>
 </body>
 

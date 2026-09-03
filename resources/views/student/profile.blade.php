@@ -71,41 +71,55 @@
 <main class="lg:ml-64 ml-0 pt-20 min-h-screen pb-24 lg:pb-8">
     <div class="p-5 lg:p-8 max-w-5xl mx-auto space-y-6">
 
-        <!-- ── Page Header ── -->
-        <header class="flex flex-col sm:flex-row sm:items-center justify-between gap-5 border-b border-surface-variant/30 pb-6">
-            <div class="flex items-center gap-5">
-                <!-- Avatar -->
-                <div class="relative flex-shrink-0">
-                    <div class="w-20 h-20 rounded-full bg-primary/10 border-4 border-surface-container-lowest shadow-lg flex items-center justify-center overflow-hidden">
-                        <span class="material-symbols-outlined text-5xl text-primary/40" style="font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 48;">account_circle</span>
-                    </div>
-                    <button class="absolute -bottom-1 -right-1 w-7 h-7 bg-primary rounded-full flex items-center justify-center border-2 border-white shadow" aria-label="Change photo">
-                        <span class="material-symbols-outlined text-white text-sm">photo_camera</span>
-                    </button>
-                </div>
-                <!-- Title + Status -->
-                <div>
-                    <h1 class="text-3xl lg:text-4xl font-extrabold font-headline tracking-tight text-primary leading-tight">
-                        Student Profile<br class="sm:hidden"/> Information
-                    </h1>
-                    <div class="flex items-center gap-1.5 mt-1.5">
-                        <span class="material-symbols-outlined text-tertiary text-base" style="font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 20;">verified</span>
-                        <span class="text-xs font-semibold text-tertiary uppercase tracking-wide">Verified Student Status</span>
-                    </div>
-                </div>
-            </div>
-            <!-- Edit Profile Button -->
-            <button id="edit-btn" type="button" onclick="toggleEdit()"
-                    class="self-start sm:self-auto flex items-center gap-2 px-5 py-2.5 bg-primary text-on-primary rounded-lg font-bold text-sm hover:opacity-90 active:scale-95 transition-all shadow-sm flex-shrink-0">
-                <span class="material-symbols-outlined text-lg">edit</span>
-                Edit Profile
-            </button>
-        </header>
-
         <!-- ── Profile Form ── -->
-        <form method="POST" action="{{ route('student.profile.update') }}" id="profile-form">
+        <form method="POST" action="{{ route('student.profile.update') }}" id="profile-form" enctype="multipart/form-data">
             @csrf
             @method('PUT')
+
+            <!-- Hidden Photo Input -->
+            <input type="file" name="profile_photo" id="profile_photo_input" accept="image/*" class="hidden" onchange="previewProfilePhoto(this)">
+
+            <!-- ── Page Header ── -->
+            <header class="flex flex-col sm:flex-row sm:items-center justify-between gap-5 border-b border-surface-variant/30 pb-6 mb-6">
+                <div class="flex items-center gap-5">
+                    <!-- Avatar with Upload Button -->
+                    <div class="relative flex-shrink-0 group cursor-pointer" onclick="triggerPhotoUpload()">
+                        <div class="w-20 h-20 rounded-full bg-primary/10 border-4 border-surface-container-lowest shadow-lg flex items-center justify-center overflow-hidden relative">
+                            <img id="avatar-preview-img" 
+                                 src="{{ $user->studentProfile?->profile_photo_url ?? $user->avatar_url }}" 
+                                 alt="Profile Picture" 
+                                 class="w-full h-full object-cover"/>
+                            
+                            <!-- Hover Overlay -->
+                            <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center text-white text-[10px] font-bold">
+                                <span class="material-symbols-outlined text-lg">photo_camera</span>
+                                <span>Upload</span>
+                            </div>
+                        </div>
+                        <button type="button" class="absolute -bottom-1 -right-1 w-7 h-7 bg-primary group-hover:bg-purple-900 rounded-full flex items-center justify-center border-2 border-white shadow transition" aria-label="Change photo">
+                            <span class="material-symbols-outlined text-white text-sm">photo_camera</span>
+                        </button>
+                    </div>
+                    <!-- Title + Status -->
+                    <div>
+                        <h1 class="text-3xl lg:text-4xl font-extrabold font-headline tracking-tight text-primary leading-tight">
+                            Student Profile<br class="sm:hidden"/> Information
+                        </h1>
+                        <div class="flex items-center gap-1.5 mt-1.5">
+                            <span class="material-symbols-outlined text-tertiary text-base" style="font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 20;">verified</span>
+                            <span class="text-xs font-semibold text-tertiary uppercase tracking-wide">Verified Student Status</span>
+                        </div>
+                    </div>
+                </div>
+                <!-- Edit Profile Button -->
+                <div class="flex items-center gap-3">
+                    <button id="edit-btn" type="button" onclick="toggleEdit()"
+                            class="self-start sm:self-auto flex items-center gap-2 px-5 py-2.5 bg-primary text-on-primary rounded-lg font-bold text-sm hover:opacity-90 active:scale-95 transition-all shadow-sm flex-shrink-0">
+                        <span class="material-symbols-outlined text-lg">edit</span>
+                        Edit Profile
+                    </button>
+                </div>
+            </header>
 
             @if(session('success'))
                 <div class="mb-6 p-4 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-700 flex items-center gap-3 shadow-sm">
@@ -182,6 +196,26 @@
                                     Email Address <span class="text-error">*</span>
                                 </label>
                                 <input type="email" name="email" value="{{ old('email', $user->email) }}" disabled
+                                       class="profile-input w-full bg-surface-container rounded-lg px-3.5 py-2.5 text-sm font-medium text-on-surface border border-surface-variant/30 focus:ring-2 focus:ring-primary/40 focus:border-transparent transition-all disabled:opacity-60 disabled:cursor-not-allowed"/>
+                            </div>
+                        </div>
+                        {{-- Row 3: DOB & Blood Type --}}
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-[10px] font-bold text-outline uppercase tracking-widest mb-1.5">
+                                    Date of Birth
+                                </label>
+                                <div class="relative">
+                                    <input type="date" name="date_of_birth" value="{{ old('date_of_birth', $user->studentProfile->date_of_birth ?? '') }}" disabled
+                                           class="profile-input w-full bg-surface-container rounded-lg px-3.5 py-2.5 pr-10 text-sm font-medium text-on-surface border border-surface-variant/30 focus:ring-2 focus:ring-primary/40 focus:border-transparent transition-all disabled:opacity-60 disabled:cursor-not-allowed"/>
+                                    <span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-outline text-[18px] pointer-events-none">calendar_today</span>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-outline uppercase tracking-widest mb-1.5">
+                                    Blood Type
+                                </label>
+                                <input type="text" name="blood_type" value="{{ old('blood_type', $user->studentProfile->blood_type ?? '') }}" placeholder="e.g. O+, A+, B+, AB-" disabled
                                        class="profile-input w-full bg-surface-container rounded-lg px-3.5 py-2.5 text-sm font-medium text-on-surface border border-surface-variant/30 focus:ring-2 focus:ring-primary/40 focus:border-transparent transition-all disabled:opacity-60 disabled:cursor-not-allowed"/>
                             </div>
                         </div>
@@ -331,6 +365,37 @@
 </nav>
 
 <script>
+    // ── Profile Photo Upload & Preview ──
+    function triggerPhotoUpload() {
+        document.getElementById('profile_photo_input').click();
+    }
+
+    function previewProfilePhoto(input) {
+        if (input.files && input.files[0]) {
+            const file = input.files[0];
+            
+            // Check file size (max 5MB)
+            if (file.size > 5 * 1024 * 1024) {
+                alert('Selected image exceeds 5MB limit. Please choose a smaller image.');
+                input.value = '';
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('avatar-preview-img').src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+
+            // Automatically reveal the Update Profile button so the user can save the photo
+            const saveBtn = document.getElementById('update-btn');
+            const inputs  = document.querySelectorAll('.profile-input');
+            if (inputs[0].disabled) {
+                toggleEdit();
+            }
+        }
+    }
+
     // ── Edit / Save toggle ──
     function toggleEdit() {
         const inputs  = document.querySelectorAll('.profile-input');
