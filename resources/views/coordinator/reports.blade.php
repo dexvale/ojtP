@@ -28,6 +28,109 @@
         }
         
         [x-cloak] { display: none !important; }
+
+        @media print {
+            aside,
+            #sidebar,
+            #sidebar-overlay,
+            header,
+            nav,
+            #sidebar-toggle,
+            .print\:hidden,
+            form,
+            button {
+                display: none !important;
+            }
+
+            [x-cloak], [style*="display: none"] {
+                display: none !important;
+            }
+
+            body {
+                background: #ffffff !important;
+                color: #000000 !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
+            main {
+                margin: 0 !important;
+                padding: 0 !important;
+                width: 100% !important;
+                min-height: auto !important;
+            }
+
+            .bg-white {
+                box-shadow: none !important;
+                border: none !important;
+                padding: 0 !important;
+            }
+
+            .print\:block {
+                display: block !important;
+            }
+            .print\:grid {
+                display: grid !important;
+            }
+            .print\:flex {
+                display: flex !important;
+            }
+
+            .overflow-x-auto,
+            .overflow-hidden {
+                overflow: visible !important;
+                border: none !important;
+                border-radius: 0 !important;
+            }
+
+            table {
+                width: 100% !important;
+                border-collapse: collapse !important;
+                border: 1px solid #94a3b8 !important;
+                font-size: 11px !important;
+            }
+
+            thead {
+                display: table-row-group !important;
+            }
+
+            tbody {
+                display: table-row-group !important;
+            }
+
+            tr {
+                break-inside: avoid !important;
+                page-break-inside: avoid !important;
+            }
+
+            th, td {
+                padding: 6px 10px !important;
+                border: 1px solid #cbd5e1 !important;
+                vertical-align: middle !important;
+                line-height: 1.4 !important;
+                overflow: visible !important;
+            }
+
+            th {
+                background-color: #f1f5f9 !important;
+                color: #0f172a !important;
+                font-weight: 700 !important;
+                text-transform: none !important;
+                font-size: 10px !important;
+            }
+
+            .signatories-block {
+                break-inside: avoid !important;
+                page-break-inside: avoid !important;
+            }
+
+            @page {
+                size: portrait;
+                margin: 1.2cm 1cm;
+            }
+        }
     </style>
 </head>
 
@@ -70,7 +173,7 @@
     <!-- Main Content -->
     <main class="ml-64 pt-24 px-8 pb-12 min-h-screen border-none" x-data="{ activeTab: '{{ request('tab', 'dtr') }}', searchVal: '' }">
         <!-- Page Header & Global Actions -->
-        <div class="flex flex-col lg:flex-row lg:items-end lg:justify-between mb-8 gap-6">
+        <div class="flex flex-col lg:flex-row lg:items-end lg:justify-between mb-8 gap-6 print:hidden">
             <div>
                 <h1 class="text-4xl font-extrabold font-headline text-slate-900 tracking-tight">Reports & Exports</h1>
                 <p class="text-slate-500 font-medium mt-2 text-sm max-w-xl">Generate, review, and export official end-of-semester documentation.</p>
@@ -78,9 +181,6 @@
             <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                 @if(isset($allTerms) && $allTerms->isNotEmpty())
                     <form method="GET" action="{{ route('coordinator.reports') }}" class="flex items-center gap-2 bg-white px-3.5 py-2 rounded-xl border border-purple-100 shadow-xs">
-                        @if($selectedMonth)
-                            <input type="hidden" name="month" value="{{ $selectedMonth }}">
-                        @endif
                         @if($selectedCourse && $selectedCourse !== 'All Courses')
                             <input type="hidden" name="course" value="{{ $selectedCourse }}">
                         @endif
@@ -104,7 +204,7 @@
         </div>
 
         <!-- Navigation (Tabbed Interface) -->
-        <div class="border-b border-slate-200 mb-6">
+        <div class="border-b border-slate-200 mb-6 print:hidden">
             <nav class="-mb-px flex space-x-8" aria-label="Tabs">
                 <button @click="activeTab = 'dtr'"
                         :class="activeTab === 'dtr' ? 'border-primary text-primary' : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'"
@@ -130,7 +230,7 @@
             <!-- SECTION A: DTR Summary -->
             <div x-show="activeTab === 'dtr'" x-cloak class="space-y-6">
                 <!-- Toolbar -->
-                 <div class="flex flex-col sm:flex-row justify-between gap-4">
+                 <div class="flex flex-col sm:flex-row justify-between items-center gap-4 print:hidden">
                      <form method="GET" action="{{ route('coordinator.reports') }}" class="flex flex-wrap gap-3">
                          @if($selectedTermId)
                              <input type="hidden" name="term_id" value="{{ $selectedTermId }}">
@@ -155,29 +255,78 @@
                              @endforeach
                          </select>
                      </form>
+
+                     <!-- Print Button -->
+                     <button type="button" onclick="window.print()" class="inline-flex items-center gap-2 px-4 py-2 bg-primary text-white text-xs font-bold rounded-xl shadow-xs hover:bg-primary/90 transition-all active:scale-95 cursor-pointer">
+                         <span class="material-symbols-outlined text-[18px]">print</span>
+                         <span>Print Monthly DTR</span>
+                     </button>
                  </div>
+
+                <!-- Official University & ISO Letterhead (Visible ONLY on Print) -->
+                <div class="hidden print:block mb-6 border-b-2 border-slate-800 pb-3">
+                    <div class="flex items-center justify-between gap-4">
+                        <!-- University Logo (Left) -->
+                        <div class="w-20 flex-shrink-0 flex items-center justify-center">
+                            <img src="{{ asset('images/logo.png') }}" alt="BISU Logo" class="w-18 h-18 object-contain">
+                        </div>
+                        
+                        <!-- University Header Text (Center) -->
+                        <div class="text-center flex-1 px-2">
+                            <p class="text-[11px] font-serif text-slate-800 tracking-wide uppercase">Republic of the Philippines</p>
+                            <h1 class="text-base font-extrabold font-serif text-slate-900 tracking-wide leading-tight">BOHOL ISLAND STATE UNIVERSITY</h1>
+                            <p class="text-[11px] text-slate-700">Magsija, Balilihan 6342, Bohol, Philippines</p>
+                            <p class="text-[11px] font-bold text-slate-900">Office of the College of Computing and Information Sciences</p>
+                            <p class="text-[10px] italic text-slate-600 mt-0.5">Balance &bull; Integrity &bull; Stewardship &bull; Uprightness</p>
+                        </div>
+
+                        <!-- Bagong Pilipinas & ISO Logos (Right) -->
+                        <div class="flex-shrink-0 flex items-center justify-end gap-3">
+                            <img src="{{ asset('images/Bagong_Pilipinas_logo.png') }}" alt="Bagong Pilipinas" class="h-16 w-auto object-contain">
+                            <img src="{{ asset('images/iso_logo.png') }}" alt="ISO 9001:2015 Certified" class="h-14 w-auto object-contain">
+                        </div>
+                    </div>
+                    
+                    <!-- Report Title & Filters Info -->
+                    <div class="mt-4 pt-3 border-t border-slate-300 text-center">
+                        <h2 class="text-sm font-black uppercase tracking-wider text-slate-900">DAILY TIME RECORD (DTR) MONTHLY SUMMARY REPORT</h2>
+                        <p class="text-xs text-slate-600 mt-1">
+                            <span>Period: <strong class="text-slate-900">{{ \Carbon\Carbon::createFromFormat('Y-m', $selectedMonth)->format('F Y') }}</strong></span>
+                            <span class="mx-2">&bull;</span>
+                            <span>Course: <strong class="text-slate-900">{{ $selectedCourse ?? 'All Courses' }}</strong></span>
+                            @if(isset($allTerms) && $selectedTermId)
+                                @php $currentTerm = $allTerms->firstWhere('id', $selectedTermId); @endphp
+                                @if($currentTerm)
+                                    <span class="mx-2">&bull;</span>
+                                    <span>Term: <strong class="text-slate-900">{{ $currentTerm->full_title }}</strong></span>
+                                @endif
+                            @endif
+                        </p>
+                    </div>
+                </div>
 
                 <!-- Table -->
                 <div class="overflow-x-auto border border-slate-100 rounded-lg">
                     <table class="w-full text-left border-collapse whitespace-nowrap">
                         <thead>
                             <tr class="bg-slate-50 border-b border-slate-200">
-                                <th class="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Student Name</th>
-                                <th class="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Assigned Company</th>
-                                <th class="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Rendered Hours (This Month)</th>
-                                <th class="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Accumulated Hours</th>
-                                <th class="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Status</th>
+                                <th class="px-6 py-3 text-xs font-semibold text-slate-500 tracking-wider">Student Name</th>
+                                <th class="px-6 py-3 text-xs font-semibold text-slate-500 tracking-wider">Assigned Company</th>
+                                <th class="px-6 py-3 text-xs font-semibold text-slate-500 tracking-wider">Rendered Hours (This Month)</th>
+                                <th class="px-6 py-3 text-xs font-semibold text-slate-500 tracking-wider">Total Accumulated Hours</th>
+                                <th class="px-6 py-3 text-xs font-semibold text-slate-500 tracking-wider">Status</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100">
                             @forelse($dtrStudents as $student)
                                 @php
+                                    $targetHours = $student->academicCourse->required_hours ?? $student->required_hours ?? 0;
                                     $status = 'Behind Schedule';
                                     $statusBg = 'bg-amber-100 text-amber-800';
                                     
-                                    if (($student->approved_hours ?? 0) >= $student->required_hours && $student->required_hours > 0) {
+                                    if (($student->approved_hours ?? 0) >= $targetHours && $targetHours > 0) {
                                         $status = 'Completed';
-                                        $statusBg = 'bg-primary/10 text-primary';
+                                        $statusBg = 'bg-purple-100 text-[#300050]';
                                     } elseif (($student->monthly_hours ?? 0) > 0) {
                                         $status = 'On Track';
                                         $statusBg = 'bg-green-100 text-green-800';
@@ -200,6 +349,16 @@
                         </tbody>
                     </table>
                 </div>
+
+                <!-- Official Signatories (Visible ONLY on Print) -->
+                <div class="hidden print:grid grid-cols-2 gap-12 mt-10 pt-6 text-xs text-slate-800 signatories-block">
+                    <div>
+                        <p class="text-slate-600 font-medium">Prepared by:</p>
+                        <div class="mt-12 border-b border-slate-900 w-56"></div>
+                        <p class="font-bold text-slate-900 mt-1.5 ">{{ auth()->user()->display_name }}</p>
+                        <p class="text-[11px] text-slate-600">OJT Coordinator</p>
+                    </div>
+                </div>
             </div>
 
             <!-- SECTION B: Evaluation Summaries -->
@@ -221,12 +380,12 @@
                     <table class="w-full text-left border-collapse whitespace-nowrap">
                         <thead>
                             <tr class="bg-slate-50 border-b border-slate-200">
-                                <th class="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Student Name</th>
-                                <th class="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Evaluator (HR)</th>
-                                <th class="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider text-center">Technical Skill Score</th>
-                                <th class="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider text-center">Soft Skill Score</th>
-                                <th class="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Final Rating (%)</th>
-                                <th class="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider text-right">Action</th>
+                                <th class="px-6 py-3 text-xs font-semibold text-slate-500 tracking-wider">Student Name</th>
+                                <th class="px-6 py-3 text-xs font-semibold text-slate-500 tracking-wider">Evaluator (HR)</th>
+                                <th class="px-6 py-3 text-xs font-semibold text-slate-500 tracking-wider text-center">Technical Skill Score</th>
+                                <th class="px-6 py-3 text-xs font-semibold text-slate-500 tracking-wider text-center">Soft Skill Score</th>
+                                <th class="px-6 py-3 text-xs font-semibold text-slate-500 tracking-wider">Final Rating (%)</th>
+                                <th class="px-6 py-3 text-xs font-semibold text-slate-500 tracking-wider text-right">Action</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100">
@@ -346,20 +505,22 @@
                     <table class="w-full text-left border-collapse whitespace-nowrap">
                         <thead>
                             <tr class="bg-slate-50 border-b border-slate-200">
-                                <th class="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Student Name</th>
-                                <th class="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Hours</th>
-                                <th class="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Document Status</th>
-                                <th class="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider text-right">Clearance Status</th>
+                                <th class="px-6 py-3 text-xs font-semibold text-slate-500 tracking-wider">Student Name</th>
+                                <th class="px-6 py-3 text-xs font-semibold text-slate-500 tracking-wider">Total Hours</th>
+                                <th class="px-6 py-3 text-xs font-semibold text-slate-500 tracking-wider">Document Status</th>
+                                <th class="px-6 py-3 text-xs font-semibold text-slate-500 tracking-wider text-right">Clearance Status</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100">
                             @php
                                 $completedStudents = $allStudents->filter(function($student) {
-                                    return ($student->approved_hours ?? 0) >= $student->required_hours && $student->required_hours > 0;
+                                    $targetHours = $student->academicCourse->required_hours ?? $student->required_hours ?? 0;
+                                    return ($student->approved_hours ?? 0) >= $targetHours && $targetHours > 0;
                                 });
                             @endphp
                             @forelse($completedStudents as $student)
                                 @php
+                                    $targetHours = $student->academicCourse->required_hours ?? $student->required_hours ?? 0;
                                     $requiredReqs = $student->academicCourse->requirements ?? collect();
                                     $requiredReqIds = $requiredReqs->pluck('id')->toArray();
                                     
@@ -376,7 +537,7 @@
                                     <td class="px-6 py-4 text-sm font-bold text-slate-900">{{ $student->first_name }} {{ $student->last_name }}</td>
                                     <td class="px-6 py-4">
                                         <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-700 border border-slate-200 shadow-sm">
-                                            {{ $student->approved_hours }}/{{ $student->required_hours }} (Complete)
+                                            {{ $student->approved_hours }}/{{ $targetHours }} (Complete)
                                         </span>
                                     </td>
                                     <td class="px-6 py-4">

@@ -130,6 +130,7 @@
                     <thead>
                         <tr class="bg-slate-50/80 border-b border-slate-200">
                             <th class="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Student Name</th>
+                            <th class="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">ID</th>
                             <th class="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider hidden md:table-cell">Course</th>
                             <th class="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Placement Status</th>
                             <th class="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">OJT Progress</th>
@@ -143,31 +144,19 @@
                             data-id="{{ strtolower($student->student_id_number ?? '') }}"
                             data-course="{{ strtolower($student->course ?? '') }}">
                             <td class="px-6 py-4">
-                                <div class="flex items-center gap-3">
-                                    <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold shadow-sm uppercase">
-                                        {{ substr($student->first_name, 0, 1) }}{{ substr($student->last_name, 0, 1) }}
-                                    </div>
-                                    <div>
-                                        <p class="text-sm font-bold text-slate-900 group-hover:text-primary transition-colors">{{ $student->first_name }} {{ $student->last_name }}</p>
-                                        <p class="text-xs text-slate-500">{{ $student->student_id_number }}</p>
-                                    </div>
-                                </div>
+                                <p class="text-sm font-bold text-slate-900 group-hover:text-primary transition-colors">{{ $student->first_name }} {{ $student->last_name }}</p>
+                            </td>
+                            <td class="px-6 py-4">
+                                <span class="text-sm font-medium text-slate-600 font-mono">{{ $student->student_id_number ?? '—' }}</span>
                             </td>
                             <td class="px-6 py-4 hidden md:table-cell">
                                 <p class="text-sm font-medium text-slate-900">{{ $student->course }}</p>
                             </td>
                             <td class="px-6 py-4">
                                 @if($student->placement_status === 'Approved' && $student->company)
-                                    <div class="flex flex-col gap-1">
-                                        <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-green-50 border border-green-100 text-green-700 text-xs font-semibold w-fit">
-                                            <span class="material-symbols-outlined text-sm">corporate_fare</span>
-                                            <span class="truncate max-w-[160px]">{{ $student->company->name }}</span>
-                                        </div>
-                                        @if($student->department)
-                                            <span class="text-[11px] text-slate-500 font-medium pl-1">
-                                                &bull; {{ $student->department }}
-                                            </span>
-                                        @endif
+                                    <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-green-50 border border-green-100 text-green-700 text-xs font-semibold w-fit">
+                                        <span class="material-symbols-outlined text-sm">corporate_fare</span>
+                                        <span class="truncate max-w-[160px]">{{ $student->company->name }}</span>
                                     </div>
                                 @elseif($student->placement_status === 'Pending')
                                     <a href="{{ route('coordinator.placements') }}" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-50 border border-amber-200 text-amber-800 text-xs font-semibold hover:bg-amber-100 transition">
@@ -229,7 +218,7 @@
                         </tr>
                         @empty
                         <tr id="emptyRow">
-                            <td colspan="5" class="py-12 text-center text-slate-400">
+                            <td colspan="6" class="py-12 text-center text-slate-400">
                                 <div class="flex flex-col items-center justify-center">
                                     <span class="material-symbols-outlined text-4xl text-slate-300 mb-2">school</span>
                                     <p class="font-headline font-bold text-slate-700 text-base">No Students Found</p>
@@ -308,7 +297,7 @@
                     noMatchRow = document.createElement('tr');
                     noMatchRow.id = 'noMatchRow';
                     noMatchRow.innerHTML = `
-                        <td colspan="5" class="py-12 text-center text-slate-400">
+                        <td colspan="6" class="py-12 text-center text-slate-400">
                             <div class="flex flex-col items-center justify-center">
                                 <span class="material-symbols-outlined text-4xl text-slate-300 mb-2">search_off</span>
                                 <p class="font-headline font-bold text-slate-700 text-base">No Matching Students</p>

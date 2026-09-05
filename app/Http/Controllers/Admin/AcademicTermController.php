@@ -34,11 +34,15 @@ class AcademicTermController extends Controller
             $shouldActivate = true;
         }
 
-        AcademicTerm::create([
+        $newTerm = AcademicTerm::create([
             'academic_year' => $validated['academic_year'],
             'semester'      => $validated['semester'],
             'is_active'     => $shouldActivate,
         ]);
+
+        if ($shouldActivate) {
+            session(['selected_term_id' => $newTerm->id]);
+        }
 
         return redirect()->route('admin.academic_terms.index')
             ->with('success', "Academic Term ({$validated['academic_year']} - {$validated['semester']}) added successfully!");
@@ -53,6 +57,9 @@ class AcademicTermController extends Controller
 
         // Activate selected term
         $term->update(['is_active' => true]);
+
+        // Keep current session in sync with newly activated term
+        session(['selected_term_id' => $term->id]);
 
         return redirect()->route('admin.academic_terms.index')
             ->with('success', "Active academic term successfully switched to {$term->full_title}!");

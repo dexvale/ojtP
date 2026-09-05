@@ -14,7 +14,12 @@ class DashboardController extends Controller
         $coordinator = auth()->user();
         $allTerms = AcademicTerm::orderBy('id', 'desc')->get();
         $activeTerm = AcademicTerm::current();
-        $selectedTermId = $request->get('term_id', $activeTerm?->id);
+        if ($request->has('term_id')) {
+            $selectedTermId = $request->get('term_id');
+            session(['selected_term_id' => $selectedTermId]);
+        } else {
+            $selectedTermId = session('selected_term_id', $activeTerm?->id);
+        }
 
         $query = StudentProfile::with('company')
             ->withSum(['ojtLogs as approved_hours' => function ($query) {
@@ -74,7 +79,12 @@ class DashboardController extends Controller
         $coordinator = auth()->user();
         $allTerms = AcademicTerm::orderBy('id', 'desc')->get();
         $activeTerm = AcademicTerm::current();
-        $selectedTermId = $request->get('term_id', $activeTerm?->id);
+        if ($request->has('term_id')) {
+            $selectedTermId = $request->get('term_id');
+            session(['selected_term_id' => $selectedTermId]);
+        } else {
+            $selectedTermId = session('selected_term_id', $activeTerm?->id);
+        }
 
         $query = StudentProfile::with(['company', 'academicCourse', 'academicTerm'])
             ->withSum(['ojtLogs as approved_hours' => function ($query) {
@@ -125,7 +135,12 @@ class DashboardController extends Controller
         $coordinator = auth()->user();
         $allTerms = AcademicTerm::orderBy('id', 'desc')->get();
         $activeTerm = AcademicTerm::current();
-        $selectedTermId = $request->get('term_id', $activeTerm?->id);
+        if ($request->has('term_id')) {
+            $selectedTermId = $request->get('term_id');
+            session(['selected_term_id' => $selectedTermId]);
+        } else {
+            $selectedTermId = session('selected_term_id', $activeTerm?->id);
+        }
 
         // 1. Query managed students with all relations eager loaded
         $query = StudentProfile::with(['company', 'academicTerm', 'user.requirementSubmissions.requirement', 'academicCourse.requirements', 'evaluations.supervisor'])
@@ -158,10 +173,13 @@ class DashboardController extends Controller
         }
 
         $selectedMonth = $request->get('month', $months[0]);
+        if (!in_array($selectedMonth, $months)) {
+            $selectedMonth = $months[0];
+        }
         $selectedCourse = $request->get('course');
 
         // 3. Query students for DTR with monthly log sum
-        $dtrQuery = StudentProfile::with(['company', 'academicTerm'])
+        $dtrQuery = StudentProfile::with(['company', 'academicTerm', 'academicCourse'])
             ->withSum(['ojtLogs as approved_hours' => function ($q) {
                 $q->where('status', 'Approved');
             }], 'hours_rendered')
