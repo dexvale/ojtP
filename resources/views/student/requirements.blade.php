@@ -154,12 +154,13 @@
                             @endif
                         </div>
 
-                        <div>
+                        <div class="flex items-center gap-2 flex-wrap">
                             @if(!$sub)
                                 @if($req->template_path && str_ends_with(strtolower($req->template_path), '.pdf'))
                                     <a href="{{ route('student.requirements.fill', $req->id) }}"
-                                            class="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-xs font-bold shadow-sm transition active:scale-95">
-                                        Fill Form (Online)
+                                            class="inline-flex items-center gap-1 px-3.5 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-xs font-bold shadow-sm transition active:scale-95">
+                                        <span class="material-symbols-outlined text-[15px]">edit_note</span>
+                                        <span>Fill Form (Online)</span>
                                     </a>
                                 @endif
                                 <button onclick="openSubmitModal({{ $req->id }}, '{{ $req->title }}')"
@@ -180,8 +181,9 @@
                             @elseif($sub->status === 'Rejected')
                                 @if($req->template_path && str_ends_with(strtolower($req->template_path), '.pdf'))
                                     <a href="{{ route('student.requirements.fill', $req->id) }}"
-                                            class="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-xs font-bold shadow-sm transition active:scale-95">
-                                        Fill Form (Online)
+                                            class="inline-flex items-center gap-1 px-3.5 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-xs font-bold shadow-sm transition active:scale-95">
+                                        <span class="material-symbols-outlined text-[15px]">edit_note</span>
+                                        <span>Fill Form (Online)</span>
                                     </a>
                                 @endif
                                 <button onclick="openSubmitModal({{ $req->id }}, '{{ $req->title }}')"

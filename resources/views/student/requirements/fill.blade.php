@@ -54,7 +54,6 @@
             z-index: 40;
         }
 
-        /* Absolute positioning so handle does NOT shift the text position */
         .drag-handle {
             position: absolute;
             right: 100%;
@@ -88,33 +87,33 @@
 
         .pdf-text-input {
             background: transparent;
-            border: 1px solid transparent; /* fixed width border prevents jump */
+            border: 1px solid transparent;
+            border-bottom: 1.5px solid rgba(147, 51, 234, 0.5);
             color: #0f172a;
             font-family: Helvetica, Arial, sans-serif;
-            font-size: 13px;
-            font-weight: 500;
-            padding: 1px 3px;
+            font-size: 11px;
+            font-weight: 600;
+            padding: 0px 3px;
             margin: 0;
             outline: none;
-            line-height: 1.2;
-            min-width: 30px;
-            border-radius: 4px;
+            line-height: 1.1;
+            min-width: 25px;
+            border-radius: 2px;
             box-sizing: border-box;
             transition: background 0.15s, border-color 0.15s;
         }
 
         .pdf-input-wrapper:hover .pdf-text-input {
-            border: 1px dashed rgba(147, 51, 234, 0.6);
-            background: rgba(243, 232, 255, 0.35);
+            border: 1px dashed rgba(147, 51, 234, 0.7);
+            background: rgba(243, 232, 255, 0.45);
         }
         
         .pdf-input-wrapper:focus-within .pdf-text-input {
-            border: 1px solid #7e22ce;
+            border: 1.5px solid #7e22ce;
             background: rgba(255, 255, 255, 0.98);
             box-shadow: 0 0 0 2px rgba(168, 85, 247, 0.25);
         }
 
-        /* Absolute positioning so remove button does NOT shift layout */
         .input-remove-btn {
             position: absolute;
             left: 100%;
@@ -160,35 +159,38 @@
     <!-- ═══════════════════════════════
          TOP NAVBAR & ACTIONS
     ═══════════════════════════════ -->
-    <header class="w-full bg-white/95 backdrop-blur-md flex flex-col border-b border-slate-200 flex-shrink-0 z-30 shadow-sm">
-        <div class="flex justify-between items-center px-4 sm:px-6 py-3">
-            <div class="flex items-center gap-3">
-                <a href="{{ route('student.requirements') }}" class="text-slate-700 hover:text-purple-900 transition flex items-center gap-1 font-bold text-xs bg-slate-100 hover:bg-purple-50 px-3 py-2 rounded-lg">
+    <header class="w-full bg-white/95 backdrop-blur-md flex flex-col border-b border-slate-200 flex-shrink-0 z-30 shadow-xs">
+        <div class="flex items-center justify-between px-3 sm:px-6 py-2.5 sm:py-3 gap-2 sm:gap-4">
+            
+            <!-- Left: Back & Title -->
+            <div class="flex items-center gap-2 sm:gap-3 min-w-0">
+                <a href="{{ route('student.requirements') }}" class="text-slate-700 hover:text-purple-900 transition flex items-center gap-1 font-bold text-xs bg-slate-100 hover:bg-purple-50 px-2.5 sm:px-3 py-2 rounded-lg shrink-0">
                     <span class="material-symbols-outlined text-[18px]">arrow_back</span>
-                    Back
+                    <span class="hidden sm:inline">Back</span>
                 </a>
-                <div class="w-px h-6 bg-slate-200"></div>
-                <div>
-                    <h1 class="text-base sm:text-lg font-bold text-slate-900 font-headline leading-tight flex items-center gap-2">
+                <div class="w-px h-5 bg-slate-200 shrink-0"></div>
+                <div class="truncate">
+                    <h1 class="text-sm sm:text-lg font-bold text-slate-900 font-headline leading-tight truncate">
                         {{ $requirement->title }}
                     </h1>
-                    <p class="text-[11px] text-slate-500 font-medium flex items-center gap-1">
-                        <span class="material-symbols-outlined text-[14px] text-purple-600">touch_app</span>
-                        Click anywhere on the form to type, or click a <span class="font-bold text-purple-700">Quick Insert chip</span> below to paste.
+                    <p class="text-[10px] sm:text-[11px] text-slate-500 font-medium hidden xs:flex items-center gap-1">
+                        <span class="material-symbols-outlined text-[13px] text-purple-600">touch_app</span>
+                        <span>Click anywhere on document to type, or use Quick Insert chips</span>
                     </p>
                 </div>
             </div>
 
-            <div class="flex items-center gap-2 sm:gap-3">
-                <button type="button" onclick="clearAllInputs()" title="Clear all text fields"
-                        class="px-3.5 py-2 bg-slate-100 hover:bg-rose-50 text-slate-600 hover:text-rose-600 rounded-xl font-bold text-xs border border-slate-200 transition flex items-center gap-1">
+            <!-- Right: Actions -->
+            <div class="flex items-center gap-2 shrink-0">
+                <button type="button" onclick="clearAllInputs()" title="Clear all text fields on the document"
+                        class="px-2.5 sm:px-3 py-2 bg-slate-100 hover:bg-rose-50 text-slate-600 hover:text-rose-600 rounded-xl font-bold text-xs border border-slate-200 transition flex items-center gap-1">
                     <span class="material-symbols-outlined text-[16px]">clear_all</span>
-                    Clear All
+                    <span class="hidden md:inline">Clear All</span>
                 </button>
 
-                <button onclick="submitStamps()" class="bg-[#300050] hover:bg-purple-950 text-white px-5 py-2.5 rounded-xl font-bold text-xs sm:text-sm shadow-md hover:shadow-purple-900/20 transition active:scale-95 flex items-center gap-2">
+                <button onclick="submitStamps()" class="bg-[#300050] hover:bg-purple-950 text-white px-3 sm:px-5 py-2 sm:py-2.5 rounded-xl font-bold text-xs sm:text-sm shadow-md hover:shadow-purple-900/20 transition active:scale-95 flex items-center gap-1.5 sm:gap-2">
                     <span class="material-symbols-outlined text-[18px]">assignment_turned_in</span>
-                    Stamp & Submit
+                    <span>Stamp & Submit</span>
                 </button>
             </div>
         </div>
@@ -196,7 +198,7 @@
         <!-- ═══════════════════════════════
              SMART QUICK-INSERT CHIPS BAR
         ═══════════════════════════════ -->
-        <div class="bg-purple-50/70 border-t border-purple-100 px-4 sm:px-6 py-2.5 flex items-center gap-2 overflow-x-auto chip-scroll text-xs">
+        <div class="bg-purple-50/70 border-t border-purple-100 px-4 sm:px-6 py-2 flex items-center gap-2 overflow-x-auto chip-scroll text-xs">
             <span class="text-[10px] font-extrabold uppercase tracking-wider text-purple-900 flex-shrink-0 flex items-center gap-1">
                 <span class="material-symbols-outlined text-sm">content_paste</span> Quick Insert:
             </span>
@@ -211,6 +213,7 @@
                     'Hours' => $studentData['hours'] ?? '',
                     'Address' => $studentData['address'] ?? '',
                     'Phone' => $studentData['contactNumber'] ?? '',
+                    'Guardian' => $studentData['guardian'] ?? '',
                     'Emergency' => $studentData['emergencyPerson'] ?? '',
                     'Date' => $studentData['currentDate'] ?? '',
                     'Dean' => $studentData['deanName'] ?? '',
@@ -229,19 +232,21 @@
         </div>
     </header>
 
-    <!-- Main Content: Centered PDF Pages Container -->
-    <main class="flex-1 bg-slate-200 overflow-auto w-full flex flex-col items-center p-6 sm:p-8 relative" id="main-scroll-container">
+    <!-- ═══════════════════════════════════════════════════════
+         DOCUMENT CANVAS VIEW
+    ════════════════════════════════════════════════════════════ -->
+    <main class="flex-1 bg-slate-200 overflow-auto w-full flex flex-col items-center p-4 sm:p-8 relative" id="main-scroll-container">
         
-        <div id="pages-container" class="flex flex-col items-center gap-10 w-full"></div>
+        <div id="pages-container" class="flex flex-col items-center gap-8 sm:gap-10 w-full pb-20"></div>
 
         <!-- Loader -->
-        <div id="loader" class="absolute inset-0 flex flex-col items-center justify-center bg-slate-200/90 backdrop-blur-sm z-50">
+        <div id="loader" class="absolute inset-0 flex flex-col items-center justify-center bg-slate-200/90 backdrop-blur-xs z-50">
             <span class="material-symbols-outlined text-4xl text-purple-600 animate-spin mb-2">refresh</span>
             <p class="text-sm font-bold text-slate-700">Loading Document Pages...</p>
         </div>
     </main>
 
-    <!-- Hidden Form for Submission -->
+    <!-- Hidden Form for Final Submission -->
     <form id="stampForm" action="{{ route('student.requirements.submitForm', $requirement->id) }}" method="POST" class="hidden">
         @csrf
         <input type="hidden" name="stamps" id="stampsInput">
@@ -259,7 +264,6 @@
         function setQuickClipboard(text, btnElement) {
             quickClipboardText = text;
 
-            // Highlight active chip
             document.querySelectorAll('.quick-chip').forEach(c => {
                 c.classList.remove('bg-purple-700', 'text-white', 'ring-2', 'ring-purple-400');
             });
@@ -267,26 +271,24 @@
                 btnElement.classList.add('bg-purple-700', 'text-white', 'ring-2', 'ring-purple-400');
             }
             
-            // Temporary toast
             const existingToast = document.getElementById('clipboard-toast');
             if (existingToast) existingToast.remove();
 
             const toast = document.createElement('div');
             toast.id = 'clipboard-toast';
             toast.className = 'fixed bottom-6 right-6 bg-slate-900 text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow-xl z-50 flex items-center gap-2 animate-bounce';
-            toast.innerHTML = `<span class="material-symbols-outlined text-emerald-400 text-base">check_circle</span> Copied "${text.length > 22 ? text.substring(0, 22) + '...' : text}". Click anywhere on the document to place it!`;
+            toast.innerHTML = `<span class="material-symbols-outlined text-emerald-400 text-base">check_circle</span> Copied "${text.length > 22 ? text.substring(0, 22) + '...' : text}". Tap anywhere on the PDF to place!`;
             document.body.appendChild(toast);
             setTimeout(() => toast.remove(), 2800);
         }
 
-        // Load and Render PDF Document
+        // Render PDF Document Canvas
         pdfjsLib.getDocument(pdfUrl).promise.then(async (pdf) => {
             const numPages = pdf.numPages;
 
             for (let pageNum = 1; pageNum <= numPages; pageNum++) {
                 const page = await pdf.getPage(pageNum);
                 
-                // Determine scale based on screen width
                 const unscaledViewport = page.getViewport({ scale: 1.0 });
                 let pageScale = 1.25;
                 if (window.innerWidth < 768) {
@@ -294,7 +296,7 @@
                 }
                 const viewport = page.getViewport({ scale: pageScale });
 
-                // Create Page Wrapper Container
+                // Page Wrapper Container
                 const pageWrapper = document.createElement('div');
                 pageWrapper.className = 'pdf-page-container rounded-xl shadow-xl relative bg-white my-3 border border-slate-300';
                 pageWrapper.dataset.page = pageNum;
@@ -323,14 +325,13 @@
 
                 pagesContainer.appendChild(pageWrapper);
 
-                // Render Canvas
                 const ctx = canvas.getContext('2d');
                 await page.render({
                     canvasContext: ctx,
                     viewport: viewport
                 }).promise;
 
-                // Click event for adding text inputs on this page
+                // Click event for placing or typing inputs
                 overlay.addEventListener('click', function(e) {
                     if (e.target !== overlay) return;
 
@@ -341,7 +342,6 @@
                     const initialText = quickClipboardText || '';
                     createTextInput(overlay, x, y, pageScale, pageNum, initialText);
 
-                    // Reset quick clipboard after placing once so subsequent clicks allow normal typing
                     quickClipboardText = null;
                     document.querySelectorAll('.quick-chip').forEach(c => {
                         c.classList.remove('bg-purple-700', 'text-white', 'ring-2', 'ring-purple-400');
@@ -366,13 +366,11 @@
             wrapper.style.left = x + 'px';
             wrapper.style.top = y + 'px';
 
-            // Drag Handle
             const dragHandle = document.createElement('div');
             dragHandle.className = 'drag-handle';
             dragHandle.innerHTML = '<span class="material-symbols-outlined text-[13px]">drag_indicator</span>';
-            dragHandle.title = 'Click and drag to reposition';
+            dragHandle.title = 'Drag to reposition';
 
-            // Text Input
             const input = document.createElement('input');
             input.type = 'text';
             input.className = 'pdf-text-input';
@@ -381,10 +379,9 @@
             input.dataset.scale = scale;
             input.placeholder = "Type here...";
 
-            // Auto-resize width based on typed content
             function adjustWidth() {
                 const len = Math.max(input.value.length, input.placeholder.length);
-                input.style.width = Math.max(45, (len + 1) * 7.8) + 'px';
+                input.style.width = Math.max(35, (len + 1) * 7.2) + 'px';
             }
             adjustWidth();
             input.addEventListener('input', adjustWidth);
@@ -419,10 +416,9 @@
                 let newLeft = initialLeft + deltaX;
                 let newTop = initialTop + deltaY;
 
-                // Restrict inside overlay bounds
                 const overlayRect = overlay.getBoundingClientRect();
-                newLeft = Math.max(0, Math.min(newLeft, overlayRect.width - 60));
-                newTop = Math.max(0, Math.min(newTop, overlayRect.height - 25));
+                newLeft = Math.max(0, Math.min(newLeft, overlayRect.width - 40));
+                newTop = Math.max(0, Math.min(newTop, overlayRect.height - 20));
 
                 wrapper.style.left = newLeft + 'px';
                 wrapper.style.top = newTop + 'px';
@@ -439,7 +435,7 @@
             dragHandle.addEventListener('mousedown', startDrag);
             dragHandle.addEventListener('touchstart', startDrag);
 
-            // Keyboard Nudging: Alt + Arrow Keys nudges position by 1px
+            // Alt + Arrow keys nudging
             input.addEventListener('keydown', function(e) {
                 if (e.altKey && ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
                     e.preventDefault();
@@ -454,27 +450,18 @@
                 }
             });
 
-            // Prevent click bubbling back to overlay
             wrapper.addEventListener('click', function(e) {
                 e.stopPropagation();
             });
 
-            // Remove button
             const removeBtn = document.createElement('button');
             removeBtn.type = 'button';
             removeBtn.className = 'input-remove-btn';
             removeBtn.innerHTML = '&times;';
-            removeBtn.title = 'Remove field';
+            removeBtn.title = 'Remove';
             removeBtn.addEventListener('click', function(e) {
                 e.stopPropagation();
                 wrapper.remove();
-            });
-
-            // Auto-remove empty inputs on blur if not pre-filled
-            input.addEventListener('blur', function() {
-                if (this.value.trim() === '') {
-                    wrapper.remove();
-                }
             });
 
             wrapper.appendChild(dragHandle);
@@ -485,29 +472,14 @@
             if (!text) {
                 input.focus();
             }
-        }
 
-        function applyPrefilledStamps() {
-            clearAllInputs();
-
-            if (!defaultPrefilledStamps || defaultPrefilledStamps.length === 0) {
-                return;
-            }
-
-            defaultPrefilledStamps.forEach(stamp => {
-                const pageNum = stamp.page || 1;
-                const overlay = document.querySelector(`.overlay-layer[data-page="${pageNum}"]`);
-                if (overlay) {
-                    const scale = parseFloat(overlay.dataset.scale) || 1.25;
-                    const pxX = stamp.x * scale;
-                    const pxY = (stamp.y - 10) * scale;
-                    createTextInput(overlay, pxX, pxY, scale, pageNum, stamp.text);
-                }
-            });
+            return wrapper;
         }
 
         function clearAllInputs() {
-            document.querySelectorAll('.pdf-input-wrapper').forEach(w => w.remove());
+            if (confirm("Clear all text fields on this document?")) {
+                document.querySelectorAll('.pdf-input-wrapper').forEach(w => w.remove());
+            }
         }
 
         function submitStamps() {
@@ -523,10 +495,8 @@
                     const pxX = parseFloat(wrapper.style.left);
                     const pxY = parseFloat(wrapper.style.top);
 
-                    // Convert screen pixels to PDF points (pt)
-                    // We add back the vertical baseline offset (+10)
                     const pdfX = pxX / scale;
-                    const pdfY = (pxY / scale) + 10;
+                    const pdfY = (pxY + 12) / scale;
 
                     stamps.push({
                         page: page,
@@ -538,7 +508,7 @@
             });
 
             if (stamps.length === 0) {
-                alert("You haven't typed or populated any fields on the document yet.");
+                alert("Please add at least one text field to the document before submitting.");
                 return;
             }
 
@@ -549,4 +519,3 @@
 </body>
 
 </html>
-

@@ -130,8 +130,9 @@ class DashboardController extends Controller
         $availableMonths = collect();
 
         if ($userId) {
+            $monthSql = $this->getMonthFormatSql();
             $logMonths = \App\Models\OjtLog::where('user_id', $userId)
-                ->selectRaw("DATE_FORMAT(log_date, '%Y-%m') as month_val")
+                ->selectRaw("{$monthSql} as month_val")
                 ->distinct()
                 ->orderBy('month_val', 'desc')
                 ->pluck('month_val');
@@ -201,8 +202,9 @@ class DashboardController extends Controller
 
         // 2. Extract distinct log months
         $studentIds = $allStudents->pluck('user_id')->toArray();
+        $monthSql = $this->getMonthFormatSql();
         $months = \App\Models\OjtLog::whereIn('user_id', $studentIds)
-            ->selectRaw("DATE_FORMAT(log_date, '%Y-%m') as month_val")
+            ->selectRaw("{$monthSql} as month_val")
             ->distinct()
             ->orderBy('month_val', 'desc')
             ->pluck('month_val')
@@ -223,9 +225,9 @@ class DashboardController extends Controller
             ->withSum(['ojtLogs as approved_hours' => function ($q) {
                 $q->where('status', 'Approved');
             }], 'hours_rendered')
-            ->withSum(['ojtLogs as monthly_hours' => function ($q) use ($selectedMonth) {
+            ->withSum(['ojtLogs as monthly_hours' => function ($q) use ($selectedMonth, $monthSql) {
                 $q->where('status', 'Approved')
-                  ->whereRaw("DATE_FORMAT(log_date, '%Y-%m') = ?", [$selectedMonth]);
+                  ->whereRaw("{$monthSql} = ?", [$selectedMonth]);
             }], 'hours_rendered');
 
         if ($selectedTermId) {
@@ -259,5 +261,12 @@ class DashboardController extends Controller
             'activeTerm',
             'selectedTermId'
         ));
+    }
+
+    private function getMonthFormatSql(): string
+    {
+        return \Illuminate\Support\Facades\DB::getDriverName() === 'pgsql'
+            ? "TO_CHAR(log_date, 'YYYY-MM')"
+            : "DATE_FORMAT(log_date, '%Y-%m')";
     }
 }

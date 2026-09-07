@@ -1,0 +1,14 @@
+/vendor
+/node_modules
+/public/build
+/public/hot
+/public/storage
+.env
+.env.*
+.git
+.github
+tests
+phpunit.xml
+README.md
+internship_system_design.md
+scratch
