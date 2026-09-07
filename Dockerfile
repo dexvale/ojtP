@@ -14,7 +14,7 @@ RUN npm run build
 # ==========================================
 # Step 2: Production PHP Application Server
 # ==========================================
-FROM php:8.3-apache
+FROM php:8.4-apache
 
 # Install required system packages and database client libraries
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -56,7 +56,7 @@ WORKDIR /var/www/html
 
 # Copy composer manifest first to leverage Docker build cache
 COPY composer.json composer.lock ./
-RUN composer install --no-dev --no-scripts --no-autoloader --prefer-dist --no-interaction
+RUN composer install --no-dev --no-scripts --no-autoloader --prefer-dist --no-interaction --ignore-platform-req=php+
 
 # Copy all application files
 COPY . .
@@ -65,7 +65,7 @@ COPY . .
 COPY --from=frontend /app/public/build ./public/build
 
 # Generate optimized Composer autoloader
-RUN composer dump-autoload --optimize --no-dev
+RUN composer dump-autoload --optimize --no-dev --ignore-platform-req=php+
 
 # Set permissions for Laravel runtime directories
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache \
