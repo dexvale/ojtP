@@ -109,12 +109,10 @@ class DashboardController extends Controller
         return view('coordinator.students', compact('students', 'companies', 'allTerms', 'activeTerm', 'selectedTermId', 'courses'));
     }
 
-    public function showStudent($id)
+    public function showStudent(Request $request, $id)
     {
         $coordinator = auth()->user();
-        $student = \App\Models\StudentProfile::with(['company', 'academicTerm', 'user.ojtLogs' => function($q) {
-            $q->orderBy('log_date', 'desc');
-        }])
+        $student = \App\Models\StudentProfile::with(['company', 'academicTerm', 'user'])
         ->withSum(['ojtLogs as approved_hours' => function ($query) {
             $query->where('status', 'Approved');
         }], 'hours_rendered')
@@ -127,7 +125,49 @@ class DashboardController extends Controller
             }
         }
 
-        return view('coordinator.students.show', compact('student'));
+        // Available distinct months from student's logs
+        $userId = $student->user_id;
+        $availableMonths = collect();
+
+        if ($userId) {
+            $logMonths = \App\Models\OjtLog::where('user_id', $userId)
+                ->selectRaw("DATE_FORMAT(log_date, '%Y-%m') as month_val")
+                ->distinct()
+                ->orderBy('month_val', 'desc')
+                ->pluck('month_val');
+
+            $availableMonths = $logMonths->map(function ($m) {
+                $carbon = \Carbon\Carbon::createFromFormat('Y-m', $m);
+                return [
+                    'value' => $m,
+                    'label' => $carbon->format('F Y'),
+                ];
+            });
+        }
+
+        $selectedMonth = $request->get('month', 'all');
+
+        $logsQuery = \App\Models\OjtLog::where('user_id', $userId)
+            ->orderBy('log_date', 'desc');
+
+        if ($selectedMonth && $selectedMonth !== 'all') {
+            $logsQuery->where('log_date', 'like', "{$selectedMonth}%");
+        }
+
+        $logs = $userId ? $logsQuery->get() : collect();
+
+        // Approved hours for the filtered view
+        $monthApprovedHours = $logs->where('status', 'Approved')->sum('hours_rendered');
+        $selectedMonthLabel = $availableMonths->firstWhere('value', $selectedMonth)['label'] ?? $selectedMonth;
+
+        return view('coordinator.students.show', compact(
+            'student',
+            'logs',
+            'availableMonths',
+            'selectedMonth',
+            'selectedMonthLabel',
+            'monthApprovedHours'
+        ));
     }
 
     public function reports(Request $request)

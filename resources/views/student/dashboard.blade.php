@@ -52,12 +52,12 @@
         <button id="sidebar-toggle" class="lg:hidden p-2 text-primary rounded-lg hover:bg-surface-container transition-colors" aria-label="Toggle menu">
             <span class="material-symbols-outlined">menu</span>
         </button>
-        <!-- Logo & Branding -->
-        <div class="flex items-center gap-2.5">
+        <!-- Logo & Branding (Mobile only, sidebar has primary branding on desktop) -->
+        <div class="lg:hidden flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-lg bg-primary flex items-center justify-center overflow-hidden">
-                <img alt="University Logo" class="h-8 w-8 object-contain" src="{{ asset('images/logo.png') }}" />
+                <img alt="University Logo" class="h-8 w-8 object-contain" src="{{ asset('images/BISU-Logo-1-150x150.png.webp') }}" />
             </div>
-            <span class="text-xl font-headline font-semibold text-primary hidden sm:block">OJT Portal</span>
+            <span class="text-xl font-headline font-semibold text-primary">OJT Portal</span>
         </div>
     </div>
 
@@ -83,7 +83,7 @@
     @include('components.student-sidebar')
 
 <!-- Sidebar overlay for mobile -->
-<div id="sidebar-overlay" class="fixed inset-0 bg-black/40 z-30 hidden lg:hidden" onclick="closeSidebar()"></div>
+<div id="sidebar-overlay" class="fixed inset-0 bg-black/40 backdrop-blur-xs z-[55] hidden lg:hidden" onclick="closeSidebar()"></div>
 
 <!-- ═══════════════════════════════
      MAIN CONTENT
@@ -95,12 +95,17 @@
         <header class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-surface-variant/30 pb-6">
             <div>
                 <h1 class="text-3xl lg:text-4xl font-extrabold font-headline tracking-tight text-primary">Student Dashboard</h1>
-                <p class="text-on-surface-variant mt-1.5 font-medium text-sm">Academic Year 2023–2024 | Semester 2</p>
+                @php
+                    $displayTerm = $academicTerm ?? auth()->user()->studentProfile?->academicTerm ?? \App\Models\AcademicTerm::current();
+                @endphp
+                <p class="text-on-surface-variant mt-1.5 font-medium text-sm">
+                    @if($displayTerm)
+                        Academic Year {{ $displayTerm->academic_year }} | {{ $displayTerm->semester }}
+                    @else
+                        Academic Year {{ date('Y') }}–{{ date('Y') + 1 }} | 1st Semester
+                    @endif
+                </p>
             </div>
-            <button class="self-start sm:self-auto px-5 py-2.5 bg-secondary text-on-secondary rounded-lg font-bold text-sm flex items-center gap-2 hover:opacity-90 active:scale-95 transition-all shadow-sm">
-                <span class="material-symbols-outlined text-lg">download</span>
-                Export PDF Report
-            </button>
         </header>
 
         <!-- ── Bento Grid ── -->
@@ -557,28 +562,7 @@
 <!-- ═══════════════════════════════
      MOBILE BOTTOM NAV
 ═══════════════════════════════ -->
-<nav class="lg:hidden fixed bottom-0 w-full bg-white/90 backdrop-blur-lg border-t border-surface-variant/20 flex justify-around items-center py-2.5 z-50">
-    <button class="flex flex-col items-center gap-0.5 text-primary px-3 py-1">
-        <span class="material-symbols-outlined text-xl" style='font-variation-settings:"FILL" 1,"wght" 400,"GRAD" 0,"opsz" 24;'>dashboard</span>
-        <span class="text-[10px] font-bold">Home</span>
-    </button>
-    <a href="{{ route('student.logs.index') }}" class="flex flex-col items-center gap-0.5 text-outline px-3 py-1">
-        <span class="material-symbols-outlined text-xl">description</span>
-        <span class="text-[10px] font-bold">Logs</span>
-    </a>
-    <button class="flex flex-col items-center gap-0.5 text-outline px-3 py-1">
-        <span class="material-symbols-outlined text-xl">add_circle</span>
-        <span class="text-[10px] font-bold">New</span>
-    </button>
-    <button class="flex flex-col items-center gap-0.5 text-outline px-3 py-1">
-        <span class="material-symbols-outlined text-xl">business</span>
-        <span class="text-[10px] font-bold">Hub</span>
-    </button>
-    <button class="flex flex-col items-center gap-0.5 text-outline px-3 py-1">
-        <span class="material-symbols-outlined text-xl">person</span>
-        <span class="text-[10px] font-bold">Profile</span>
-    </button>
-</nav>
+@include('components.student-bottom-nav')
 
 <script>
     // ── Live shift date ──
@@ -652,12 +636,11 @@
             totalDurationEl.innerHTML = `${totalHrs} <span class="text-lg font-bold text-on-surface-variant">hrs</span> ${totalMins} <span class="text-lg font-bold text-on-surface-variant">min${totalMins !== 1 ? 's' : ''}</span>`;
         }
         
-        const paddedMinutesString = totalMins < 10 ? '0' + totalMins : totalMins;
-        const humanDecimalValue = `${totalHrs}.${paddedMinutesString}`;
+        const decimalHours = (totalMinutes / 60).toFixed(2);
         
         const hiddenInput = document.getElementById('hours_rendered_input');
         if (hiddenInput) {
-            hiddenInput.value = parseFloat(humanDecimalValue).toFixed(2);
+            hiddenInput.value = decimalHours;
         }
 
         if (saveBtn) {

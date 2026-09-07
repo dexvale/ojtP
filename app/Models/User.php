@@ -114,4 +114,12 @@ class User extends Authenticatable
     {
         return $this->hasMany(RequirementSubmission::class);
     }
+
+    public function hasRole(string|array $roles): bool
+    {
+        if (is_array($roles)) {
+            return in_array($this->role, $roles);
+        }
+        return strcasecmp($this->role ?? '', $roles) === 0;
+    }
 }

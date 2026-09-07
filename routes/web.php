@@ -39,6 +39,15 @@ Route::middleware(['auth', 'no.cache'])->group(function () {
     Route::post('/student/requirements/{id}/submit', [\App\Http\Controllers\Student\StudentRequirementController::class, 'submit'])->name('student.requirements.submit');
     Route::get('/student/requirements/{id}/fill', [\App\Http\Controllers\Student\StudentRequirementController::class, 'fill'])->name('student.requirements.fill');
     Route::post('/student/requirements/{id}/submit-form', [\App\Http\Controllers\Student\StudentRequirementController::class, 'submitForm'])->name('student.requirements.submitForm');
+
+    // Student BISU Grading Sheet
+    Route::get('/student/grading-sheet', function() {
+        $profile = auth()->user()->studentProfile;
+        if (!$profile) {
+            abort(404, 'Student profile not found.');
+        }
+        return app(\App\Http\Controllers\Supervisor\EvaluationController::class)->showGradingSheet($profile->id);
+    })->name('student.grading-sheet');
 });
 
 // Coordinator Routes
@@ -55,6 +64,8 @@ Route::middleware(['auth', 'no.cache', 'role:Admin,coordinator'])->group(functio
     Route::post('/coordinator/placements/{student}/reject', [\App\Http\Controllers\Coordinator\CoordinatorPlacementController::class, 'reject'])->name('coordinator.placements.reject');
 
     Route::get('/coordinator/reports', [\App\Http\Controllers\Coordinator\DashboardController::class, 'reports'])->name('coordinator.reports');
+    Route::get('/coordinator/students/{student}/grading-sheet', [\App\Http\Controllers\Supervisor\EvaluationController::class, 'showGradingSheet'])->name('coordinator.students.grading-sheet');
+    Route::post('/coordinator/students/{student}/endorse-evaluation', [\App\Http\Controllers\Supervisor\EvaluationController::class, 'endorseEvaluation'])->name('coordinator.students.endorse-evaluation');
 
     Route::get('/coordinator/companies', [\App\Http\Controllers\Coordinator\CompanyController::class, 'index'])->name('coordinator.companies');
     Route::post('/coordinator/companies', [\App\Http\Controllers\Coordinator\CompanyController::class, 'store'])->name('coordinator.companies.store');
@@ -106,4 +117,5 @@ Route::middleware(['auth', 'no.cache', 'role:Advisor'])->group(function () {
     Route::post('/supervisor/logs/{log}/reject', [\App\Http\Controllers\Supervisor\DashboardController::class, 'reject'])->name('supervisor.logs.reject');
     Route::post('/supervisor/interns/{student}/evaluate', [\App\Http\Controllers\Supervisor\EvaluationController::class, 'store'])->name('supervisor.interns.evaluate');
     Route::post('/supervisor/evaluate', [\App\Http\Controllers\Supervisor\EvaluationController::class, 'storeFromForm'])->name('supervisor.evaluate');
+    Route::get('/supervisor/interns/{student}/grading-sheet', [\App\Http\Controllers\Supervisor\EvaluationController::class, 'showGradingSheet'])->name('supervisor.interns.grading-sheet');
 });

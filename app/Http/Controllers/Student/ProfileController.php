@@ -59,6 +59,10 @@ class ProfileController extends Controller
             $profile->required_hours = $courseModel->required_hours;
         }
 
+        if (!$profile->academic_term_id) {
+            $profile->academic_term_id = \App\Models\AcademicTerm::current()?->id;
+        }
+
         $profile->save();
 
         return redirect()->back()->with('success', 'Your student profile and photo have been successfully updated!');

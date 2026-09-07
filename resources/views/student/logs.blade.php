@@ -19,6 +19,26 @@
         vertical-align: middle;
     }
     aside nav a { transition: all 0.2s ease; }
+    .filter-select {
+        appearance: none;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none'%3E%3Cpath d='M6 8l4 4 4-4' stroke='%237e747f' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 0.65rem center;
+        background-size: 0.95rem 0.95rem;
+        padding-right: 2rem !important;
+    }
+    @media (min-width: 640px) {
+        .filter-select-status {
+            width: 140px !important;
+            min-width: 140px !important;
+        }
+        .filter-select-month {
+            width: 205px !important;
+            min-width: 205px !important;
+        }
+    }
 </style>
 </head>
 <body class="bg-surface font-body text-on-surface antialiased" data-theme="student">
@@ -31,11 +51,12 @@
         <button id="sidebar-toggle" class="lg:hidden p-2 text-primary rounded-lg hover:bg-surface-container transition-colors" aria-label="Toggle menu">
             <span class="material-symbols-outlined">menu</span>
         </button>
-        <div class="flex items-center gap-2.5">
+        <!-- Logo & Branding (Mobile only) -->
+        <div class="lg:hidden flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-lg bg-primary flex items-center justify-center overflow-hidden">
-                <img alt="University Logo" class="h-8 w-8 object-contain" src="{{ asset('images/logo.png') }}" />
+                <img alt="University Logo" class="h-8 w-8 object-contain" src="{{ asset('images/BISU-Logo-1-150x150.png.webp') }}" />
             </div>
-            <span class="text-xl font-headline font-semibold text-primary hidden sm:block">OJT Portal</span>
+            <span class="text-xl font-headline font-semibold text-primary">OJT Portal</span>
         </div>
     </div>
 
@@ -61,7 +82,7 @@
     @include('components.student-sidebar')
 
 <!-- Sidebar overlay for mobile -->
-<div id="sidebar-overlay" class="fixed inset-0 bg-black/40 z-30 hidden lg:hidden" onclick="closeSidebar()"></div>
+<div id="sidebar-overlay" class="fixed inset-0 bg-black/40 backdrop-blur-xs z-[55] hidden lg:hidden" onclick="closeSidebar()"></div>
 
 <!-- ═══════════════════════════════
      MAIN CONTENT
@@ -75,30 +96,44 @@
                 <h1 class="text-3xl font-extrabold font-headline tracking-tight text-primary leading-tight">
                     Internship Logs
                 </h1>
-                <p class="text-sm text-on-surface-variant mt-1">View and manage your entire 400-hour log history.</p>
+                <p class="text-sm text-on-surface-variant mt-1">View and manage your entire {{ auth()->user()->studentProfile?->required_hours ?? 400 }}-hour log history.</p>
             </div>
             
-            <!-- Filters -->
-            <div class="flex flex-col sm:flex-row items-center gap-3">
+            <!-- Filters Form -->
+            <form method="GET" action="{{ route('student.logs.index') }}" class="flex flex-col sm:flex-row items-center gap-3">
                 <div class="w-full sm:w-auto relative">
                     <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[18px] pointer-events-none">search</span>
-                    <input type="text" placeholder="Search activities..." class="w-full sm:w-56 bg-surface-container-lowest border border-surface-variant/30 rounded-lg py-2 pl-9 pr-3 text-sm focus:ring-2 focus:ring-primary/40 focus:border-transparent transition-all placeholder:text-outline/60" />
+                    <input type="text" 
+                           name="search" 
+                           value="{{ request('search') }}"
+                           placeholder="Search activities..." 
+                           class="w-full sm:w-56 bg-surface-container-lowest border border-surface-variant/30 rounded-lg py-2 pl-9 pr-3 text-sm focus:ring-2 focus:ring-primary/40 focus:border-transparent transition-all placeholder:text-outline/60" />
                 </div>
                 
-                <div class="flex w-full sm:w-auto gap-3">
-                    <select class="w-full sm:w-32 bg-surface-container-lowest border border-surface-variant/30 rounded-lg py-2 pl-3 pr-8 text-sm focus:ring-2 focus:ring-primary/40 appearance-none text-on-surface">
-                        <option value="all">All Status</option>
-                        <option value="approved">Approved</option>
-                        <option value="pending">Pending</option>
-                        <option value="rejected">Rejected</option>
+                <div class="flex w-full sm:w-auto gap-3 items-center">
+                    <select name="status" 
+                            onchange="this.form.submit()" 
+                            class="filter-select filter-select-status w-full sm:w-36 bg-surface-container-lowest border border-surface-variant/30 rounded-lg py-2 pl-3 text-sm focus:ring-2 focus:ring-primary/40 text-on-surface cursor-pointer">
+                        <option value="all" {{ request('status', 'all') === 'all' ? 'selected' : '' }}>All Status</option>
+                        <option value="Approved" {{ strcasecmp(request('status'), 'Approved') === 0 ? 'selected' : '' }}>Approved</option>
+                        <option value="Pending" {{ strcasecmp(request('status'), 'Pending') === 0 ? 'selected' : '' }}>Pending</option>
+                        <option value="Rejected" {{ strcasecmp(request('status'), 'Rejected') === 0 ? 'selected' : '' }}>Rejected</option>
                     </select>
                     
-                    <select class="w-full sm:w-40 bg-surface-container-lowest border border-surface-variant/30 rounded-lg py-2 pl-3 pr-8 text-sm focus:ring-2 focus:ring-primary/40 appearance-none text-on-surface">
-                        <option value="10">October 2024</option>
-                        <option value="11">November 2024</option>
+                    <select name="month" 
+                            onchange="this.form.submit()" 
+                            class="filter-select filter-select-month w-full sm:w-52 bg-surface-container-lowest border border-surface-variant/30 rounded-lg py-2 pl-3 text-sm focus:ring-2 focus:ring-primary/40 text-on-surface cursor-pointer">
+                        <option value="all">All Months</option>
+                        @if(isset($availableMonths))
+                            @foreach($availableMonths as $m)
+                                <option value="{{ $m['value'] }}" {{ request('month') === $m['value'] ? 'selected' : '' }}>
+                                    {{ $m['label'] }}
+                                </option>
+                            @endforeach
+                        @endif
                     </select>
                 </div>
-            </div>
+            </form>
         </header>
 
         <!-- ── Main Data Table ── -->
@@ -178,8 +213,24 @@
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="6" class="py-8 text-center text-sm text-on-surface-variant">
-                                No logs found. Start logging your shifts!
+                            <td colspan="6" class="py-12 text-center text-sm text-on-surface-variant">
+                                <div class="flex flex-col items-center justify-center">
+                                    <span class="material-symbols-outlined text-4xl text-outline/50 mb-2">search_off</span>
+                                    <p class="font-bold text-on-surface text-base">No matching logs found</p>
+                                    <p class="text-xs text-on-surface-variant mt-1">
+                                        @if(request()->filled('search') || (request()->filled('status') && request('status') !== 'all') || (request()->filled('month') && request('month') !== 'all'))
+                                            No shift logs matched your current filters. Try adjusting your search query, status, or month.
+                                        @else
+                                            No logs found yet. Start logging your shifts from the dashboard!
+                                        @endif
+                                    </p>
+                                    @if(request()->filled('search') || (request()->filled('status') && request('status') !== 'all') || (request()->filled('month') && request('month') !== 'all'))
+                                        <a href="{{ route('student.logs.index') }}" class="mt-4 inline-flex items-center gap-1.5 px-4 py-2 bg-primary text-on-primary hover:opacity-90 rounded-lg text-xs font-bold transition-all shadow-xs">
+                                            <span class="material-symbols-outlined text-sm">filter_alt_off</span>
+                                            Clear All Filters
+                                        </a>
+                                    @endif
+                                </div>
                             </td>
                         </tr>
                         @endforelse
@@ -249,28 +300,7 @@
 <!-- ═══════════════════════════════
      MOBILE BOTTOM NAV
 ═══════════════════════════════ -->
-<nav class="lg:hidden fixed bottom-0 w-full bg-white/90 backdrop-blur-lg border-t border-surface-variant/20 flex justify-around items-center py-2.5 z-50">
-    <a href="{{ route('student.dashboard') }}" class="flex flex-col items-center gap-0.5 text-outline px-3 py-1">
-        <span class="material-symbols-outlined text-xl">dashboard</span>
-        <span class="text-[10px] font-bold">Home</span>
-    </a>
-    <a href="{{ route('student.logs.index') }}" class="flex flex-col items-center gap-0.5 text-primary px-3 py-1">
-        <span class="material-symbols-outlined text-xl" style="font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24;">description</span>
-        <span class="text-[10px] font-bold">Logs</span>
-    </a>
-    <button class="flex flex-col items-center gap-0.5 text-outline px-3 py-1">
-        <span class="material-symbols-outlined text-xl">add_circle</span>
-        <span class="text-[10px] font-bold">New</span>
-    </button>
-    <button class="flex flex-col items-center gap-0.5 text-outline px-3 py-1">
-        <span class="material-symbols-outlined text-xl">business</span>
-        <span class="text-[10px] font-bold">Hub</span>
-    </button>
-    <a href="{{ route('student.profile') }}" class="flex flex-col items-center gap-0.5 text-outline px-3 py-1">
-        <span class="material-symbols-outlined text-xl">person</span>
-        <span class="text-[10px] font-bold">Profile</span>
-    </a>
-</nav>
+@include('components.student-bottom-nav')
 
 <script>
     // ── Mobile sidebar toggle ──

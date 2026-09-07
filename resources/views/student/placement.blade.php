@@ -29,11 +29,12 @@
             <button id="sidebar-toggle" class="lg:hidden p-2 text-primary rounded-lg hover:bg-surface-container transition-colors" aria-label="Toggle menu">
                 <span class="material-symbols-outlined">menu</span>
             </button>
-            <div class="flex items-center gap-2.5">
+            <!-- Logo & Branding (Mobile only) -->
+            <div class="lg:hidden flex items-center gap-2.5">
                 <div class="w-8 h-8 rounded-lg bg-primary flex items-center justify-center overflow-hidden">
-                    <img alt="University Logo" class="h-8 w-8 object-contain" src="{{ asset('images/logo.png') }}" />
+                    <img alt="University Logo" class="h-8 w-8 object-contain" src="{{ asset('images/BISU-Logo-1-150x150.png.webp') }}" />
                 </div>
-                <span class="text-xl font-headline font-semibold text-primary hidden sm:block">OJT Portal</span>
+                <span class="text-xl font-headline font-semibold text-primary">OJT Portal</span>
             </div>
         </div>
 
@@ -49,6 +50,7 @@
 
     <!-- SIDEBAR -->
     @include('components.student-sidebar')
+    <div id="sidebar-overlay" class="fixed inset-0 bg-black/40 backdrop-blur-xs z-[55] hidden lg:hidden" onclick="closeSidebar()"></div>
 
     <!-- MAIN CONTENT -->
     <main class="lg:ml-64 ml-0 pt-24 px-4 sm:px-6 lg:px-8 pb-16 min-h-screen">
@@ -427,6 +429,7 @@
 
         </div>
     </main>
+    @include('components.student-bottom-nav')
 
     <script>
         function toggleCompanyMode(mode) {
@@ -524,10 +527,22 @@
         });
 
         // Sidebar Toggling Code
-        const sidebarEl = document.getElementById('sidebar');
+        const sidebarEl   = document.getElementById('sidebar');
+        const overlayEl   = document.getElementById('sidebar-overlay');
         const toggleBtnEl = document.getElementById('sidebar-toggle');
+
+        function openSidebar() {
+            sidebarEl.classList.remove('-translate-x-full');
+            overlayEl?.classList.remove('hidden');
+            document.body.classList.add('overflow-hidden');
+        }
+        function closeSidebar() {
+            sidebarEl.classList.add('-translate-x-full');
+            overlayEl?.classList.add('hidden');
+            document.body.classList.remove('overflow-hidden');
+        }
         toggleBtnEl?.addEventListener('click', () => {
-            sidebarEl.classList.toggle('-translate-x-full');
+            sidebarEl.classList.contains('-translate-x-full') ? openSidebar() : closeSidebar();
         });
     </script>
 </body>

@@ -50,6 +50,8 @@ class DashboardController extends Controller
             ->get()
             ->keyBy('requirement_id');
 
+        $academicTerm = $profile?->academicTerm ?? \App\Models\AcademicTerm::current();
+
         return view('student.dashboard', compact(
             'requiredHours',
             'approvedHours',
@@ -58,7 +60,9 @@ class DashboardController extends Controller
             'recentLogs',
             'paceMessage',
             'requirements',
-            'studentSubmissions'
+            'studentSubmissions',
+            'academicTerm',
+            'profile'
         ));
     }
 

@@ -43,17 +43,18 @@
         <button id="sidebar-toggle" class="lg:hidden p-2 text-primary rounded-lg hover:bg-surface-container transition-colors" aria-label="Toggle menu">
             <span class="material-symbols-outlined">menu</span>
         </button>
-        <div class="flex items-center gap-2.5">
+        <!-- Logo & Branding (Mobile only) -->
+        <div class="lg:hidden flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-lg bg-primary flex items-center justify-center overflow-hidden">
-                <img alt="University Logo" class="h-8 w-8 object-contain" src="{{ asset('images/logo.png') }}" />
+                <img alt="University Logo" class="h-8 w-8 object-contain" src="{{ asset('images/BISU-Logo-1-150x150.png.webp') }}" />
             </div>
-            <span class="text-xl font-headline font-semibold text-primary hidden sm:block">OJT Portal</span>
+            <span class="text-xl font-headline font-semibold text-primary">OJT Portal</span>
         </div>
     </div>
 </header>
 
 @include('components.student-sidebar')
-<div id="sidebar-overlay" class="fixed inset-0 bg-black/40 z-30 hidden lg:hidden" onclick="closeSidebar()"></div>
+<div id="sidebar-overlay" class="fixed inset-0 bg-black/40 backdrop-blur-xs z-[55] hidden lg:hidden" onclick="closeSidebar()"></div>
 
 <main class="lg:ml-64 ml-0 pt-20 min-h-screen pb-20 lg:pb-0">
     <div class="p-5 lg:p-8 max-w-4xl mx-auto space-y-6">
@@ -324,12 +325,11 @@
             totalDurationEl.innerHTML = `${totalHrs} <span class="text-lg font-bold text-on-surface-variant">hrs</span> ${totalMins} <span class="text-lg font-bold text-on-surface-variant">min${totalMins !== 1 ? 's' : ''}</span>`;
         }
         
-        const paddedMinutesString = totalMins < 10 ? '0' + totalMins : totalMins;
-        const humanDecimalValue = `${totalHrs}.${paddedMinutesString}`;
+        const decimalHours = (totalMinutes / 60).toFixed(2);
         
         const hiddenInput = document.getElementById('hours_rendered_input');
         if (hiddenInput) {
-            hiddenInput.value = parseFloat(humanDecimalValue).toFixed(2);
+            hiddenInput.value = decimalHours;
         }
 
         if (saveBtn) {

@@ -268,7 +268,7 @@
                     <div class="flex items-center justify-between gap-4">
                         <!-- University Logo (Left) -->
                         <div class="w-20 flex-shrink-0 flex items-center justify-center">
-                            <img src="{{ asset('images/logo.png') }}" alt="BISU Logo" class="w-18 h-18 object-contain">
+                            <img src="{{ asset('images/BISU-Logo-1-150x150.png.webp') }}" alt="BISU Logo" class="w-18 h-18 object-contain">
                         </div>
                         
                         <!-- University Header Text (Center) -->
@@ -283,7 +283,7 @@
                         <!-- Bagong Pilipinas & ISO Logos (Right) -->
                         <div class="flex-shrink-0 flex items-center justify-end gap-3">
                             <img src="{{ asset('images/Bagong_Pilipinas_logo.png') }}" alt="Bagong Pilipinas" class="h-16 w-auto object-contain">
-                            <img src="{{ asset('images/iso_logo.png') }}" alt="ISO 9001:2015 Certified" class="h-14 w-auto object-contain">
+                            <img src="{{ asset('images/QMS_cert_9108658239_en-r3dwxixch5qzuc004uizqdxeet15knt34pxsc7yr1q.webp') }}" alt="TUV Rheinland Certified ISO 9001:2015" class="h-14 w-auto object-contain">
                         </div>
                     </div>
                     
@@ -381,10 +381,12 @@
                         <thead>
                             <tr class="bg-slate-50 border-b border-slate-200">
                                 <th class="px-6 py-3 text-xs font-semibold text-slate-500 tracking-wider">Student Name</th>
-                                <th class="px-6 py-3 text-xs font-semibold text-slate-500 tracking-wider">Evaluator (HR)</th>
-                                <th class="px-6 py-3 text-xs font-semibold text-slate-500 tracking-wider text-center">Technical Skill Score</th>
-                                <th class="px-6 py-3 text-xs font-semibold text-slate-500 tracking-wider text-center">Soft Skill Score</th>
-                                <th class="px-6 py-3 text-xs font-semibold text-slate-500 tracking-wider">Final Rating (%)</th>
+                                <th class="px-6 py-3 text-xs font-semibold text-slate-500 tracking-wider">Evaluator / Agency</th>
+                                <th class="px-4 py-3 text-xs font-semibold text-slate-500 tracking-wider text-center">Job Perf (50%)</th>
+                                <th class="px-4 py-3 text-xs font-semibold text-slate-500 tracking-wider text-center">Workmanship (20%)</th>
+                                <th class="px-4 py-3 text-xs font-semibold text-slate-500 tracking-wider text-center">Work Habits (20%)</th>
+                                <th class="px-4 py-3 text-xs font-semibold text-slate-500 tracking-wider text-center">Attendance (10%)</th>
+                                <th class="px-6 py-3 text-xs font-semibold text-slate-500 tracking-wider">BISU Rating &amp; Grade</th>
                                 <th class="px-6 py-3 text-xs font-semibold text-slate-500 tracking-wider text-right">Action</th>
                             </tr>
                         </thead>
@@ -395,94 +397,101 @@
                                     $hasReal = $latestEval !== null;
 
                                     if ($hasReal) {
-                                        $techScore  = $latestEval->technical_score;
-                                        $softScore  = $latestEval->soft_skills_score;
-                                        $attScore   = $latestEval->attitude_score;
-                                        $finalRating = $latestEval->overall_percent;
-                                        $evaluatorName = $latestEval->supervisor?->email ?? 'Supervisor';
+                                        $evaluatorName = $latestEval->rated_by_name ?: ($latestEval->supervisor?->display_name ?? $latestEval->supervisor?->email ?? 'Supervisor');
+                                        $finalRating = $latestEval->final_rating;
+                                        $grade = $latestEval->transmuted_grade ? number_format($latestEval->transmuted_grade, 1) : '5.0';
+                                        $ratingColor = $finalRating >= 75 ? 'text-green-700' : 'text-amber-600';
                                     } else {
-                                        // Deterministic mock — replaced once supervisor submits
-                                        $hash = crc32($student->first_name . $student->last_name);
-                                        $techScore  = 3.5 + abs($hash % 15) / 10;
-                                        $softScore  = 3.5 + abs(($hash >> 2) % 15) / 10;
-                                        $attScore   = 3.5 + abs(($hash >> 4) % 15) / 10;
-                                        $finalRating = round((($techScore + $softScore + $attScore) / 15) * 100);
                                         $evaluatorName = null;
+                                        $finalRating = null;
+                                        $grade = null;
+                                        $ratingColor = 'text-slate-400';
                                     }
-
-                                    $techFull  = floor($techScore);
-                                    $techHalf  = ($techScore - $techFull) >= 0.5 ? 1 : 0;
-                                    $techEmpty = 5 - $techFull - $techHalf;
-
-                                    $softFull  = floor($softScore);
-                                    $softHalf  = ($softScore - $softFull) >= 0.5 ? 1 : 0;
-                                    $softEmpty = 5 - $softFull - $softHalf;
-
-                                    $ratingColor = $finalRating >= 75 ? 'text-green-700' : 'text-amber-600';
                                 @endphp
                                 <tr class="hover:bg-slate-50/50 transition-colors" x-show="searchVal === '' || '{{ strtolower($student->first_name . ' ' . $student->last_name) }}'.includes(searchVal.toLowerCase())">
                                     <td class="px-6 py-4">
                                         <p class="text-sm font-bold text-slate-900">{{ $student->first_name }} {{ $student->last_name }}</p>
+                                        <p class="text-[11px] text-slate-500">{{ $student->course ?? $student->academicCourse?->course_name ?? 'Computing Student' }}</p>
                                         @if(!$hasReal)
                                             <span class="text-[10px] text-slate-400 italic">Not yet evaluated</span>
                                         @else
-                                            <span class="text-[10px] text-green-600 font-semibold flex items-center gap-0.5"><span class="material-symbols-outlined text-[12px]">check_circle</span> Evaluated {{ $latestEval->evaluated_at?->diffForHumans() }}</span>
+                                            <span class="text-[10px] text-green-600 font-semibold flex items-center gap-0.5 mt-0.5">
+                                                <span class="material-symbols-outlined text-[12px]">check_circle</span> Evaluated {{ $latestEval->evaluated_at?->diffForHumans() }}
+                                            </span>
                                         @endif
                                     </td>
                                     <td class="px-6 py-4 text-sm text-slate-600">
                                         @if($hasReal)
-                                            {{ $evaluatorName }}
+                                            <p class="font-bold text-slate-800">{{ $evaluatorName }}</p>
+                                            <p class="text-[11px] text-slate-400">{{ $latestEval->rated_by_designation ?? ($student->company?->name ?? 'Host Agency') }}</p>
+                                            @if($latestEval->approved_at)
+                                                <span class="inline-flex items-center gap-0.5 text-[10px] font-bold text-emerald-600 mt-1">
+                                                    <span class="material-symbols-outlined text-[12px]">verified</span> Endorsed
+                                                </span>
+                                            @endif
                                         @else
                                             <span class="text-slate-400 italic">—</span>
                                         @endif
                                     </td>
-                                    <td class="px-6 py-4 text-center">
-                                        <div class="flex items-center justify-center text-amber-400">
-                                            @for($i = 0; $i < $techFull; $i++)
-                                                <span class="material-symbols-outlined text-[16px]" style="font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24">star</span>
-                                            @endfor
-                                            @if($techHalf)
-                                                <span class="material-symbols-outlined text-[16px]" style="font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24">star_half</span>
-                                            @endif
-                                            @for($i = 0; $i < $techEmpty; $i++)
-                                                <span class="material-symbols-outlined text-[16px] text-slate-300" style="font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24">star</span>
-                                            @endfor
-                                        </div>
-                                        <span class="text-xs text-slate-500 mt-1 block">{{ number_format($techScore, 1) }} / 5</span>
+                                    <td class="px-4 py-4 text-center">
+                                        <span class="text-xs font-bold text-slate-700">
+                                            {{ $hasReal ? number_format($latestEval->job_performance_score, 1) . '%' : '—' }}
+                                        </span>
                                     </td>
-                                    <td class="px-6 py-4 text-center">
-                                        <div class="flex items-center justify-center text-amber-400">
-                                            @for($i = 0; $i < $softFull; $i++)
-                                                <span class="material-symbols-outlined text-[16px]" style="font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24">star</span>
-                                            @endfor
-                                            @if($softHalf)
-                                                <span class="material-symbols-outlined text-[16px]" style="font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24">star_half</span>
-                                            @endif
-                                            @for($i = 0; $i < $softEmpty; $i++)
-                                                <span class="material-symbols-outlined text-[16px] text-slate-300" style="font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24">star</span>
-                                            @endfor
-                                        </div>
-                                        <span class="text-xs text-slate-500 mt-1 block">{{ number_format($softScore, 1) }} / 5</span>
+                                    <td class="px-4 py-4 text-center">
+                                        <span class="text-xs font-bold text-slate-700">
+                                            {{ $hasReal ? number_format($latestEval->workmanship_score, 1) . '%' : '—' }}
+                                        </span>
+                                    </td>
+                                    <td class="px-4 py-4 text-center">
+                                        <span class="text-xs font-bold text-slate-700">
+                                            {{ $hasReal ? number_format($latestEval->work_habits_score, 1) . '%' : '—' }}
+                                        </span>
+                                    </td>
+                                    <td class="px-4 py-4 text-center">
+                                        <span class="text-xs font-bold text-slate-700">
+                                            {{ $hasReal ? number_format($latestEval->attendance_score, 1) . '%' : '—' }}
+                                        </span>
                                     </td>
                                     <td class="px-6 py-4">
-                                        <span class="text-sm font-extrabold {{ $ratingColor }}">{{ $finalRating }}%</span>
-                                        @if(!$hasReal)
-                                            <p class="text-[10px] text-slate-400 italic">Estimate</p>
+                                        @if($hasReal)
+                                            <div class="flex items-center gap-2">
+                                                <span class="px-2.5 py-1 rounded-lg text-xs font-black bg-primary/10 text-primary border border-primary/20">
+                                                    Grade {{ $grade }}
+                                                </span>
+                                                <div>
+                                                    <span class="text-xs font-extrabold {{ $ratingColor }} block">{{ number_format($finalRating, 1) }}%</span>
+                                                    <span class="text-[10px] text-slate-500 font-semibold">{{ $latestEval->grade_description }}</span>
+                                                </div>
+                                            </div>
+                                        @else
+                                            <span class="text-slate-400 text-xs italic">Pending</span>
                                         @endif
                                     </td>
                                     <td class="px-6 py-4 text-right">
-                                        @if($hasReal && $latestEval->comments)
-                                            <span class="text-slate-500 text-xs italic max-w-[140px] truncate block text-right" title="{{ $latestEval->comments }}">
-                                                "{{ Str::limit($latestEval->comments, 40) }}"
-                                            </span>
-                                        @else
-                                            <span class="text-slate-300 text-xs">No remarks</span>
-                                        @endif
+                                        <div class="flex items-center justify-end gap-2">
+                                            <a href="{{ route('coordinator.students.grading-sheet', $student->id) }}" target="_blank"
+                                               class="inline-flex items-center gap-1 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-lg transition-all border border-slate-200 shadow-sm"
+                                               title="View & Print Official BISU Grading Sheet">
+                                                <span class="material-symbols-outlined text-[15px]">print</span>
+                                                <span>BISU Sheet</span>
+                                            </a>
+
+                                            @if($hasReal && !$latestEval->approved_at)
+                                                <form method="POST" action="{{ route('coordinator.students.endorse-evaluation', $student->id) }}" class="inline">
+                                                    @csrf
+                                                    <button type="submit" class="inline-flex items-center gap-1 px-2.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg shadow-sm transition-all active:scale-95" title="Endorse Grade">
+                                                        <span class="material-symbols-outlined text-[14px]">verified</span>
+                                                        <span>Endorse</span>
+                                                    </button>
+                                                </form>
+                                            @endif
+                                        </div>
                                     </td>
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="6" class="px-6 py-8 text-center text-sm text-slate-500 italic">No evaluation records found.</td>
+                                    <td colspan="8" class="px-6 py-8 text-center text-sm text-slate-500 italic">No evaluation records found.</td>
                                 </tr>
                             @endforelse
                         </tbody>

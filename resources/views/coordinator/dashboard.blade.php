@@ -148,13 +148,14 @@
                     <div class="p-3 bg-secondary/10 rounded-lg text-secondary">
                         <span class="material-symbols-outlined" data-icon="schedule" style="">schedule</span>
                     </div>
-                    <span class="text-on-surface/40 font-bold text-[10px] uppercase tracking-widest" style="">AY
+                    <!--<span class="text-on-surface/40 font-bold text-[10px] uppercase tracking-widest" style="">AY
                         23-24 Total</span>
+    -->
                 </div>
                 <div>
                     <h3 class="text-4xl font-extrabold font-headline text-on-surface" style="">{{ number_format($totalHoursTracked) }}</h3>
                     <p class="text-xs font-bold uppercase tracking-widest text-on-surface/50 mt-1" style="">
-                        Hours Tracked</p>
+                        Total Hours Tracked</p>
                 </div>
             </div>
         </section>

@@ -89,14 +89,9 @@ class OjtLogController extends Controller
             $totalMinutes += $ot_minutes;
         }
 
-        // Convert exactly to the human decimal structure: 4 hours 1 min = 4.01
-        $totalHrs = floor($totalMinutes / 60);
-        $totalMins = $totalMinutes % 60;
-        $humanDecimalTotal = (float) sprintf('%d.%02d', $totalHrs, $totalMins);
-
-        $otHrs = floor($ot_minutes / 60);
-        $otMins = $ot_minutes % 60;
-        $humanDecimalOT = (float) sprintf('%d.%02d', $otHrs, $otMins);
+        // Convert minutes to true decimal hours (e.g. 8 hrs 30 mins = 8.50 hrs)
+        $totalHours = round($totalMinutes / 60, 2);
+        $otHours = round($ot_minutes / 60, 2);
 
         OjtLog::create([
             'user_id' => auth()->id(),
@@ -107,8 +102,8 @@ class OjtLogController extends Controller
             'afternoon_out' => $request->pm_clock_out,
             'ot_clock_in' => $request->ot_clock_in,
             'ot_clock_out' => $request->ot_clock_out,
-            'ot_duration' => $humanDecimalOT,
-            'hours_rendered' => $humanDecimalTotal,
+            'ot_duration' => $otHours,
+            'hours_rendered' => $totalHours,
             'tasks_performed' => $request->activity_summary,
             'photo_path' => $photoPath,
             'status' => 'Pending',
@@ -118,14 +113,46 @@ class OjtLogController extends Controller
         return redirect()->back()->with('success', 'OJT Shift Logged Successfully!');
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        // Fetch the authenticated student's logs ordered by newest date
-        $logs = OjtLog::where('user_id', auth()->id())
-            ->orderBy('log_date', 'desc')
-            ->paginate(10);
+        $query = OjtLog::where('user_id', auth()->id());
 
-        return view('student.logs', compact('logs'));
+        // 1. Search Query (tasks_performed or remarks)
+        if ($request->filled('search')) {
+            $search = trim($request->input('search'));
+            $query->where(function ($q) use ($search) {
+                $q->where('tasks_performed', 'like', "%{$search}%")
+                  ->orWhere('remarks', 'like', "%{$search}%");
+            });
+        }
+
+        // 2. Status Filter (Approved, Pending, Rejected)
+        if ($request->filled('status') && $request->input('status') !== 'all') {
+            $query->where('status', $request->input('status'));
+        }
+
+        // 3. Month Filter (YYYY-MM)
+        if ($request->filled('month') && $request->input('month') !== 'all') {
+            $month = $request->input('month');
+            $query->where('log_date', 'like', "{$month}%");
+        }
+
+        // Available months for authenticated student
+        $logDates = OjtLog::where('user_id', auth()->id())->pluck('log_date');
+        $availableMonths = $logDates->map(function ($date) {
+            $c = Carbon::parse($date);
+            return [
+                'value' => $c->format('Y-m'),
+                'label' => $c->format('F Y'),
+            ];
+        })->unique('value')->sortByDesc('value')->values();
+
+        // Fetch the filtered student logs ordered by newest date
+        $logs = $query->orderBy('log_date', 'desc')
+            ->paginate(10)
+            ->withQueryString();
+
+        return view('student.logs', compact('logs', 'availableMonths'));
     }
 
     public function destroy(OjtLog $ojtLog)
@@ -235,13 +262,9 @@ class OjtLogController extends Controller
             $totalMinutes += $ot_minutes;
         }
 
-        $totalHrs = floor($totalMinutes / 60);
-        $totalMins = $totalMinutes % 60;
-        $humanDecimalTotal = (float) sprintf('%d.%02d', $totalHrs, $totalMins);
-
-        $otHrs = floor($ot_minutes / 60);
-        $otMins = $ot_minutes % 60;
-        $humanDecimalOT = (float) sprintf('%d.%02d', $otHrs, $otMins);
+        // Convert minutes to true decimal hours (e.g. 8 hrs 30 mins = 8.50 hrs)
+        $totalHours = round($totalMinutes / 60, 2);
+        $otHours = round($ot_minutes / 60, 2);
 
         $ojtLog->update([
             'morning_in' => $request->am_clock_in,
@@ -250,8 +273,8 @@ class OjtLogController extends Controller
             'afternoon_out' => $request->pm_clock_out,
             'ot_clock_in' => $request->ot_clock_in,
             'ot_clock_out' => $request->ot_clock_out,
-            'ot_duration' => $humanDecimalOT,
-            'hours_rendered' => $humanDecimalTotal,
+            'ot_duration' => $otHours,
+            'hours_rendered' => $totalHours,
             'tasks_performed' => $request->activity_summary,
             'photo_path' => $photoPath,
             'status' => 'Pending',

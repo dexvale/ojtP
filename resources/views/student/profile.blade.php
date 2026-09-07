@@ -33,11 +33,12 @@
         <button id="sidebar-toggle" class="lg:hidden p-2 text-primary rounded-lg hover:bg-surface-container transition-colors" aria-label="Toggle menu">
             <span class="material-symbols-outlined">menu</span>
         </button>
-        <div class="flex items-center gap-2.5">
+        <!-- Logo & Branding (Mobile only) -->
+        <div class="lg:hidden flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-lg bg-primary flex items-center justify-center overflow-hidden">
-                <img alt="University Logo" class="h-8 w-8 object-contain" src="{{ asset('images/logo.png') }}" />
+                <img alt="University Logo" class="h-8 w-8 object-contain" src="{{ asset('images/BISU-Logo-1-150x150.png.webp') }}" />
             </div>
-            <span class="text-xl font-headline font-semibold text-primary hidden sm:block">OJT Portal</span>
+            <span class="text-xl font-headline font-semibold text-primary">OJT Portal</span>
         </div>
     </div>
 
@@ -63,7 +64,7 @@
     @include('components.student-sidebar')
 
 <!-- Sidebar overlay for mobile -->
-<div id="sidebar-overlay" class="fixed inset-0 bg-black/40 z-30 hidden lg:hidden" onclick="closeSidebar()"></div>
+<div id="sidebar-overlay" class="fixed inset-0 bg-black/40 backdrop-blur-xs z-[55] hidden lg:hidden" onclick="closeSidebar()"></div>
 
 <!-- ═══════════════════════════════
      MAIN CONTENT
@@ -341,28 +342,7 @@
 <!-- ═══════════════════════════════
      MOBILE BOTTOM NAV
 ═══════════════════════════════ -->
-<nav class="lg:hidden fixed bottom-0 w-full bg-white/90 backdrop-blur-lg border-t border-surface-variant/20 flex justify-around items-center py-2.5 z-50">
-    <a href="{{ route('student.dashboard') }}" class="flex flex-col items-center gap-0.5 text-outline px-3 py-1">
-        <span class="material-symbols-outlined text-xl">dashboard</span>
-        <span class="text-[10px] font-bold">Home</span>
-    </a>
-    <a href="{{ route('student.logs.index') }}" class="flex flex-col items-center gap-0.5 text-outline px-3 py-1">
-        <span class="material-symbols-outlined text-xl">description</span>
-        <span class="text-[10px] font-bold">Logs</span>
-    </a>
-    <button class="flex flex-col items-center gap-0.5 text-outline px-3 py-1">
-        <span class="material-symbols-outlined text-xl">add_circle</span>
-        <span class="text-[10px] font-bold">New</span>
-    </button>
-    <button class="flex flex-col items-center gap-0.5 text-outline px-3 py-1">
-        <span class="material-symbols-outlined text-xl">business</span>
-        <span class="text-[10px] font-bold">Hub</span>
-    </button>
-    <a href="{{ route('student.profile') }}" class="flex flex-col items-center gap-0.5 text-primary px-3 py-1">
-        <span class="material-symbols-outlined text-xl" style="font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24;">person</span>
-        <span class="text-[10px] font-bold">Profile</span>
-    </a>
-</nav>
+@include('components.student-bottom-nav')
 
 <script>
     // ── Profile Photo Upload & Preview ──

@@ -11,6 +11,16 @@
         body { font-family: 'Public Sans', sans-serif; }
         .font-headline { font-family: 'Newsreader', serif; }
         .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .filter-select {
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none'%3E%3Cpath d='M6 8l4 4 4-4' stroke='%237e747f' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 0.75rem center;
+            background-size: 1rem 1rem;
+            padding-right: 2.25rem !important;
+        }
     </style>
 </head>
 <body class="bg-surface text-on-surface" data-theme="portal">
@@ -136,11 +146,42 @@
 
         <!-- 3. Attendance Logs List Component -->
         <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-            <div class="border-b border-slate-200 bg-slate-50/50 px-6 py-4 flex justify-between items-center">
-                <h2 class="text-lg font-bold font-headline text-slate-800 flex items-center gap-2">
-                    <span class="material-symbols-outlined text-primary">history</span>
-                    Attendance & Activity Logs
-                </h2>
+            <div class="border-b border-slate-200 bg-slate-50/50 px-6 py-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div class="flex flex-wrap items-center gap-3">
+                    <h2 class="text-lg font-bold font-headline text-slate-800 flex items-center gap-2">
+                        <span class="material-symbols-outlined text-primary">history</span>
+                        Attendance & Activity Logs
+                    </h2>
+                    @if(isset($selectedMonth) && $selectedMonth !== 'all')
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-purple-50 text-purple-700 border border-purple-200">
+                            <span class="w-1.5 h-1.5 rounded-full bg-purple-600"></span>
+                            {{ $selectedMonthLabel ?? $selectedMonth }}: <strong>{{ number_format($monthApprovedHours ?? 0, 2) }} hrs</strong>
+                        </span>
+                    @else
+                        @php $totalLogsCount = isset($logs) ? $logs->count() : ($student->user ? $student->user->ojtLogs()->count() : 0); @endphp
+                        <span class="text-xs text-slate-500 font-medium">
+                            ({{ $totalLogsCount }} {{ Str::plural('record', $totalLogsCount) }})
+                        </span>
+                    @endif
+                </div>
+
+                <!-- Monthly Filter Form -->
+                <form method="GET" action="{{ route('coordinator.students.show', $student->id) }}" class="flex items-center gap-2 w-full sm:w-auto">
+                    <div class="relative w-full sm:w-auto">
+                        <select name="month" 
+                                onchange="this.form.submit()" 
+                                class="filter-select w-full sm:w-48 bg-white border border-slate-200 rounded-xl py-2 pl-3 pr-8 text-xs font-semibold text-slate-700 shadow-sm hover:border-purple-300 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all cursor-pointer">
+                            <option value="all" {{ ($selectedMonth ?? 'all') === 'all' ? 'selected' : '' }}>All Months</option>
+                            @if(isset($availableMonths))
+                                @foreach($availableMonths as $m)
+                                    <option value="{{ $m['value'] }}" {{ ($selectedMonth ?? '') === $m['value'] ? 'selected' : '' }}>
+                                        {{ $m['label'] }}
+                                    </option>
+                                @endforeach
+                            @endif
+                        </select>
+                    </div>
+                </form>
             </div>
             <div class="overflow-x-auto">
                 <table class="w-full text-left border-collapse">
@@ -155,8 +196,11 @@
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100">
-                        @if($student->user && $student->user->ojtLogs->count() > 0)
-                            @foreach($student->user->ojtLogs as $log)
+                        @php
+                            $displayLogs = isset($logs) ? $logs : ($student->user ? $student->user->ojtLogs : collect());
+                        @endphp
+                        @if($displayLogs->count() > 0)
+                            @foreach($displayLogs as $log)
                             <tr class="hover:bg-slate-50/50 transition-colors">
                                 <td class="px-6 py-4">
                                     <p class="text-sm font-bold text-slate-800">{{ \Carbon\Carbon::parse($log->log_date)->format('M d, Y') }}</p>
@@ -208,7 +252,13 @@
                             <tr>
                                 <td colspan="6" class="px-6 py-12 text-center">
                                     <span class="material-symbols-outlined text-4xl text-slate-300 mb-3 block">history_toggle_off</span>
-                                    <p class="text-sm font-medium text-slate-500">No logs submitted yet.</p>
+                                    <p class="text-sm font-medium text-slate-500">
+                                        @if(isset($selectedMonth) && $selectedMonth !== 'all')
+                                            No logs found for {{ $selectedMonthLabel ?? $selectedMonth }}.
+                                        @else
+                                            No logs submitted yet.
+                                        @endif
+                                    </p>
                                 </td>
                             </tr>
                         @endif
