@@ -119,3 +119,35 @@ Route::middleware(['auth', 'no.cache', 'role:Advisor'])->group(function () {
     Route::post('/supervisor/evaluate', [\App\Http\Controllers\Supervisor\EvaluationController::class, 'storeFromForm'])->name('supervisor.evaluate');
     Route::get('/supervisor/interns/{student}/grading-sheet', [\App\Http\Controllers\Supervisor\EvaluationController::class, 'showGradingSheet'])->name('supervisor.interns.grading-sheet');
 });
+
+// Admin System Setup Route (Run migrations/seeders directly in browser without paid SSH shell)
+Route::get('/system-setup/{key}', function ($key) {
+    $validKey = config('app.key') ?: 'bisu2026';
+    if ($key !== 'bisu2026' && $key !== $validKey) {
+        abort(403, 'Unauthorized');
+    }
+
+    $action = request('action', 'all');
+    $output = "OJT Portal Setup Console\n" . str_repeat("=", 40) . "\n";
+
+    try {
+        if ($action === 'migrate' || $action === 'all') {
+            \Illuminate\Support\Facades\Artisan::call('migrate --force');
+            $output .= "\n[MIGRATIONS]\n" . \Illuminate\Support\Facades\Artisan::output();
+        }
+
+        if ($action === 'seed' || $action === 'all') {
+            \Illuminate\Support\Facades\Artisan::call('db:seed --force');
+            $output .= "\n[SEEDERS]\n" . \Illuminate\Support\Facades\Artisan::output();
+        }
+
+        if ($action === 'clear') {
+            \Illuminate\Support\Facades\Artisan::call('optimize:clear');
+            $output .= "\n[OPTIMIZE CLEAR]\n" . \Illuminate\Support\Facades\Artisan::output();
+        }
+    } catch (\Throwable $e) {
+        $output .= "\n[ERROR]: " . $e->getMessage();
+    }
+
+    return response("<pre style='background:#1e1e2e;color:#a6adc8;padding:24px;font-family:monospace;font-size:14px;border-radius:12px;margin:30px auto;max-width:800px;line-height:1.6;box-shadow:0 10px 25px rgba(0,0,0,0.3);'>" . htmlspecialchars($output) . "</pre>");
+});

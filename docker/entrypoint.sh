@@ -30,6 +30,12 @@ if [ "${RUN_MIGRATIONS}" = "true" ]; then
     php artisan migrate --force || true
 fi
 
+# Run database seeders if enabled
+if [ "${RUN_SEEDER}" = "true" ]; then
+    echo "Running database seeders..."
+    php artisan db:seed --force || true
+fi
+
 # Optimization caches for production
 if [ "${APP_ENV}" = "production" ]; then
     echo "Caching routes and views for production..."
