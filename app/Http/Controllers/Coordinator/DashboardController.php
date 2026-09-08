@@ -265,8 +265,13 @@ class DashboardController extends Controller
 
     private function getMonthFormatSql(): string
     {
-        return \Illuminate\Support\Facades\DB::getDriverName() === 'pgsql'
-            ? "TO_CHAR(log_date, 'YYYY-MM')"
-            : "DATE_FORMAT(log_date, '%Y-%m')";
+        $driver = \Illuminate\Support\Facades\DB::getDriverName();
+        if ($driver === 'pgsql') {
+            return "TO_CHAR(log_date, 'YYYY-MM')";
+        }
+        if ($driver === 'sqlite') {
+            return "strftime('%Y-%m', log_date)";
+        }
+        return "DATE_FORMAT(log_date, '%Y-%m')";
     }
 }

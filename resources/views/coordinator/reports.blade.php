@@ -29,6 +29,14 @@
         
         [x-cloak] { display: none !important; }
 
+        .scrollbar-none::-webkit-scrollbar {
+            display: none;
+        }
+        .scrollbar-none {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
         @media print {
             aside,
             #sidebar,
@@ -139,16 +147,22 @@
     <!-- SideNavBar (Shared Component) -->
     @include('components.coordinator-sidebar')
 
+    <!-- Sidebar overlay for mobile -->
+    <div id="sidebar-overlay" class="fixed inset-0 bg-black/40 backdrop-blur-xs z-40 hidden lg:hidden" onclick="closeSidebar()"></div>
+
     <!-- TopNavBar -->
-    <header class="fixed top-0 left-64 right-0 z-40 bg-surface/90 backdrop-blur-sm border-b border-[#cec3d0]/15">
-        <div class="flex justify-between items-center px-8 py-4 w-full">
-            <div class="flex items-center gap-8">
-                <span class="text-2xl font-headline font-semibold text-primary tracking-tight">OJT Management</span>
+    <header class="fixed top-0 lg:left-64 left-0 right-0 z-40 bg-surface/90 backdrop-blur-sm border-b border-[#cec3d0]/15">
+        <div class="flex justify-between items-center px-4 md:px-8 py-3.5 md:py-4 w-full">
+            <div class="flex items-center gap-3 md:gap-4">
+                <button id="sidebar-toggle" class="lg:hidden p-2 min-w-[40px] min-h-[40px] flex items-center justify-center text-primary rounded-lg hover:bg-black/5 transition-colors" aria-label="Toggle menu">
+                    <span class="material-symbols-outlined">menu</span>
+                </button>
+                <span class="text-xl md:text-2xl font-headline font-semibold text-primary tracking-tight">OJT Management</span>
                 <nav class="hidden md:flex items-center gap-6">
-                    <a class="text-sm font-semibold text-on-surface/60 hover:text-primary transition-colors duration-200" href="#">Dashboard</a>
-                    <a class="text-sm font-semibold text-on-surface/60 hover:text-primary transition-colors duration-200" href="#">Student List</a>
-                    <a class="text-sm font-semibold text-on-surface/60 hover:text-primary transition-colors duration-200" href="#">Company Directory</a>
-                    <a class="text-sm font-semibold text-primary border-b-2 border-primary pb-1" href="#">Reports</a>
+                    <a class="text-sm font-semibold text-on-surface/60 hover:text-primary transition-colors duration-200" href="{{ route('coordinator.dashboard') }}">Dashboard</a>
+                    <a class="text-sm font-semibold text-on-surface/60 hover:text-primary transition-colors duration-200" href="{{ route('coordinator.students') }}">Student List</a>
+                    <a class="text-sm font-semibold text-on-surface/60 hover:text-primary transition-colors duration-200" href="{{ route('coordinator.companies') }}">Company Directory</a>
+                    <a class="text-sm font-semibold text-primary border-b-2 border-primary pb-1" href="{{ route('coordinator.reports') }}">Reports</a>
                 </nav>
             </div>
             <div class="flex items-center gap-6">
@@ -156,14 +170,30 @@
                     <button class="p-2 text-primary hover:bg-black/5 rounded-full transition-all active:scale-95">
                         <span class="material-symbols-outlined" data-icon="notifications">notifications</span>
                     </button>
-                    <div class="flex items-center gap-3 pl-2 border-l border-[#cec3d0]/30">
-                        <div class="text-right hidden sm:block">
-                            <p class="text-sm font-bold font-headline text-primary">{{ auth()->user()->display_name }}</p>
-                            <p class="text-[10px] uppercase tracking-wider text-secondary font-bold">{{ auth()->user()->display_role }}</p>
+                    <div class="relative flex items-center sm:pl-2 sm:border-l sm:border-[#cec3d0]/30" id="user-profile-menu">
+                        <button type="button" id="user-menu-btn" class="flex items-center gap-3 cursor-pointer focus:outline-none" aria-expanded="false" aria-haspopup="true">
+                            <div class="text-right hidden sm:block">
+                                <p class="text-sm font-bold font-headline text-primary">{{ auth()->user()->display_name }}</p>
+                                <p class="text-[10px] uppercase tracking-wider text-secondary font-bold">{{ auth()->user()->display_role }}</p>
+                            </div>
+                            <img alt="User profile avatar"
+                                class="w-9 h-9 rounded-full object-cover ring-2 ring-primary/10 hover:ring-primary transition-all"
+                                src="{{ auth()->user()->avatar_url }}">
+                        </button>
+                        <!-- Dropdown Menu -->
+                        <div id="user-menu-dropdown" class="hidden absolute right-0 top-full mt-2 w-48 bg-white rounded-xl shadow-lg border border-slate-100 py-1.5 z-50">
+                            <div class="px-4 py-2 border-b border-slate-100 sm:hidden">
+                                <p class="text-xs font-bold text-slate-800 truncate">{{ auth()->user()->display_name }}</p>
+                                <p class="text-[10px] uppercase tracking-wider text-slate-500 font-semibold truncate">{{ auth()->user()->display_role }}</p>
+                            </div>
+                            <form method="POST" action="{{ route('logout') }}">
+                                @csrf
+                                <button type="submit" class="w-full text-left px-4 py-2 text-xs sm:text-sm text-red-600 hover:bg-red-50 flex items-center gap-2.5 font-semibold transition-colors cursor-pointer">
+                                    <span class="material-symbols-outlined text-[18px]">logout</span>
+                                    <span>Logout</span>
+                                </button>
+                            </form>
                         </div>
-                        <img alt="User profile avatar"
-                            class="w-9 h-9 rounded-full object-cover ring-2 ring-primary/10"
-                            src="{{ auth()->user()->avatar_url }}">
                     </div>
                 </div>
             </div>
@@ -171,25 +201,25 @@
     </header>
 
     <!-- Main Content -->
-    <main class="ml-64 pt-24 px-8 pb-12 min-h-screen border-none" x-data="{ activeTab: '{{ request('tab', 'dtr') }}', searchVal: '' }">
+    <main class="lg:ml-64 ml-0 pt-20 md:pt-24 px-4 sm:px-6 lg:px-8 pb-12 min-h-screen border-none max-w-full overflow-x-hidden" x-data="{ activeTab: '{{ request('tab', 'dtr') }}', searchVal: '' }">
         <!-- Page Header & Global Actions -->
-        <div class="flex flex-col lg:flex-row lg:items-end lg:justify-between mb-8 gap-6 print:hidden">
+        <div class="flex flex-col lg:flex-row lg:items-end lg:justify-between mb-6 sm:mb-8 gap-4 sm:gap-6 print:hidden">
             <div>
-                <h1 class="text-4xl font-extrabold font-headline text-slate-900 tracking-tight">Reports & Exports</h1>
-                <p class="text-slate-500 font-medium mt-2 text-sm max-w-xl">Generate, review, and export official end-of-semester documentation.</p>
+                <h1 class="text-2xl sm:text-3xl lg:text-4xl font-extrabold font-headline text-slate-900 tracking-tight">Reports & Exports</h1>
+                <p class="text-slate-500 font-medium mt-1 text-xs sm:text-sm max-w-xl">Generate, review, and export official end-of-semester documentation.</p>
             </div>
             <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                 @if(isset($allTerms) && $allTerms->isNotEmpty())
-                    <form method="GET" action="{{ route('coordinator.reports') }}" class="flex items-center gap-2 bg-white px-3.5 py-2 rounded-xl border border-purple-100 shadow-xs">
+                    <form method="GET" action="{{ route('coordinator.reports') }}" class="flex items-center gap-2 bg-white px-3.5 py-2 rounded-xl border border-purple-100 shadow-xs w-full sm:w-auto">
                         @if($selectedCourse && $selectedCourse !== 'All Courses')
                             <input type="hidden" name="course" value="{{ $selectedCourse }}">
                         @endif
                         <input type="hidden" name="tab" :value="activeTab">
-                        <span class="material-symbols-outlined text-purple-700 text-sm">calendar_month</span>
-                        <label class="text-xs font-bold text-slate-500 uppercase tracking-wider">Term:</label>
-                        <div class="relative">
+                        <span class="material-symbols-outlined text-purple-700 text-sm shrink-0">calendar_month</span>
+                        <label class="text-xs font-bold text-slate-500 uppercase tracking-wider shrink-0">Term:</label>
+                        <div class="relative flex-1 sm:flex-initial min-w-0">
                             <select name="term_id" onchange="this.form.submit()"
-                                    class="bg-purple-50/50 border border-purple-200 rounded-lg px-3 py-1.5 text-xs font-bold text-[#300050] focus:ring-2 focus:ring-purple-500 focus:outline-none appearance-none pr-7 cursor-pointer">
+                                    class="w-full bg-purple-50/50 border border-purple-200 rounded-lg px-3 py-1.5 text-xs font-bold text-[#300050] focus:ring-2 focus:ring-purple-500 focus:outline-none appearance-none pr-7 cursor-pointer truncate">
                                 @foreach($allTerms as $t)
                                     <option value="{{ $t->id }}" {{ ($selectedTermId == $t->id) ? 'selected' : '' }}>
                                         {{ $t->full_title }} {{ $t->is_active ? '★ (Active)' : '' }}
@@ -203,40 +233,40 @@
             </div>
         </div>
 
-        <!-- Navigation (Tabbed Interface) -->
-        <div class="border-b border-slate-200 mb-6 print:hidden">
-            <nav class="-mb-px flex space-x-8" aria-label="Tabs">
+        <!-- Navigation (Segmented Pill Tabs) -->
+        <div class="mb-6 print:hidden overflow-x-auto scrollbar-none -mx-4 px-4 sm:mx-0 sm:px-0">
+            <div class="inline-flex p-1.5 bg-slate-100/90 border border-slate-200/80 rounded-2xl gap-2 shadow-xs min-w-max" role="tablist">
                 <button @click="activeTab = 'dtr'"
-                        :class="activeTab === 'dtr' ? 'border-primary text-primary' : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'"
-                        class="whitespace-nowrap py-4 px-1 border-b-2 font-semibold text-sm transition-colors">
+                        :class="activeTab === 'dtr' ? 'bg-white text-primary shadow-xs font-bold ring-1 ring-slate-200/70' : 'text-slate-600 hover:text-slate-900 hover:bg-white/60 font-semibold'"
+                        class="whitespace-nowrap px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl text-xs sm:text-sm transition-all duration-200 cursor-pointer focus:outline-none">
                     DTR Monthly Summary
                 </button>
                 <button @click="activeTab = 'evaluations'"
-                        :class="activeTab === 'evaluations' ? 'border-primary text-primary' : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'"
-                        class="whitespace-nowrap py-4 px-1 border-b-2 font-semibold text-sm transition-colors">
+                        :class="activeTab === 'evaluations' ? 'bg-white text-primary shadow-xs font-bold ring-1 ring-slate-200/70' : 'text-slate-600 hover:text-slate-900 hover:bg-white/60 font-semibold'"
+                        class="whitespace-nowrap px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl text-xs sm:text-sm transition-all duration-200 cursor-pointer focus:outline-none">
                     Supervisor Evaluations
                 </button>
                 <button @click="activeTab = 'completion'"
-                        :class="activeTab === 'completion' ? 'border-primary text-primary' : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'"
-                        class="whitespace-nowrap py-4 px-1 border-b-2 font-semibold text-sm transition-colors">
+                        :class="activeTab === 'completion' ? 'bg-white text-primary shadow-xs font-bold ring-1 ring-slate-200/70' : 'text-slate-600 hover:text-slate-900 hover:bg-white/60 font-semibold'"
+                        class="whitespace-nowrap px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl text-xs sm:text-sm transition-all duration-200 cursor-pointer focus:outline-none">
                     Clearance & Completion
                 </button>
-            </nav>
+            </div>
         </div>
 
         <!-- Active Tab Content Area (White Card Container) -->
-        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 sm:p-6 overflow-hidden max-w-full">
             
             <!-- SECTION A: DTR Summary -->
             <div x-show="activeTab === 'dtr'" x-cloak class="space-y-6">
                 <!-- Toolbar -->
-                 <div class="flex flex-col sm:flex-row justify-between items-center gap-4 print:hidden">
-                     <form method="GET" action="{{ route('coordinator.reports') }}" class="flex flex-wrap gap-3">
+                 <div class="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3 sm:gap-4 print:hidden">
+                     <form method="GET" action="{{ route('coordinator.reports') }}" class="flex flex-col sm:flex-row flex-wrap gap-2.5 sm:gap-3 w-full sm:w-auto">
                          @if($selectedTermId)
                              <input type="hidden" name="term_id" value="{{ $selectedTermId }}">
                          @endif
                          <input type="hidden" name="tab" value="dtr">
-                         <select name="month" onchange="this.form.submit()" class="form-select text-sm border-slate-200 text-slate-700 rounded-lg shadow-sm focus:ring-primary focus:border-primary px-4 py-2">
+                         <select name="month" onchange="this.form.submit()" class="w-full sm:w-auto form-select text-xs sm:text-sm border-slate-200 text-slate-700 rounded-lg shadow-xs focus:ring-primary focus:border-primary px-3 sm:px-4 py-2 bg-slate-50/50">
                              @foreach($months as $m)
                                  @php
                                      $carbonMonth = \Carbon\Carbon::createFromFormat('Y-m', $m);
@@ -246,7 +276,7 @@
                                  </option>
                              @endforeach
                          </select>
-                         <select name="course" onchange="this.form.submit()" class="form-select text-sm border-slate-200 text-slate-700 rounded-lg shadow-sm focus:ring-primary focus:border-primary px-4 py-2">
+                         <select name="course" onchange="this.form.submit()" class="w-full sm:w-auto form-select text-xs sm:text-sm border-slate-200 text-slate-700 rounded-lg shadow-xs focus:ring-primary focus:border-primary px-3 sm:px-4 py-2 bg-slate-50/50">
                              <option value="All Courses" {{ $selectedCourse === 'All Courses' || !$selectedCourse ? 'selected' : '' }}>All Courses</option>
                              @foreach($courses as $c)
                                  <option value="{{ $c->course_name }}" {{ $selectedCourse === $c->course_name ? 'selected' : '' }}>
@@ -257,7 +287,7 @@
                      </form>
 
                      <!-- Print Button -->
-                     <button type="button" onclick="window.print()" class="inline-flex items-center gap-2 px-4 py-2 bg-primary text-white text-xs font-bold rounded-xl shadow-xs hover:bg-primary/90 transition-all active:scale-95 cursor-pointer">
+                     <button type="button" onclick="window.print()" class="w-full sm:w-auto justify-center inline-flex items-center gap-2 px-4 py-2.5 bg-primary text-white text-xs font-bold rounded-xl shadow-xs hover:bg-primary/90 transition-all active:scale-95 cursor-pointer">
                          <span class="material-symbols-outlined text-[18px]">print</span>
                          <span>Print Monthly DTR</span>
                      </button>
@@ -306,8 +336,8 @@
                 </div>
 
                 <!-- Table -->
-                <div class="overflow-x-auto border border-slate-100 rounded-lg">
-                    <table class="w-full text-left border-collapse whitespace-nowrap">
+                <div class="overflow-x-auto border border-slate-100 rounded-lg max-w-full">
+                    <table class="w-full min-w-[620px] text-left border-collapse whitespace-nowrap">
                         <thead>
                             <tr class="bg-slate-50 border-b border-slate-200">
                                 <th class="px-6 py-3 text-xs font-semibold text-slate-500 tracking-wider">Student Name</th>
@@ -364,20 +394,20 @@
             <!-- SECTION B: Evaluation Summaries -->
             <div x-show="activeTab === 'evaluations'" x-cloak class="space-y-6">
                 <!-- Toolbar -->
-                <div class="flex flex-col sm:flex-row justify-between gap-4">
+                <div class="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3 sm:gap-4 print:hidden">
                     <div class="relative w-full sm:w-80">
-                        <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">search</span>
-                        <input type="text" x-model="searchVal" placeholder="Search Student Name..." class="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-lg text-sm shadow-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
+                        <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">search</span>
+                        <input type="text" x-model="searchVal" placeholder="Search Student Name..." class="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-lg text-xs sm:text-sm shadow-xs focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
                     </div>
-                    <button class="inline-flex items-center justify-center gap-2 px-4 py-2 bg-white border border-slate-200 text-slate-700 text-sm font-semibold rounded-lg shadow-sm hover:bg-slate-50 transition-colors">
+                    <button class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-white border border-slate-200 text-slate-700 text-xs sm:text-sm font-semibold rounded-lg shadow-xs hover:bg-slate-50 transition-colors">
                         <span class="material-symbols-outlined text-[18px]">download</span>
-                        Export Evaluations
+                        <span>Export Evaluations</span>
                     </button>
                 </div>
 
                 <!-- Table -->
-                <div class="overflow-x-auto border border-slate-100 rounded-lg">
-                    <table class="w-full text-left border-collapse whitespace-nowrap">
+                <div class="overflow-x-auto border border-slate-100 rounded-lg max-w-full">
+                    <table class="w-full min-w-[780px] text-left border-collapse whitespace-nowrap">
                         <thead>
                             <tr class="bg-slate-50 border-b border-slate-200">
                                 <th class="px-6 py-3 text-xs font-semibold text-slate-500 tracking-wider">Student Name</th>
@@ -510,8 +540,8 @@
                 </div>
 
                 <!-- Table -->
-                <div class="overflow-x-auto border border-slate-100 rounded-lg">
-                    <table class="w-full text-left border-collapse whitespace-nowrap">
+                <div class="overflow-x-auto border border-slate-100 rounded-lg max-w-full">
+                    <table class="w-full min-w-[620px] text-left border-collapse whitespace-nowrap">
                         <thead>
                             <tr class="bg-slate-50 border-b border-slate-200">
                                 <th class="px-6 py-3 text-xs font-semibold text-slate-500 tracking-wider">Student Name</th>
@@ -582,6 +612,38 @@
 
         </div>
     </main>
-</body>
+    <script>
+        const sidebarEl = document.getElementById('sidebar');
+        const overlayEl = document.getElementById('sidebar-overlay');
+        const toggleBtnEl = document.getElementById('sidebar-toggle');
 
+        function openSidebar() {
+            sidebarEl?.classList.remove('-translate-x-full');
+            overlayEl?.classList.remove('hidden');
+            document.body.classList.add('overflow-hidden');
+        }
+        function closeSidebar() {
+            sidebarEl?.classList.add('-translate-x-full');
+            overlayEl?.classList.add('hidden');
+            document.body.classList.remove('overflow-hidden');
+        }
+        toggleBtnEl?.addEventListener('click', () => {
+            if (sidebarEl) {
+                sidebarEl.classList.contains('-translate-x-full') ? openSidebar() : closeSidebar();
+            }
+        });
+
+        const userMenuBtn = document.getElementById('user-menu-btn');
+        const userMenuDropdown = document.getElementById('user-menu-dropdown');
+        userMenuBtn?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            userMenuDropdown?.classList.toggle('hidden');
+        });
+        document.addEventListener('click', (e) => {
+            if (!userMenuDropdown?.contains(e.target) && !userMenuBtn?.contains(e.target)) {
+                userMenuDropdown?.classList.add('hidden');
+            }
+        });
+    </script>
+</body>
 </html>

@@ -26,18 +26,25 @@
 <body class="bg-surface text-on-surface" data-theme="portal">
     @include('components.coordinator-sidebar')
 
+    <!-- Sidebar overlay for mobile -->
+    <div id="sidebar-overlay" class="fixed inset-0 bg-black/40 backdrop-blur-xs z-40 hidden lg:hidden" onclick="closeSidebar()"></div>
+
     <!-- TopNavBar -->
-    <header class="fixed top-0 left-64 right-0 z-40 bg-surface/90 backdrop-blur-sm border-b border-[#cec3d0]/15">
-        <div class="flex justify-between items-center px-8 py-4 w-full">
-            <div class="flex items-center gap-8">
-                <span class="text-2xl font-headline font-semibold text-primary tracking-tight">OJT Management</span>
+    <header class="fixed top-0 lg:left-64 left-0 right-0 z-40 bg-surface/90 backdrop-blur-sm border-b border-[#cec3d0]/15">
+        <div class="flex justify-between items-center px-4 md:px-8 py-3.5 md:py-4 w-full">
+            <div class="flex items-center gap-3 md:gap-4">
+                <button id="sidebar-toggle" class="lg:hidden p-2 min-w-[40px] min-h-[40px] flex items-center justify-center text-primary rounded-lg hover:bg-black/5 transition-colors" aria-label="Toggle menu">
+                    <span class="material-symbols-outlined">menu</span>
+                </button>
+                <span class="text-xl md:text-2xl font-headline font-semibold text-primary tracking-tight">OJT Management</span>
             </div>
-            <div class="flex items-center gap-4 sm:gap-6">
-                <a href="{{ route('coordinator.students') }}" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-700 bg-white hover:bg-slate-50 hover:text-primary hover:border-primary/30 transition-all shadow-sm active:scale-95">
+            <div class="flex items-center gap-3 sm:gap-6">
+                <a href="{{ route('coordinator.students') }}" class="inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-700 bg-white hover:bg-slate-50 hover:text-primary hover:border-primary/30 transition-all shadow-sm active:scale-95">
                     <span class="material-symbols-outlined text-[16px]">arrow_back</span>
-                    Back to Directory
+                    <span class="hidden sm:inline">Back to Directory</span>
+                    <span class="sm:hidden">Back</span>
                 </a>
-                <div class="flex items-center gap-3 pl-3 border-l border-[#cec3d0]/30">
+                <div class="flex items-center gap-3 pl-2 sm:pl-3 border-l border-[#cec3d0]/30">
                     <div class="text-right hidden sm:block">
                         <p class="text-sm font-bold font-headline text-primary">{{ auth()->user()->display_name }}</p>
                         <p class="text-[10px] uppercase tracking-wider text-secondary font-bold">{{ auth()->user()->display_role }}</p>
@@ -50,7 +57,7 @@
         </div>
     </header>
 
-    <main class="ml-64 pt-24 px-8 pb-12 min-h-screen">
+    <main class="lg:ml-64 ml-0 pt-20 md:pt-24 px-4 sm:px-6 lg:px-8 pb-12 min-h-screen">
         
         <!-- 1. Student Profile Header Banner -->
         <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 relative overflow-hidden">
@@ -386,6 +393,27 @@
         document.getElementById('evidence-lightbox').addEventListener('click', function(e) {
             if (e.target === this) {
                 closeImageLightbox();
+            }
+        });
+
+        // Sidebar Toggling Code
+        const sidebarEl = document.getElementById('sidebar');
+        const overlayEl = document.getElementById('sidebar-overlay');
+        const toggleBtnEl = document.getElementById('sidebar-toggle');
+
+        function openSidebar() {
+            sidebarEl?.classList.remove('-translate-x-full');
+            overlayEl?.classList.remove('hidden');
+            document.body.classList.add('overflow-hidden');
+        }
+        function closeSidebar() {
+            sidebarEl?.classList.add('-translate-x-full');
+            overlayEl?.classList.add('hidden');
+            document.body.classList.remove('overflow-hidden');
+        }
+        toggleBtnEl?.addEventListener('click', () => {
+            if (sidebarEl) {
+                sidebarEl.classList.contains('-translate-x-full') ? openSidebar() : closeSidebar();
             }
         });
     </script>

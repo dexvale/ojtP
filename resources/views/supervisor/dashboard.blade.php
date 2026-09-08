@@ -40,14 +40,30 @@
                     <button class="p-2 text-[#300050] hover:bg-[#faf1f8] rounded-full transition-all active:scale-95" title="Notifications">
                         <span class="material-symbols-outlined">notifications</span>
                     </button>
-                    <div class="flex items-center gap-3 pl-2 border-l border-[#cec3d0]/30">
-                        <div class="text-right hidden sm:block">
-                            <p class="text-sm font-bold font-headline text-[#300050]">{{ auth()->user()->display_name }}</p>
-                            <p class="text-[10px] uppercase tracking-wider text-secondary font-bold">{{ auth()->user()->department ? auth()->user()->department . ' • ' : '' }}{{ auth()->user()->company->name ?? 'Supervisor' }}</p>
+                    <div class="relative flex items-center sm:pl-2 sm:border-l sm:border-[#cec3d0]/30" id="user-profile-menu">
+                        <button type="button" id="user-menu-btn" class="flex items-center gap-3 cursor-pointer focus:outline-none" aria-expanded="false" aria-haspopup="true">
+                            <div class="text-right hidden sm:block">
+                                <p class="text-sm font-bold font-headline text-[#300050]">{{ auth()->user()->display_name }}</p>
+                                <p class="text-[10px] uppercase tracking-wider text-secondary font-bold">{{ auth()->user()->department ? auth()->user()->department . ' • ' : '' }}{{ auth()->user()->company->name ?? 'Supervisor' }}</p>
+                            </div>
+                            <img alt="User profile avatar"
+                                class="w-8 h-8 sm:w-9 sm:h-9 rounded-full object-cover ring-2 ring-primary/10 hover:ring-primary transition-all flex-shrink-0"
+                                src="{{ auth()->user()->avatar_url }}">
+                        </button>
+                        <!-- Dropdown Menu -->
+                        <div id="user-menu-dropdown" class="hidden absolute right-0 top-full mt-2 w-52 bg-white rounded-xl shadow-lg border border-slate-100 py-1.5 z-50">
+                            <div class="px-4 py-2 border-b border-slate-100 sm:hidden">
+                                <p class="text-xs font-bold text-slate-800 truncate">{{ auth()->user()->display_name }}</p>
+                                <p class="text-[10px] uppercase tracking-wider text-slate-500 font-semibold truncate">{{ auth()->user()->company->name ?? 'Supervisor' }}</p>
+                            </div>
+                            <form method="POST" action="{{ route('logout') }}">
+                                @csrf
+                                <button type="submit" class="w-full text-left px-4 py-2 text-xs sm:text-sm text-red-600 hover:bg-red-50 flex items-center gap-2.5 font-semibold transition-colors cursor-pointer">
+                                    <span class="material-symbols-outlined text-[18px]">logout</span>
+                                    <span>Logout</span>
+                                </button>
+                            </form>
                         </div>
-                        <img alt="User profile avatar"
-                            class="w-8 h-8 sm:w-9 sm:h-9 rounded-full object-cover ring-2 ring-primary/10 flex-shrink-0"
-                            src="{{ auth()->user()->avatar_url }}">
                     </div>
                 </div>
             </div>
@@ -249,8 +265,25 @@
             overlayEl.classList.toggle('hidden');
         }
 
+        function closeSidebar() {
+            sidebarEl?.classList.add('-translate-x-full');
+            overlayEl?.classList.add('hidden');
+        }
+
         toggleBtnEl?.addEventListener('click', toggleSidebar);
-        overlayEl?.addEventListener('click', toggleSidebar);
+        overlayEl?.addEventListener('click', closeSidebar);
+
+        const userMenuBtn = document.getElementById('user-menu-btn');
+        const userMenuDropdown = document.getElementById('user-menu-dropdown');
+        userMenuBtn?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            userMenuDropdown?.classList.toggle('hidden');
+        });
+        document.addEventListener('click', (e) => {
+            if (!userMenuDropdown?.contains(e.target) && !userMenuBtn?.contains(e.target)) {
+                userMenuDropdown?.classList.add('hidden');
+            }
+        });
     </script>
 </body>
 </html>

@@ -39,12 +39,32 @@
         </div>
 
         <div class="flex items-center gap-3">
-            <a href="{{ route('student.profile') }}" class="flex items-center gap-2 text-primary hover:opacity-80 transition-opacity">
-                <div class="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-sm uppercase">
-                    {{ substr($profile->first_name ?? 'S', 0, 1) }}{{ substr($profile->last_name ?? 'T', 0, 1) }}
+            <div class="relative" id="user-profile-menu">
+                <button type="button" id="user-menu-btn" class="flex items-center gap-2.5 p-1 rounded-full hover:bg-surface-container transition-colors focus:outline-none cursor-pointer" aria-expanded="false" aria-haspopup="true">
+                    <div class="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-sm uppercase ring-2 ring-primary/20 hover:ring-primary transition-all">
+                        {{ substr($profile->first_name ?? 'S', 0, 1) }}{{ substr($profile->last_name ?? 'T', 0, 1) }}
+                    </div>
+                    <span class="text-sm font-semibold hidden md:block text-primary">{{ $profile->first_name ?? 'Student' }}</span>
+                </button>
+                <!-- Dropdown Menu -->
+                <div id="user-menu-dropdown" class="hidden absolute right-0 top-full mt-2 w-52 bg-white rounded-xl shadow-lg border border-slate-100 py-1.5 z-50">
+                    <div class="px-4 py-2.5 border-b border-slate-100">
+                        <p class="text-xs font-bold text-slate-800 truncate">{{ auth()->user()->display_name }}</p>
+                        <p class="text-[10px] uppercase tracking-wider text-slate-500 font-semibold truncate">{{ auth()->user()->studentProfile?->student_id_number ?? 'Student Intern' }}</p>
+                    </div>
+                    <a href="{{ route('student.profile') }}" class="px-4 py-2 text-xs sm:text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-2.5 font-medium transition-colors">
+                        <span class="material-symbols-outlined text-[18px]">person</span>
+                        <span>My Profile</span>
+                    </a>
+                    <form method="POST" action="{{ route('logout') }}">
+                        @csrf
+                        <button type="submit" class="w-full text-left px-4 py-2 text-xs sm:text-sm text-red-600 hover:bg-red-50 flex items-center gap-2.5 font-semibold transition-colors cursor-pointer">
+                            <span class="material-symbols-outlined text-[18px]">logout</span>
+                            <span>Logout</span>
+                        </button>
+                    </form>
                 </div>
-                <span class="text-sm font-semibold hidden md:block">{{ $profile->first_name ?? 'Student' }}</span>
-            </a>
+            </div>
         </div>
     </header>
 
@@ -543,6 +563,18 @@
         }
         toggleBtnEl?.addEventListener('click', () => {
             sidebarEl.classList.contains('-translate-x-full') ? openSidebar() : closeSidebar();
+        });
+
+        const userMenuBtn = document.getElementById('user-menu-btn');
+        const userMenuDropdown = document.getElementById('user-menu-dropdown');
+        userMenuBtn?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            userMenuDropdown?.classList.toggle('hidden');
+        });
+        document.addEventListener('click', (e) => {
+            if (!userMenuDropdown?.contains(e.target) && !userMenuBtn?.contains(e.target)) {
+                userMenuDropdown?.classList.add('hidden');
+            }
         });
     </script>
 </body>

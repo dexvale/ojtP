@@ -25,9 +25,15 @@
     <!-- SideNavBar -->
     @include('components.coordinator-sidebar')
 
+    <!-- Sidebar overlay for mobile -->
+    <div id="sidebar-overlay" class="fixed inset-0 bg-black/40 backdrop-blur-xs z-40 hidden lg:hidden" onclick="closeSidebar()"></div>
+
     <!-- TopNavBar -->
-    <header class="fixed top-0 w-full z-40 bg-[#fff7fd] flex justify-between items-center px-6 lg:px-8 py-4 border-b border-[#cec3d0]/20 backdrop-blur-sm lg:pl-64 pl-0">
-        <div class="flex items-center gap-4">
+    <header class="fixed top-0 lg:left-64 left-0 right-0 z-40 bg-[#fff7fd] flex justify-between items-center px-4 md:px-8 py-3.5 md:py-4 border-b border-[#cec3d0]/20 backdrop-blur-sm">
+        <div class="flex items-center gap-3 md:gap-4">
+            <button id="sidebar-toggle" class="lg:hidden p-2 min-w-[40px] min-h-[40px] flex items-center justify-center text-[#300050] rounded-lg hover:bg-black/5 transition-colors" aria-label="Toggle menu">
+                <span class="material-symbols-outlined">menu</span>
+            </button>
             <div class="flex items-center gap-2.5">
                 <span class="text-xl font-headline font-semibold text-[#300050]">Academic Terms & School Years</span>
             </div>
@@ -38,8 +44,30 @@
                 <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
                 Active Term: {{ $activeTerm ? $activeTerm->full_title : 'None Set' }}
             </span>
-            <div class="w-8 h-8 rounded-full bg-[#300050] text-white flex items-center justify-center font-bold text-xs">
-                {{ substr(auth()->user()->name, 0, 1) }}
+            <div class="relative flex items-center" id="user-profile-menu">
+                <button type="button" id="user-menu-btn" class="flex items-center gap-2.5 cursor-pointer focus:outline-none" aria-expanded="false" aria-haspopup="true">
+                    <div class="text-right hidden sm:block">
+                        <p class="text-xs font-bold text-slate-800">{{ auth()->user()->display_name }}</p>
+                        <p class="text-[10px] uppercase tracking-wider text-slate-500 font-bold">{{ auth()->user()->display_role }}</p>
+                    </div>
+                    <div class="w-8 h-8 rounded-full bg-[#300050] text-white flex items-center justify-center font-bold text-xs shadow-xs hover:ring-2 hover:ring-[#300050]/20 transition-all">
+                        {{ substr(auth()->user()->name, 0, 1) }}
+                    </div>
+                </button>
+                <!-- Dropdown Menu -->
+                <div id="user-menu-dropdown" class="hidden absolute right-0 top-full mt-2 w-48 bg-white rounded-xl shadow-lg border border-slate-100 py-1.5 z-50">
+                    <div class="px-4 py-2 border-b border-slate-100 sm:hidden">
+                        <p class="text-xs font-bold text-slate-800 truncate">{{ auth()->user()->display_name }}</p>
+                        <p class="text-[10px] uppercase tracking-wider text-slate-500 font-semibold truncate">{{ auth()->user()->display_role }}</p>
+                    </div>
+                    <form method="POST" action="{{ route('logout') }}">
+                        @csrf
+                        <button type="submit" class="w-full text-left px-4 py-2 text-xs sm:text-sm text-red-600 hover:bg-red-50 flex items-center gap-2.5 font-semibold transition-colors cursor-pointer">
+                            <span class="material-symbols-outlined text-[18px]">logout</span>
+                            <span>Logout</span>
+                        </button>
+                    </form>
+                </div>
             </div>
         </div>
     </header>
@@ -261,6 +289,39 @@
         function closeTermModal() {
             document.getElementById('termModal').classList.add('hidden');
         }
+
+        // Sidebar Toggle
+        const sidebarEl = document.getElementById('sidebar');
+        const overlayEl = document.getElementById('sidebar-overlay');
+        const toggleBtnEl = document.getElementById('sidebar-toggle');
+
+        function openSidebar() {
+            sidebarEl?.classList.remove('-translate-x-full');
+            overlayEl?.classList.remove('hidden');
+            document.body.classList.add('overflow-hidden');
+        }
+        function closeSidebar() {
+            sidebarEl?.classList.add('-translate-x-full');
+            overlayEl?.classList.add('hidden');
+            document.body.classList.remove('overflow-hidden');
+        }
+        toggleBtnEl?.addEventListener('click', () => {
+            if (sidebarEl) {
+                sidebarEl.classList.contains('-translate-x-full') ? openSidebar() : closeSidebar();
+            }
+        });
+
+        const userMenuBtn = document.getElementById('user-menu-btn');
+        const userMenuDropdown = document.getElementById('user-menu-dropdown');
+        userMenuBtn?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            userMenuDropdown?.classList.toggle('hidden');
+        });
+        document.addEventListener('click', (e) => {
+            if (!userMenuDropdown?.contains(e.target) && !userMenuBtn?.contains(e.target)) {
+                userMenuDropdown?.classList.add('hidden');
+            }
+        });
     </script>
 </body>
 

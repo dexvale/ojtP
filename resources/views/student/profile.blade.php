@@ -51,9 +51,25 @@
             <span class="material-symbols-outlined">notifications</span>
             <span class="absolute top-1.5 right-1.5 w-2 h-2 bg-error rounded-full"></span>
         </button>
-        <button class="p-2 text-primary rounded-lg hover:bg-surface-container transition-colors" aria-label="Profile">
-            <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24;">account_circle</span>
-        </button>
+        <div class="relative" id="user-profile-menu">
+            <button type="button" id="user-menu-btn" class="flex items-center gap-2.5 p-1 rounded-full hover:bg-surface-container transition-colors focus:outline-none cursor-pointer" aria-expanded="false" aria-haspopup="true">
+                <img alt="User avatar" class="w-8 h-8 rounded-full object-cover ring-2 ring-primary/20 hover:ring-primary transition-all" src="{{ $user->studentProfile?->profile_photo_url ?? $user->avatar_url }}">
+            </button>
+            <!-- Dropdown Menu -->
+            <div id="user-menu-dropdown" class="hidden absolute right-0 top-full mt-2 w-52 bg-white rounded-xl shadow-lg border border-slate-100 py-1.5 z-50">
+                <div class="px-4 py-2.5 border-b border-slate-100">
+                    <p class="text-xs font-bold text-slate-800 truncate">{{ $user->display_name }}</p>
+                    <p class="text-[10px] uppercase tracking-wider text-slate-500 font-semibold truncate">{{ $user->studentProfile?->student_id_number ?? 'Student Intern' }}</p>
+                </div>
+                <form method="POST" action="{{ route('logout') }}">
+                    @csrf
+                    <button type="submit" class="w-full text-left px-4 py-2 text-xs sm:text-sm text-red-600 hover:bg-red-50 flex items-center gap-2.5 font-semibold transition-colors cursor-pointer">
+                        <span class="material-symbols-outlined text-[18px]">logout</span>
+                        <span>Logout</span>
+                    </button>
+                </form>
+            </div>
+        </div>
     </div>
 </header>
 
@@ -336,6 +352,26 @@
             </div>
         </form>
 
+        <!-- Account Actions Card -->
+        <div class="mt-6 bg-surface-container-lowest rounded-2xl border border-surface-variant/20 p-6 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div class="flex items-center gap-3.5">
+                <div class="w-11 h-11 rounded-xl bg-red-50 text-red-600 flex items-center justify-center flex-shrink-0">
+                    <span class="material-symbols-outlined text-2xl">logout</span>
+                </div>
+                <div>
+                    <h3 class="text-sm font-bold text-slate-800">Account Session</h3>
+                    <p class="text-xs text-slate-500 mt-0.5">Securely end your current portal session.</p>
+                </div>
+            </div>
+            <form method="POST" action="{{ route('logout') }}">
+                @csrf
+                <button type="submit" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-red-50 hover:bg-red-100 text-red-700 text-xs sm:text-sm font-bold rounded-xl border border-red-200 shadow-xs transition-all active:scale-95 cursor-pointer">
+                    <span class="material-symbols-outlined text-base">logout</span>
+                    <span>Log Out of Account</span>
+                </button>
+            </form>
+        </div>
+
     </div>{{-- /Container --}}
 </main>
 
@@ -420,6 +456,18 @@
     }
     toggleBtn?.addEventListener('click', () => {
         sidebar.classList.contains('-translate-x-full') ? openSidebar() : closeSidebar();
+    });
+
+    const userMenuBtn = document.getElementById('user-menu-btn');
+    const userMenuDropdown = document.getElementById('user-menu-dropdown');
+    userMenuBtn?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        userMenuDropdown?.classList.toggle('hidden');
+    });
+    document.addEventListener('click', (e) => {
+        if (!userMenuDropdown?.contains(e.target) && !userMenuBtn?.contains(e.target)) {
+            userMenuDropdown?.classList.add('hidden');
+        }
     });
 
     // Auto-open edit mode if there are validation errors
