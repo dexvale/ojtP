@@ -13,7 +13,10 @@ return new class extends Migration
     public function up(): void
     {
         // Safely alter the column type to TEXT to support 65,000+ characters
-        if (DB::getDriverName() !== 'sqlite') {
+        $driver = DB::getDriverName();
+        if ($driver === 'pgsql') {
+            DB::statement('ALTER TABLE ojt_logs ALTER COLUMN remarks TYPE TEXT');
+        } elseif ($driver !== 'sqlite') {
             DB::statement('ALTER TABLE ojt_logs MODIFY remarks TEXT');
         }
     }
@@ -24,7 +27,10 @@ return new class extends Migration
     public function down(): void
     {
         // Revert back to VARCHAR(500) if rolled back
-        if (DB::getDriverName() !== 'sqlite') {
+        $driver = DB::getDriverName();
+        if ($driver === 'pgsql') {
+            DB::statement('ALTER TABLE ojt_logs ALTER COLUMN remarks TYPE VARCHAR(500)');
+        } elseif ($driver !== 'sqlite') {
             DB::statement('ALTER TABLE ojt_logs MODIFY remarks VARCHAR(500)');
         }
     }
