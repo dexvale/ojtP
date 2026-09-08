@@ -141,6 +141,16 @@ Route::get('/system-setup/{key}', function ($key) {
             $output .= "\n[SEEDERS]\n" . \Illuminate\Support\Facades\Artisan::output();
         }
 
+        if ($action === 'users') {
+            $users = \App\Models\User::all(['id', 'name', 'email', 'role', 'created_at']);
+            $output .= "\n[REGISTERED USERS (" . $users->count() . " Total)]\n";
+            $output .= sprintf("%-4s | %-24s | %-28s | %-12s\n", "ID", "Name", "Email", "Role");
+            $output .= str_repeat("-", 75) . "\n";
+            foreach ($users as $u) {
+                $output .= sprintf("%-4d | %-24s | %-28s | %-12s\n", $u->id, \Illuminate\Support\Str::limit($u->name ?: 'N/A', 22), \Illuminate\Support\Str::limit($u->email, 26), $u->role ?: 'N/A');
+            }
+        }
+
         if ($action === 'clear') {
             \Illuminate\Support\Facades\Artisan::call('optimize:clear');
             $output .= "\n[OPTIMIZE CLEAR]\n" . \Illuminate\Support\Facades\Artisan::output();
@@ -149,5 +159,5 @@ Route::get('/system-setup/{key}', function ($key) {
         $output .= "\n[ERROR]: " . $e->getMessage();
     }
 
-    return response("<pre style='background:#1e1e2e;color:#a6adc8;padding:24px;font-family:monospace;font-size:14px;border-radius:12px;margin:30px auto;max-width:800px;line-height:1.6;box-shadow:0 10px 25px rgba(0,0,0,0.3);'>" . htmlspecialchars($output) . "</pre>");
+    return response("<pre style='background:#1e1e2e;color:#a6adc8;padding:24px;font-family:monospace;font-size:14px;border-radius:12px;margin:30px auto;max-width:850px;line-height:1.6;box-shadow:0 10px 25px rgba(0,0,0,0.3);overflow-x:auto;'>" . htmlspecialchars($output) . "</pre>");
 });
