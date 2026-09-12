@@ -164,7 +164,7 @@
                     <div class="border-t border-slate-100 pt-4 flex flex-wrap gap-3 items-center justify-between mt-auto">
                         <div>
                             @if($req->template_path)
-                                <a href="{{ asset('storage/' . $req->template_path) }}" target="_blank"
+                                <a href="{{ route('student.requirements.downloadTemplate', $req->id) }}"
                                    class="inline-flex items-center gap-1 text-xs font-bold text-primary hover:text-purple-950 transition">
                                     <span class="material-symbols-outlined text-sm">download</span>
                                     Get Template Form
@@ -183,7 +183,7 @@
                                         <span>Fill Form (Online)</span>
                                     </a>
                                 @endif
-                                <button onclick="openSubmitModal({{ $req->id }}, '{{ $req->title }}')"
+                                <button data-id="{{ $req->id }}" data-title="{{ $req->title }}" onclick="openSubmitModal(this.dataset.id, this.dataset.title)"
                                         class="px-4 py-2 bg-[#300050] hover:bg-purple-950 text-white rounded-lg text-xs font-bold shadow-sm transition active:scale-95">
                                     Submit File
                                 </button>
@@ -206,7 +206,7 @@
                                         <span>Fill Form (Online)</span>
                                     </a>
                                 @endif
-                                <button onclick="openSubmitModal({{ $req->id }}, '{{ $req->title }}')"
+                                <button data-id="{{ $req->id }}" data-title="{{ $req->title }}" onclick="openSubmitModal(this.dataset.id, this.dataset.title)"
                                         class="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-xs font-bold shadow-md transition active:scale-95">
                                     Re-submit Document
                                 </button>
@@ -244,14 +244,27 @@
                 @csrf
                 
                 <div class="mb-6">
-                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Upload Completed Document</label>
+                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Upload Completed Document(s)</label>
                     <div class="border-2 border-dashed border-slate-200 hover:border-purple-300 rounded-xl p-6 bg-slate-50/50 hover:bg-purple-50/10 cursor-pointer transition-colors relative flex flex-col items-center justify-center">
-                        <input type="file" name="submission_file" required
+                        <input type="file" name="submission_files[]" id="submission_file_input" multiple required
                                class="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                               onchange="updateFileNameDisplay(this, 'file_name_display')">
-                        <span class="material-symbols-outlined text-slate-400 text-4xl mb-2">cloud_upload</span>
-                        <p class="text-xs font-bold text-slate-600 uppercase tracking-wider" id="file_name_display">Choose or drag completed file</p>
-                        <p class="text-[10px] text-slate-400 font-medium mt-1">PDF, DOCX, ZIP, PNG, JPG up to 10MB</p>
+                               accept=".pdf,.docx,.doc,.zip,.jpg,.jpeg,.png,.webp"
+                               onchange="updateFilesDisplay(this)">
+                        <span class="material-symbols-outlined text-slate-400 text-4xl mb-2" id="upload_icon">cloud_upload</span>
+                        <p class="text-xs font-bold text-slate-600 uppercase tracking-wider text-center" id="file_name_display">Choose or drag completed file(s)</p>
+                        <p class="text-[10px] text-slate-400 font-medium mt-1 text-center" id="file_type_hint">PDF, DOCX, ZIP, PNG, JPG up to 15MB each (select multiple to merge)</p>
+                    </div>
+
+                    <!-- Multi-file list preview container -->
+                    <div id="selected_files_list" class="mt-3 space-y-1.5 hidden max-h-40 overflow-y-auto pr-1"></div>
+
+                    <!-- Auto-merge indicator banner -->
+                    <div id="multi_merge_badge" class="mt-3 hidden bg-purple-50 border border-purple-200 rounded-xl p-3 flex items-start gap-2.5 text-xs text-purple-950">
+                        <span class="material-symbols-outlined text-purple-600 text-base mt-0.5 shrink-0">auto_awesome</span>
+                        <div>
+                            <p class="font-bold text-purple-900">Automatic PDF Merger Active</p>
+                            <p class="text-[11px] text-purple-700 mt-0.5">All selected scan files and photos will be compiled into a single combined PDF for you.</p>
+                        </div>
                     </div>
                 </div>
 
@@ -273,15 +286,80 @@
     @include('components.student-bottom-nav')
 
     <script>
-        function updateFileNameDisplay(input, elementId) {
-            const fileName = input.files[0] ? input.files[0].name : "Choose or drag completed file";
-            document.getElementById(elementId).innerText = fileName;
+        function updateFilesDisplay(input) {
+            const display = document.getElementById('file_name_display');
+            const hint = document.getElementById('file_type_hint');
+            const listContainer = document.getElementById('selected_files_list');
+            const mergeBadge = document.getElementById('multi_merge_badge');
+            const icon = document.getElementById('upload_icon');
+
+            listContainer.innerHTML = '';
+
+            if (!input.files || input.files.length === 0) {
+                display.innerText = "Choose or drag completed file(s)";
+                hint.innerText = "PDF, DOCX, ZIP, PNG, JPG up to 15MB each (select multiple to merge)";
+                listContainer.classList.add('hidden');
+                mergeBadge.classList.add('hidden');
+                icon.innerText = "cloud_upload";
+                icon.className = "material-symbols-outlined text-slate-400 text-4xl mb-2";
+                return;
+            }
+
+            const files = Array.from(input.files);
+
+            if (files.length === 1) {
+                const file = files[0];
+                const sizeMb = (file.size / (1024 * 1024)).toFixed(2);
+                display.innerText = file.name;
+                hint.innerText = `${sizeMb} MB • Ready to upload`;
+                listContainer.classList.add('hidden');
+                mergeBadge.classList.add('hidden');
+                icon.innerText = "task";
+                icon.className = "material-symbols-outlined text-purple-600 text-4xl mb-2";
+            } else {
+                display.innerText = `${files.length} files selected`;
+                hint.innerText = `Ready to automatically merge into 1 PDF`;
+                listContainer.classList.remove('hidden');
+                mergeBadge.classList.remove('hidden');
+                icon.innerText = "collections";
+                icon.className = "material-symbols-outlined text-purple-600 text-4xl mb-2";
+
+                files.forEach((file, index) => {
+                    const item = document.createElement('div');
+                    item.className = "flex items-center justify-between bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-700";
+                    const sizeKb = (file.size / 1024).toFixed(0);
+                    item.innerHTML = `
+                        <div class="flex items-center gap-1.5 truncate">
+                            <span class="text-[10px] font-bold text-slate-400">#${index + 1}</span>
+                            <span class="font-medium truncate">${file.name}</span>
+                        </div>
+                        <span class="text-[10px] text-slate-400 shrink-0 font-mono">${sizeKb} KB</span>
+                    `;
+                    listContainer.appendChild(item);
+                });
+            }
         }
 
         function openSubmitModal(reqId, reqTitle) {
             document.getElementById('modal_req_title').innerText = reqTitle;
             document.getElementById('submitForm').action = `/student/requirements/${reqId}/submit`;
+            
+            const input = document.getElementById('submission_file_input');
+            if (input) {
+                input.value = '';
+                updateFilesDisplay(input);
+            }
+
             document.getElementById('submitModal').classList.remove('hidden');
+        }
+
+        function closeSubmitModal() {
+            document.getElementById('submitModal').classList.add('hidden');
+            const input = document.getElementById('submission_file_input');
+            if (input) {
+                input.value = '';
+                updateFilesDisplay(input);
+            }
         }
 
         // ── Mobile sidebar toggle ──
@@ -314,10 +392,6 @@
                 userMenuDropdown?.classList.add('hidden');
             }
         });
-
-        function closeSubmitModal() {
-            document.getElementById('submitModal').classList.add('hidden');
-        }
     </script>
 </body>
 

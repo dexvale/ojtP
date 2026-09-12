@@ -118,11 +118,8 @@
             </div>
             
             <div class="flex flex-wrap gap-3 z-10">
-                <button onclick="openEditModal({{ $company }})" class="px-4 py-2 border border-slate-200 text-slate-700 font-semibold text-sm rounded-xl hover:bg-slate-50 transition-colors flex items-center gap-2 shadow-sm">
+                <button onclick="openEditModal({{ $company }})" class="px-4 py-2 border border-slate-200 text-slate-700 font-semibold text-sm rounded-xl hover:bg-slate-50 transition-colors flex items-center gap-2 shadow-sm cursor-pointer">
                     <span class="material-symbols-outlined text-[18px]">edit</span> Edit Details
-                </button>
-                <button onclick="document.getElementById('addSupervisorModal').classList.remove('hidden')" class="px-4 py-2 bg-primary text-white font-semibold text-sm rounded-xl hover:opacity-90 transition-all flex items-center gap-2 shadow-sm">
-                    <span class="material-symbols-outlined text-[18px]">person_add</span> Provision Advisor
                 </button>
             </div>
         </div>

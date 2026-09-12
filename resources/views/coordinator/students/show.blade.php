@@ -59,6 +59,13 @@
 
     <main class="lg:ml-64 ml-0 pt-20 md:pt-24 px-4 sm:px-6 lg:px-8 pb-12 min-h-screen">
         
+        @if(session('success'))
+            <div class="bg-emerald-50 border border-emerald-200 text-emerald-800 px-5 py-4 rounded-xl mb-6 shadow-sm flex items-center gap-3">
+                <span class="material-symbols-outlined text-emerald-600 text-[20px]">check_circle</span>
+                <span class="text-sm font-medium">{{ session('success') }}</span>
+            </div>
+        @endif
+
         <!-- 1. Student Profile Header Banner -->
         <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 relative overflow-hidden">
             <div class="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3"></div>
@@ -138,16 +145,174 @@
                 </div>
             </div>
 
-            <!-- Documents -->
-            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 flex items-center gap-5 relative overflow-hidden">
-                <div class="w-14 h-14 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
+            <!-- Documents Metric Card -->
+            <a href="#documents-section" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 flex items-center gap-5 relative overflow-hidden hover:border-purple-300 transition-all group cursor-pointer">
+                <div class="w-14 h-14 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
                     <span class="material-symbols-outlined text-3xl">folder_open</span>
                 </div>
-                <div>
+                <div class="flex-1 min-w-0">
                     <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Documents</p>
-                    <h3 class="text-3xl font-black text-slate-800 font-mono">0</h3>
-                    <p class="text-xs text-slate-500 mt-2">Uploaded verifications</p>
+                    <div class="flex items-baseline justify-between gap-2">
+                        <h3 class="text-3xl font-black text-slate-800 font-mono">
+                            {{ $approvedDocsCount }}<span class="text-slate-400 text-lg font-bold font-sans">/{{ $totalRequiredCount > 0 ? $totalRequiredCount : $totalSubmissionsCount }}</span>
+                        </h3>
+                        @if($allDocsVerified && $totalRequiredCount > 0)
+                            <span class="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded shrink-0">All Verified</span>
+                        @elseif($pendingDocsCount > 0)
+                            <span class="text-xs font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded shrink-0">{{ $pendingDocsCount }} Pending</span>
+                        @else
+                            <span class="text-xs font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded shrink-0">{{ $totalSubmissionsCount }} Uploaded</span>
+                        @endif
+                    </div>
+                    <p class="text-xs text-slate-500 mt-2 truncate">
+                        @if($pendingDocsCount > 0)
+                            {{ $pendingDocsCount }} {{ Str::plural('document', $pendingDocsCount) }} awaiting verification
+                        @elseif($allDocsVerified && $totalRequiredCount > 0)
+                            All required requirements complete
+                        @else
+                            {{ $approvedDocsCount }} verified, {{ $totalSubmissionsCount }} submitted
+                        @endif
+                    </p>
                 </div>
+            </a>
+        </div>
+
+        <!-- 3. Submitted Requirement Documents Section -->
+        <div id="documents-section" class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden mb-8 scroll-mt-24">
+            <div class="border-b border-slate-200 bg-slate-50/50 px-6 py-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                <div class="flex items-center gap-3">
+                    <h2 class="text-lg font-bold font-headline text-slate-800 flex items-center gap-2">
+                        <span class="material-symbols-outlined text-primary">folder_shared</span>
+                        Submitted Requirement Documents
+                    </h2>
+                    <span class="text-xs text-slate-500 font-medium">
+                        ({{ $approvedDocsCount }}/{{ $totalRequiredCount > 0 ? $totalRequiredCount : $totalSubmissionsCount }} verified)
+                    </span>
+                </div>
+                <a href="{{ route('coordinator.requirements') }}" class="text-xs font-bold text-primary hover:text-purple-950 flex items-center gap-1 transition">
+                    <span>Manage Requirements</span>
+                    <span class="material-symbols-outlined text-sm">arrow_forward</span>
+                </a>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse text-sm">
+                    <thead>
+                        <tr class="bg-white border-b border-slate-100 text-slate-400 font-semibold text-xs uppercase tracking-wider">
+                            <th class="px-6 py-4">Requirement</th>
+                            <th class="px-6 py-4">Status</th>
+                            <th class="px-6 py-4">Submitted File</th>
+                            <th class="px-6 py-4">Submitted At</th>
+                            <th class="px-6 py-4 text-right">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">
+                        @php
+                            // Combine course requirements with any extra submissions
+                            $displayedRequirements = collect();
+                            if ($courseRequirements->isNotEmpty()) {
+                                foreach($courseRequirements as $req) {
+                                    $sub = $submissions->firstWhere('requirement_id', $req->id);
+                                    $displayedRequirements->push([
+                                        'requirement' => $req,
+                                        'submission' => $sub
+                                    ]);
+                                }
+                            }
+                            // Also include any submissions that might not be in course requirements
+                            $existingReqIds = $courseRequirements->pluck('id')->toArray();
+                            foreach($submissions as $sub) {
+                                if (!in_array($sub->requirement_id, $existingReqIds) && $sub->requirement) {
+                                    $displayedRequirements->push([
+                                        'requirement' => $sub->requirement,
+                                        'submission' => $sub
+                                    ]);
+                                }
+                            }
+                        @endphp
+
+                        @forelse($displayedRequirements as $item)
+                            @php
+                                $req = $item['requirement'];
+                                $sub = $item['submission'];
+                            @endphp
+                            <tr class="hover:bg-slate-50/50 transition-colors">
+                                <td class="px-6 py-4">
+                                    <div class="font-bold text-slate-800">{{ $req->title }}</div>
+                                    @if($req->description)
+                                        <div class="text-xs text-slate-400 line-clamp-1 max-w-sm">{{ $req->description }}</div>
+                                    @endif
+                                </td>
+                                <td class="px-6 py-4">
+                                    @if(!$sub)
+                                        <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-500 uppercase tracking-wider">
+                                            Not Submitted
+                                        </span>
+                                    @elseif($sub->status === 'Approved')
+                                        <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800 uppercase tracking-wider">
+                                            <span class="material-symbols-outlined text-[12px] font-bold">check</span> Verified
+                                        </span>
+                                    @elseif($sub->status === 'Pending')
+                                        <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800 uppercase tracking-wider">
+                                            <span class="material-symbols-outlined text-[12px] font-bold">schedule</span> Pending
+                                        </span>
+                                    @else
+                                        <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-[10px] font-bold bg-rose-100 text-rose-800 uppercase tracking-wider">
+                                            <span class="material-symbols-outlined text-[12px] font-bold">close</span> Revision Required
+                                        </span>
+                                    @endif
+                                </td>
+                                <td class="px-6 py-4">
+                                    @if($sub && $sub->file_path)
+                                        <a href="{{ asset('storage/' . $sub->file_path) }}" target="_blank" rel="noopener noreferrer"
+                                           class="inline-flex items-center gap-1.5 px-3 py-1 bg-purple-50 hover:bg-purple-100 border border-purple-100 rounded-lg text-purple-700 text-xs font-bold transition shadow-sm">
+                                            <span class="material-symbols-outlined text-[16px]">picture_as_pdf</span>
+                                            View Document
+                                        </a>
+                                        @if($sub->remarks)
+                                            <p class="text-[10px] text-rose-600 italic mt-1 max-w-xs">
+                                                <strong>Remarks:</strong> {{ $sub->remarks }}
+                                            </p>
+                                        @endif
+                                    @else
+                                        <span class="text-xs text-slate-400 italic">No file uploaded</span>
+                                    @endif
+                                </td>
+                                <td class="px-6 py-4 text-xs text-slate-500">
+                                    @if($sub)
+                                        {{ $sub->updated_at->format('M d, Y h:i A') }}
+                                    @else
+                                        <span class="text-slate-300">—</span>
+                                    @endif
+                                </td>
+                                <td class="px-6 py-4 text-right">
+                                    @if($sub && $sub->status === 'Pending')
+                                        <div class="flex items-center justify-end gap-1.5">
+                                            <form action="{{ route('coordinator.submissions.approve', $sub->id) }}" method="POST" class="inline">
+                                                @csrf
+                                                <button type="submit" class="p-1.5 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-700 rounded-lg transition cursor-pointer" title="Approve Submission">
+                                                    <span class="material-symbols-outlined text-base">check</span>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    @elseif($sub && $sub->status === 'Approved')
+                                        <span class="text-xs text-emerald-600 font-semibold flex items-center justify-end gap-1">
+                                            <span class="material-symbols-outlined text-sm">verified</span> Verified
+                                        </span>
+                                    @else
+                                        <span class="text-xs text-slate-400">—</span>
+                                    @endif
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="5" class="px-6 py-10 text-center text-slate-400 font-medium italic">
+                                    No requirements configured for this student's course.
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
             </div>
         </div>
 

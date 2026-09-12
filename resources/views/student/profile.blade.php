@@ -43,10 +43,6 @@
     </div>
 
     <div class="flex items-center gap-3">
-        <div class="hidden md:flex bg-surface-container rounded-lg px-4 py-2 items-center gap-2 border border-outline/15">
-            <span class="material-symbols-outlined text-outline text-[18px]">search</span>
-            <input class="bg-transparent border-none focus:ring-0 text-sm w-44 text-on-surface-variant placeholder:text-outline/60" placeholder="Search resources..." type="text"/>
-        </div>
         <button class="relative p-2 text-primary rounded-lg hover:bg-surface-container transition-colors" aria-label="Notifications">
             <span class="material-symbols-outlined">notifications</span>
             <span class="absolute top-1.5 right-1.5 w-2 h-2 bg-error rounded-full"></span>
@@ -61,6 +57,11 @@
                     <p class="text-xs font-bold text-slate-800 truncate">{{ $user->display_name }}</p>
                     <p class="text-[10px] uppercase tracking-wider text-slate-500 font-semibold truncate">{{ $user->studentProfile?->student_id_number ?? 'Student Intern' }}</p>
                 </div>
+                <a href="#security-card" onclick="document.getElementById('security-card')?.scrollIntoView({behavior:'smooth'});" class="w-full text-left px-4 py-2 text-xs text-slate-700 hover:bg-purple-50 hover:text-purple-900 flex items-center gap-2.5 font-semibold transition-colors cursor-pointer">
+                    <span class="material-symbols-outlined text-[18px] text-purple-600">lock_reset</span>
+                    <span>Change Password</span>
+                </a>
+                <div class="border-t border-slate-100 my-1"></div>
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
                     <button type="submit" class="w-full text-left px-4 py-2 text-xs sm:text-sm text-red-600 hover:bg-red-50 flex items-center gap-2.5 font-semibold transition-colors cursor-pointer">
@@ -145,7 +146,7 @@
                 </div>
             @endif
 
-            @if($errors->any())
+            @if(isset($errors) && $errors->any() && !$errors->has('current_password') && !$errors->has('password'))
                 <div class="mb-6 p-4 rounded-lg bg-rose-50 border border-rose-200 text-rose-700 flex items-start gap-3 shadow-sm">
                     <span class="material-symbols-outlined mt-0.5">error</span>
                     <div>
@@ -352,6 +353,113 @@
             </div>
         </form>
 
+        <!-- ── Security & Change Password Card ── -->
+        <div id="security-card" class="bg-surface-container-lowest rounded-2xl border border-surface-variant/20 p-6 sm:p-8 shadow-xs space-y-6">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-surface-variant/20 pb-4">
+                <div class="flex items-center gap-3.5">
+                    <div class="w-11 h-11 rounded-xl bg-purple-50 text-purple-700 flex items-center justify-center flex-shrink-0">
+                        <span class="material-symbols-outlined text-2xl">lock_reset</span>
+                    </div>
+                    <div>
+                        <h2 class="text-base font-bold text-slate-800 font-headline">Account Security & Password</h2>
+                        <p class="text-xs text-slate-500 mt-0.5">Ensure your student account is using a strong password with at least 8 characters.</p>
+                    </div>
+                </div>
+            </div>
+
+            @if(session('password_success'))
+                <div class="bg-emerald-50 border border-emerald-200 text-emerald-800 px-4 py-3 rounded-xl flex items-center gap-3 text-xs font-semibold shadow-xs">
+                    <span class="material-symbols-outlined text-emerald-600 text-xl">verified_user</span>
+                    <span>{{ session('password_success') }}</span>
+                </div>
+            @endif
+
+            @if(isset($errors) && ($errors->has('current_password') || $errors->has('password')))
+                <div class="bg-rose-50 border border-rose-200 text-rose-800 px-4 py-3 rounded-xl shadow-xs text-xs space-y-1">
+                    <div class="flex items-center gap-2 font-bold text-rose-900">
+                        <span class="material-symbols-outlined text-rose-600 text-lg">error</span>
+                        <span>Password Update Error:</span>
+                    </div>
+                    <ul class="list-disc list-inside text-rose-700 space-y-0.5 ml-5">
+                        @error('current_password')
+                            <li>{{ $message }}</li>
+                        @enderror
+                        @error('password')
+                            <li>{{ $message }}</li>
+                        @enderror
+                    </ul>
+                </div>
+            @endif
+
+            <form method="POST" action="{{ route('account.password.update') }}" class="space-y-5">
+                @csrf
+                @method('PUT')
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <!-- Current Password -->
+                    <div>
+                        <label for="student_current_password" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                            Current Password <span class="text-rose-500">*</span>
+                        </label>
+                        <div class="relative">
+                            <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-lg pointer-events-none">key</span>
+                            <input type="password" name="current_password" id="student_current_password" required
+                                   placeholder="Current password"
+                                   class="w-full pl-10 pr-10 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm font-medium text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition">
+                            <button type="button" onclick="toggleStudentPassword('student_current_password', 'student_cur_eye')" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none cursor-pointer">
+                                <span class="material-symbols-outlined text-lg" id="student_cur_eye">visibility</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- New Password -->
+                    <div>
+                        <label for="student_new_password" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                            New Password <span class="text-rose-500">*</span>
+                        </label>
+                        <div class="relative">
+                            <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-lg pointer-events-none">lock</span>
+                            <input type="password" name="password" id="student_new_password" required minlength="8"
+                                   placeholder="Min 8 characters"
+                                   oninput="checkStudentPassword(this.value)"
+                                   class="w-full pl-10 pr-10 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm font-medium text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition">
+                            <button type="button" onclick="toggleStudentPassword('student_new_password', 'student_new_eye')" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none cursor-pointer">
+                                <span class="material-symbols-outlined text-lg" id="student_new_eye">visibility</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Confirm Password -->
+                    <div>
+                        <label for="student_confirm_password" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                            Confirm New Password <span class="text-rose-500">*</span>
+                        </label>
+                        <div class="relative">
+                            <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-lg pointer-events-none">check_circle</span>
+                            <input type="password" name="password_confirmation" id="student_confirm_password" required minlength="8"
+                                   placeholder="Repeat new password"
+                                   oninput="validateStudentMatch()"
+                                   class="w-full pl-10 pr-10 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm font-medium text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition">
+                            <button type="button" onclick="toggleStudentPassword('student_confirm_password', 'student_conf_eye')" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none cursor-pointer">
+                                <span class="material-symbols-outlined text-lg" id="student_conf_eye">visibility</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Password hint / match indicator -->
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-slate-500 pt-1">
+                    <div class="flex items-center gap-2">
+                        <span id="student-match-hint" class="font-semibold text-slate-500">Must be at least 8 characters long</span>
+                    </div>
+                    <button type="submit" class="px-5 py-2.5 bg-[#300050] hover:bg-[#430270] text-white rounded-xl text-xs sm:text-sm font-bold shadow-xs transition-all active:scale-95 cursor-pointer flex items-center justify-center gap-2 sm:self-auto self-end">
+                        <span class="material-symbols-outlined text-base">lock_reset</span>
+                        <span>Update Password</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+
         <!-- Account Actions Card -->
         <div class="mt-6 bg-surface-container-lowest rounded-2xl border border-surface-variant/20 p-6 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div class="flex items-center gap-3.5">
@@ -470,12 +578,70 @@
         }
     });
 
-    // Auto-open edit mode if there are validation errors
-    @if($errors->any())
+    // Auto-open edit mode if there are profile validation errors, or scroll to security card if password errors
+    @if(isset($errors) && $errors->any())
         document.addEventListener('DOMContentLoaded', () => {
-            toggleEdit();
+            @if($errors->has('current_password') || $errors->has('password'))
+                const secCard = document.getElementById('security-card');
+                if (secCard) secCard.scrollIntoView({ behavior: 'smooth' });
+            @else
+                toggleEdit();
+            @endif
         });
     @endif
+
+    // Smooth scroll to security card if hash is #security
+    document.addEventListener('DOMContentLoaded', () => {
+        if (window.location.hash === '#security' || window.location.hash === '#security-card') {
+            const secCard = document.getElementById('security-card');
+            if (secCard) secCard.scrollIntoView({ behavior: 'smooth' });
+        }
+    });
+
+    // ── Student Password Helpers ──
+    function toggleStudentPassword(fieldId, iconId) {
+        const input = document.getElementById(fieldId);
+        const icon = document.getElementById(iconId);
+        if (!input || !icon) return;
+
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.textContent = 'visibility_off';
+        } else {
+            input.type = 'password';
+            icon.textContent = 'visibility';
+        }
+    }
+
+    function checkStudentPassword(val) {
+        validateStudentMatch();
+    }
+
+    function validateStudentMatch() {
+        const newPass = document.getElementById('student_new_password');
+        const confPass = document.getElementById('student_confirm_password');
+        const hint = document.getElementById('student-match-hint');
+        if (!newPass || !confPass || !hint) return;
+
+        if (!confPass.value) {
+            if (newPass.value.length >= 8) {
+                hint.textContent = '✓ Length requirement met';
+                hint.className = 'font-semibold text-emerald-600';
+            } else {
+                hint.textContent = 'Must be at least 8 characters long';
+                hint.className = 'font-semibold text-slate-500';
+            }
+            return;
+        }
+
+        if (newPass.value === confPass.value) {
+            hint.textContent = '✓ Passwords match';
+            hint.className = 'font-semibold text-emerald-600';
+        } else {
+            hint.textContent = '✗ Passwords do not match';
+            hint.className = 'font-semibold text-rose-600';
+        }
+    }
 </script>
 </body>
 </html>

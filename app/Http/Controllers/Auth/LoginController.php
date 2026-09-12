@@ -27,7 +27,7 @@ class LoginController extends Controller
             $user = Auth::user();
 
             if (strtolower($user->role) === 'admin') {
-                return redirect()->intended(route('admin.coordinators'));
+                return redirect()->intended(route('admin.academic_terms.index'));
             }
 
             if (strtolower($user->role) === 'coordinator') {

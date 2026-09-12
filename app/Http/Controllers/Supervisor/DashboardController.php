@@ -109,6 +109,7 @@ class DashboardController extends Controller
     {
         $status = ucfirst(strtolower(request('status', 'Pending')));
         $sortBy = request('sort', 'oldest_first');
+        $internId = request('intern_id');
         
         $user = auth()->user();
         $companyId = $user->company_id ?? $user->supervisorProfile->company_id ?? null;
@@ -119,38 +120,113 @@ class DashboardController extends Controller
                 $studentQuery->where('supervisor_id', $user->id);
             }
 
-            $internUserIds = $studentQuery->pluck('user_id');
-            
-            $query = \App\Models\OjtLog::whereIn('user_id', $internUserIds)
-                ->where('status', $status)
-                ->with('user.studentProfile');
+            $internUserIds = (clone $studentQuery)->pluck('user_id');
+            $baseQuery = \App\Models\OjtLog::whereIn('user_id', $internUserIds);
+            $interns = $studentQuery->with('user')->get();
         } else {
-            // Debugging fall-back: grab all pending logs for local development testing
-            $query = \App\Models\OjtLog::where('status', $status)
-                ->with('user.studentProfile');
+            // Fallback for development without company assigned
+            $baseQuery = \App\Models\OjtLog::query();
+            $interns = \App\Models\StudentProfile::with('user')->get();
+        }
+
+        // Live status counts for tab badges
+        $pendingCount = (clone $baseQuery)->where('status', 'Pending')->count();
+        $approvedCount = (clone $baseQuery)->where('status', 'Approved')->count();
+        $rejectedCount = (clone $baseQuery)->where('status', 'Rejected')->count();
+
+        $query = (clone $baseQuery)
+            ->where('status', $status)
+            ->with('user.studentProfile');
+
+        if ($internId) {
+            $query->where('user_id', $internId);
         }
 
         switch ($sortBy) {
             case 'newest_first':
-                $query->orderBy('created_at', 'desc');
+                $query->orderBy('log_date', 'desc')->orderBy('created_at', 'desc');
                 break;
             case 'intern_name':
                 $query->join('users', 'ojt_logs.user_id', '=', 'users.id')
                       ->select('ojt_logs.*')
-                      ->orderBy('users.name', 'asc');
+                      ->orderBy('users.name', 'asc')
+                      ->orderBy('ojt_logs.log_date', 'desc');
                 break;
             case 'highest_hours':
                 $query->orderBy('hours_rendered', 'desc');
                 break;
             case 'oldest_first':
             default:
-                $query->orderBy('created_at', 'asc');
+                $query->orderBy('log_date', 'asc')->orderBy('created_at', 'asc');
                 break;
         }
 
-        $logs = $query->paginate(10)->withQueryString();
+        $logs = $query->paginate(15)->withQueryString();
 
-        return view('supervisor.approvals', compact('logs', 'status', 'sortBy'));
+        return view('supervisor.approvals', compact(
+            'logs', 
+            'status', 
+            'sortBy', 
+            'internId', 
+            'interns', 
+            'pendingCount', 
+            'approvedCount', 
+            'rejectedCount'
+        ));
+    }
+
+    public function batchApprove(\Illuminate\Http\Request $request)
+    {
+        $user = auth()->user();
+        $companyId = $user->company_id ?? $user->supervisorProfile->company_id ?? null;
+
+        // Build the base intern scope for this supervisor
+        $internUserIds = null;
+        if ($companyId) {
+            $studentQuery = \App\Models\StudentProfile::where('company_id', $companyId);
+            if (\App\Models\StudentProfile::where('supervisor_id', $user->id)->exists()) {
+                $studentQuery->where('supervisor_id', $user->id);
+            }
+            $internUserIds = $studentQuery->pluck('user_id');
+        }
+
+        // ── Select All Results mode: approve every pending log for this supervisor ──
+        if ($request->boolean('select_all')) {
+            $query = \App\Models\OjtLog::where('status', 'Pending');
+            if ($internUserIds) {
+                $query->whereIn('user_id', $internUserIds);
+            }
+            // Respect any active intern filter
+            if ($request->filled('intern_id')) {
+                $query->where('user_id', $request->intern_id);
+            }
+            $updatedCount = $query->update([
+                'status'     => 'Approved',
+                'remarks'    => null,
+                'updated_at' => now(),
+            ]);
+            return redirect()->route('supervisor.approvals', ['status' => 'Pending'])
+                ->with('success', "Successfully approved all {$updatedCount} pending intern daily log(s)!");
+        }
+
+        // ── Normal mode: approve by explicit IDs ──
+        $request->validate([
+            'log_ids'   => 'required|array|min:1',
+            'log_ids.*' => 'exists:ojt_logs,id'
+        ]);
+
+        $query = \App\Models\OjtLog::whereIn('id', $request->log_ids)->where('status', 'Pending');
+        if ($internUserIds) {
+            $query->whereIn('user_id', $internUserIds);
+        }
+
+        $updatedCount = $query->update([
+            'status'     => 'Approved',
+            'remarks'    => null,
+            'updated_at' => now(),
+        ]);
+
+        return redirect()->back()->with('success', "Successfully approved {$updatedCount} intern daily log(s)!");
     }
 
     public function approve(\Illuminate\Http\Request $request, \App\Models\OjtLog $log)

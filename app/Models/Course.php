@@ -18,4 +18,14 @@ class Course extends Model
     {
         return $this->belongsToMany(Requirement::class, 'course_requirement');
     }
+
+    public function getNameAttribute(): string
+    {
+        return $this->course_name ?? '';
+    }
+
+    public function getCodeAttribute(): string
+    {
+        return preg_replace('/^(Bachelor of Science in|BS in)\s*/i', '', $this->course_name ?? '');
+    }
 }

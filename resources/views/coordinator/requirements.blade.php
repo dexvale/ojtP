@@ -4,6 +4,7 @@
 <head>
     <meta charset="utf-8">
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>OJT Portal | Manage Requirements</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <link
@@ -66,19 +67,7 @@
                                 src="{{ auth()->user()->avatar_url }}">
                         </button>
                         <!-- Dropdown Menu -->
-                        <div id="user-menu-dropdown" class="hidden absolute right-0 top-full mt-2 w-48 bg-white rounded-xl shadow-lg border border-slate-100 py-1.5 z-50">
-                            <div class="px-4 py-2 border-b border-slate-100 sm:hidden">
-                                <p class="text-xs font-bold text-slate-800 truncate">{{ auth()->user()->display_name }}</p>
-                                <p class="text-[10px] uppercase tracking-wider text-slate-500 font-semibold truncate">{{ auth()->user()->display_role }}</p>
-                            </div>
-                            <form method="POST" action="{{ route('logout') }}">
-                                @csrf
-                                <button type="submit" class="w-full text-left px-4 py-2 text-xs sm:text-sm text-red-600 hover:bg-red-50 flex items-center gap-2.5 font-semibold transition-colors cursor-pointer">
-                                    <span class="material-symbols-outlined text-[18px]">logout</span>
-                                    <span>Logout</span>
-                                </button>
-                            </form>
-                        </div>
+                        @include('components.user-dropdown')
                     </div>
                 </div>
             </div>
@@ -122,33 +111,103 @@
                 
                 <!-- Submissions Queue Section -->
                 <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                    <h2 class="text-xl font-bold font-headline text-slate-800 mb-5 flex items-center gap-2">
-                        <span class="material-symbols-outlined text-purple-600">assignment_turned_in</span>
-                        Student Document Submissions
-                    </h2>
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5">
+                        <h2 class="text-xl font-bold font-headline text-slate-800 flex items-center gap-2">
+                            <span class="material-symbols-outlined text-purple-600">assignment_turned_in</span>
+                            Student Document Submissions
+                        </h2>
+                    </div>
+
+                    <!-- Filter & Search Controls -->
+                    <div class="bg-slate-50/80 border border-slate-200 rounded-xl p-3.5 mb-6 flex flex-col md:flex-row md:items-center justify-between gap-3">
+                        <div class="flex-1 flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
+                            <!-- Search Input -->
+                            <div class="relative flex-1 min-w-[180px]">
+                                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-base">search</span>
+                                <input type="text" id="submissionSearch" oninput="filterSubmissions()" placeholder="Search student name or requirement..."
+                                       class="w-full pl-9 pr-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all">
+                            </div>
+
+                            <!-- Filter by Requirement -->
+                            <div class="sm:w-52">
+                                <select id="filterRequirement" onchange="filterSubmissions()"
+                                        class="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs text-slate-700 font-medium focus:outline-none focus:ring-2 focus:ring-purple-400 transition-all cursor-pointer">
+                                    <option value="">All Requirements</option>
+                                    @foreach($requirements as $reqItem)
+                                        <option value="{{ $reqItem->id }}">{{ $reqItem->title }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            <!-- Filter by Course -->
+                            <div class="sm:w-48">
+                                <select id="filterCourse" onchange="filterSubmissions()"
+                                        class="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs text-slate-700 font-medium focus:outline-none focus:ring-2 focus:ring-purple-400 transition-all cursor-pointer">
+                                    <option value="">All Courses</option>
+                                    @foreach($managedCourses as $c)
+                                        <option value="{{ $c->course_name }}">{{ $c->course_name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Reset Filters Button -->
+                        <div class="flex items-center justify-end">
+                            <button type="button" onclick="resetFilters()" id="resetFiltersBtn"
+                                    class="text-xs font-semibold text-slate-500 hover:text-purple-700 flex items-center gap-1 transition px-2 py-1 rounded-lg hover:bg-white border border-transparent hover:border-slate-200">
+                                <span class="material-symbols-outlined text-[15px]">refresh</span>
+                                Reset Filters
+                            </button>
+                        </div>
+                    </div>
 
                     <!-- Filter Tabs -->
                     <div class="flex border-b border-slate-200 mb-6">
                         <button onclick="switchTab('pending-tab', 'pending-content')" id="pending-tab"
                                 class="tab-btn px-4 py-2 text-sm font-bold border-b-2 border-purple-600 text-purple-600 focus:outline-none transition-all">
-                            Pending Verification ({{ $submissions->where('status', 'Pending')->count() }})
+                            Pending Verification (<span id="pendingCountBadge">{{ $submissions->where('status', 'Pending')->count() }}</span>)
                         </button>
                         <button onclick="switchTab('approved-tab', 'approved-content')" id="approved-tab"
                                 class="tab-btn px-4 py-2 text-sm font-medium text-slate-500 hover:text-slate-700 border-b-2 border-transparent focus:outline-none transition-all">
-                            Approved ({{ $submissions->where('status', 'Approved')->count() }})
+                            Approved (<span id="approvedCountBadge">{{ $submissions->where('status', 'Approved')->count() }}</span>)
                         </button>
                         <button onclick="switchTab('rejected-tab', 'rejected-content')" id="rejected-tab"
                                 class="tab-btn px-4 py-2 text-sm font-medium text-slate-500 hover:text-slate-700 border-b-2 border-transparent focus:outline-none transition-all">
-                            Revision Required ({{ $submissions->where('status', 'Rejected')->count() }})
+                            Revision Required (<span id="rejectedCountBadge">{{ $submissions->where('status', 'Rejected')->count() }}</span>)
                         </button>
                     </div>
 
                     <!-- PENDING CONTENT -->
                     <div id="pending-content" class="tab-content block">
+                        <!-- Batch Action Bar -->
+                        <div id="batchActionBar" class="hidden items-center justify-between bg-purple-50/90 border border-purple-200/80 rounded-xl p-3 mb-4 transition-all">
+                            <div class="flex items-center gap-2">
+                                <span class="material-symbols-outlined text-purple-700 text-lg">check_circle</span>
+                                <span id="selectedCountText" class="text-xs font-bold text-purple-900">0 submissions selected</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <button type="button" onclick="clearSelectedSubmissions()" class="px-3 py-1.5 text-xs font-medium text-slate-600 hover:text-slate-900 transition cursor-pointer">
+                                    Deselect All
+                                </button>
+                                <button type="button" onclick="submitBatchDownload('pending-content')" class="px-3.5 py-1.5 bg-white border border-purple-200 hover:bg-purple-100 text-purple-800 rounded-lg text-xs font-bold shadow-sm transition flex items-center gap-1.5 cursor-pointer" title="Download selected pending submissions as ZIP">
+                                    <span class="material-symbols-outlined text-[16px]">folder_zip</span>
+                                    <span>Download ZIP</span>
+                                </button>
+                                <button type="button" onclick="confirmBatchApprove()" id="batchApproveBtn" class="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold shadow-sm transition flex items-center gap-1.5 cursor-pointer">
+                                    <span class="material-symbols-outlined text-[16px]">done_all</span>
+                                    <span>Approve Selected</span>
+                                </button>
+                            </div>
+                        </div>
+
                         <div class="overflow-x-auto">
                             <table class="w-full text-left text-sm border-collapse">
                                 <thead>
                                     <tr class="border-b border-slate-100 text-slate-400 font-semibold text-xs uppercase bg-slate-50/50">
+                                        <th class="py-3 px-4 w-10">
+                                            <input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll(this)"
+                                                   class="rounded border-slate-300 text-purple-600 focus:ring-purple-400 cursor-pointer" title="Select all visible">
+                                        </th>
                                         <th class="py-3 px-4">Student</th>
                                         <th class="py-3 px-4">Requirement</th>
                                         <th class="py-3 px-4">Submitted File</th>
@@ -157,15 +216,26 @@
                                 </thead>
                                 <tbody>
                                     @forelse($submissions->where('status', 'Pending') as $sub)
-                                        <tr class="border-b border-slate-100 hover:bg-slate-50/30 transition-colors">
+                                        <tr id="sub-row-{{ $sub->id }}" class="submission-row border-b border-slate-100 hover:bg-slate-50/30 transition-colors"
+                                            data-id="{{ $sub->id }}"
+                                            data-student="{{ strtolower(($sub->user->studentProfile->first_name ?? '') . ' ' . ($sub->user->studentProfile->last_name ?? '')) }}"
+                                            data-student-name="{{ ($sub->user->studentProfile->first_name ?? 'N/A') . ' ' . ($sub->user->studentProfile->last_name ?? '') }}"
+                                            data-course="{{ $sub->user->studentProfile->course ?? '' }}"
+                                            data-requirement-id="{{ $sub->requirement_id }}"
+                                            data-requirement-title="{{ $sub->requirement->title ?? 'Unknown Requirement' }}"
+                                            data-file-url="{{ asset('storage/' . $sub->file_path) }}">
+                                            <td class="py-4 px-4">
+                                                <input type="checkbox" class="sub-checkbox rounded border-slate-300 text-purple-600 focus:ring-purple-400 cursor-pointer"
+                                                       value="{{ $sub->id }}" onchange="handleRowCheckboxChange()">
+                                            </td>
                                             <td class="py-4 px-4">
                                                 <div class="font-bold text-slate-800">{{ $sub->user->studentProfile->first_name ?? 'N/A' }} {{ $sub->user->studentProfile->last_name ?? '' }}</div>
                                                 <div class="text-[10px] text-slate-400 font-medium">{{ $sub->user->studentProfile->course ?? '' }}</div>
                                             </td>
                                             <td class="py-4 px-4 font-semibold text-purple-950">{{ $sub->requirement->title ?? 'Unknown Requirement' }}</td>
                                             <td class="py-4 px-4">
-                                                <button onclick="openReviewModal({{ $sub->id }}, '{{ asset('storage/' . $sub->file_path) }}')"
-                                                   class="inline-flex items-center gap-1.5 px-3 py-1 bg-purple-50 hover:bg-purple-100 border border-purple-100 rounded-lg text-purple-700 text-xs font-bold transition shadow-sm">
+                                                <button onclick="openSpeedReviewModal({{ $sub->id }})"
+                                                   class="inline-flex items-center gap-1.5 px-3 py-1 bg-purple-50 hover:bg-purple-100 border border-purple-100 rounded-lg text-purple-700 text-xs font-bold transition shadow-sm cursor-pointer">
                                                     <span class="material-symbols-outlined text-[16px]">picture_as_pdf</span>
                                                     Review Document
                                                 </button>
@@ -173,20 +243,23 @@
                                             <td class="py-4 px-4 text-right space-x-2">
                                                 <form action="{{ route('coordinator.submissions.approve', $sub->id) }}" method="POST" class="inline">
                                                     @csrf
-                                                    <button type="submit" class="p-1.5 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-700 rounded-lg transition" title="Approve Submission">
+                                                    <button type="submit" class="p-1.5 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-700 rounded-lg transition cursor-pointer" title="Approve Submission">
                                                         <span class="material-symbols-outlined text-base">check</span>
                                                     </button>
                                                 </form>
-                                                <button onclick="openRejectModal({{ $sub->id }})" class="p-1.5 bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-700 rounded-lg transition" title="Reject / Request Revision">
+                                                <button onclick="openRejectModal({{ $sub->id }})" class="p-1.5 bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-700 rounded-lg transition cursor-pointer" title="Reject / Request Revision">
                                                     <span class="material-symbols-outlined text-base">close</span>
                                                 </button>
                                             </td>
                                         </tr>
                                     @empty
-                                        <tr>
-                                            <td colspan="4" class="py-12 text-center text-slate-400 font-medium italic">No pending submissions to verify.</td>
+                                        <tr id="pending-empty-row">
+                                            <td colspan="5" class="py-12 text-center text-slate-400 font-medium italic">No pending submissions to verify.</td>
                                         </tr>
                                     @endforelse
+                                    <tr id="pending-no-match-row" class="hidden">
+                                        <td colspan="5" class="py-12 text-center text-slate-400 font-medium italic">No submissions match the selected filters.</td>
+                                    </tr>
                                 </tbody>
                             </table>
                         </div>
@@ -194,10 +267,31 @@
 
                     <!-- APPROVED CONTENT -->
                     <div id="approved-content" class="tab-content hidden">
+                        <!-- Approved Batch Action Bar -->
+                        <div id="approvedBatchActionBar" class="hidden items-center justify-between bg-purple-50/90 border border-purple-200/80 rounded-xl p-3 mb-4 transition-all">
+                            <div class="flex items-center gap-2">
+                                <span class="material-symbols-outlined text-purple-700 text-lg">check_circle</span>
+                                <span id="approvedSelectedCountText" class="text-xs font-bold text-purple-900">0 documents selected</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <button type="button" onclick="clearSelectedApproved()" class="px-3 py-1.5 text-xs font-medium text-slate-600 hover:text-slate-900 transition cursor-pointer">
+                                    Deselect All
+                                </button>
+                                <button type="button" onclick="submitBatchDownload('approved-content')" class="px-4 py-1.5 bg-[#300050] hover:bg-purple-950 text-white rounded-lg text-xs font-bold shadow-sm transition flex items-center gap-1.5 cursor-pointer">
+                                    <span class="material-symbols-outlined text-[16px]">folder_zip</span>
+                                    <span>Download Selected as ZIP</span>
+                                </button>
+                            </div>
+                        </div>
+
                         <div class="overflow-x-auto">
                             <table class="w-full text-left text-sm border-collapse">
                                 <thead>
                                     <tr class="border-b border-slate-100 text-slate-400 font-semibold text-xs uppercase bg-slate-50/50">
+                                        <th class="py-3 px-4 w-10">
+                                            <input type="checkbox" id="selectAllApprovedCheckbox" onchange="toggleSelectAllApproved(this)"
+                                                   class="rounded border-slate-300 text-purple-600 focus:ring-purple-400 cursor-pointer" title="Select all visible">
+                                        </th>
                                         <th class="py-3 px-4">Student</th>
                                         <th class="py-3 px-4">Requirement</th>
                                         <th class="py-3 px-4">Submitted File</th>
@@ -206,14 +300,22 @@
                                 </thead>
                                 <tbody>
                                     @forelse($submissions->where('status', 'Approved') as $sub)
-                                        <tr class="border-b border-slate-100 hover:bg-slate-50/30 transition-colors">
+                                        <tr class="submission-row border-b border-slate-100 hover:bg-slate-50/30 transition-colors"
+                                            data-student="{{ strtolower(($sub->user->studentProfile->first_name ?? '') . ' ' . ($sub->user->studentProfile->last_name ?? '')) }}"
+                                            data-course="{{ $sub->user->studentProfile->course ?? '' }}"
+                                            data-requirement-id="{{ $sub->requirement_id }}"
+                                            data-requirement-title="{{ $sub->requirement->title ?? '' }}">
+                                            <td class="py-4 px-4">
+                                                <input type="checkbox" class="approved-checkbox rounded border-slate-300 text-purple-600 focus:ring-purple-400 cursor-pointer"
+                                                       value="{{ $sub->id }}" onchange="handleApprovedRowCheckboxChange()">
+                                            </td>
                                             <td class="py-4 px-4">
                                                 <div class="font-bold text-slate-800">{{ $sub->user->studentProfile->first_name ?? 'N/A' }} {{ $sub->user->studentProfile->last_name ?? '' }}</div>
                                                 <div class="text-[10px] text-slate-400 font-medium">{{ $sub->user->studentProfile->course ?? '' }}</div>
                                             </td>
                                             <td class="py-4 px-4 font-semibold text-[#300050]">{{ $sub->requirement->title }}</td>
                                             <td class="py-4 px-4">
-                                                <a href="{{ asset('storage/' . $sub->file_path) }}" target="_blank"
+                                                <a href="{{ asset('storage/' . $sub->file_path) }}" target="_blank" rel="noopener noreferrer"
                                                    class="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg text-slate-600 text-xs font-bold transition">
                                                     <span class="material-symbols-outlined text-[16px]">picture_as_pdf</span>
                                                     View File
@@ -226,10 +328,13 @@
                                             </td>
                                         </tr>
                                     @empty
-                                        <tr>
-                                            <td colspan="4" class="py-12 text-center text-slate-400 font-medium italic">No verified documents yet.</td>
+                                        <tr id="approved-empty-row">
+                                            <td colspan="5" class="py-12 text-center text-slate-400 font-medium italic">No verified documents yet.</td>
                                         </tr>
                                     @endforelse
+                                    <tr id="approved-no-match-row" class="hidden">
+                                        <td colspan="5" class="py-12 text-center text-slate-400 font-medium italic">No submissions match the selected filters.</td>
+                                    </tr>
                                 </tbody>
                             </table>
                         </div>
@@ -249,14 +354,18 @@
                                 </thead>
                                 <tbody>
                                     @forelse($submissions->where('status', 'Rejected') as $sub)
-                                        <tr class="border-b border-slate-100 hover:bg-slate-50/30 transition-colors">
+                                        <tr class="submission-row border-b border-slate-100 hover:bg-slate-50/30 transition-colors"
+                                            data-student="{{ strtolower(($sub->user->studentProfile->first_name ?? '') . ' ' . ($sub->user->studentProfile->last_name ?? '')) }}"
+                                            data-course="{{ $sub->user->studentProfile->course ?? '' }}"
+                                            data-requirement-id="{{ $sub->requirement_id }}"
+                                            data-requirement-title="{{ $sub->requirement->title ?? '' }}">
                                             <td class="py-4 px-4">
                                                 <div class="font-bold text-slate-800">{{ $sub->user->studentProfile->first_name ?? 'N/A' }} {{ $sub->user->studentProfile->last_name ?? '' }}</div>
                                                 <div class="text-[10px] text-slate-400 font-medium">{{ $sub->user->studentProfile->course ?? '' }}</div>
                                             </td>
                                             <td class="py-4 px-4 font-semibold text-slate-700">{{ $sub->requirement->title }}</td>
                                             <td class="py-4 px-4 max-w-xs">
-                                                <a href="{{ asset('storage/' . $sub->file_path) }}" target="_blank"
+                                                <a href="{{ asset('storage/' . $sub->file_path) }}" target="_blank" rel="noopener noreferrer"
                                                    class="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg text-slate-600 text-xs font-bold transition mb-2">
                                                     <span class="material-symbols-outlined text-[16px]">picture_as_pdf</span>
                                                     Rejected File
@@ -268,17 +377,20 @@
                                             <td class="py-4 px-4 text-right">
                                                 <form action="{{ route('coordinator.submissions.approve', $sub->id) }}" method="POST" class="inline">
                                                     @csrf
-                                                    <button type="submit" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg transition" title="Override and Approve">
+                                                    <button type="submit" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg transition cursor-pointer" title="Override and Approve">
                                                         Approve
                                                     </button>
                                                 </form>
                                             </td>
                                         </tr>
                                     @empty
-                                        <tr>
+                                        <tr id="rejected-empty-row">
                                             <td colspan="4" class="py-12 text-center text-slate-400 font-medium italic">No rejected/returned submissions.</td>
                                         </tr>
                                     @endforelse
+                                    <tr id="rejected-no-match-row" class="hidden">
+                                        <td colspan="4" class="py-12 text-center text-slate-400 font-medium italic">No submissions match the selected filters.</td>
+                                    </tr>
                                 </tbody>
                             </table>
                         </div>
@@ -312,13 +424,13 @@
                                 </div>
                                 <div class="border-t border-slate-100 pt-3 flex justify-between items-center mt-auto">
                                     @if($req->template_path)
-                                        <a href="{{ asset('storage/' . $req->template_path) }}" target="_blank"
-                                           class="inline-flex items-center gap-1 text-xs font-bold text-purple-700 hover:text-purple-950 transition">
-                                            <span class="material-symbols-outlined text-sm">download</span>
-                                            Download Template
+                                        <a href="{{ asset('storage/' . $req->template_path) }}" target="_blank" rel="noopener noreferrer"
+                                           class="inline-flex items-center gap-1.5 text-xs font-bold text-purple-700 hover:text-purple-950 transition">
+                                            <span class="material-symbols-outlined text-[16px]">visibility</span>
+                                            View Document
                                         </a>
                                     @else
-                                        <span class="text-[10px] text-slate-400 font-medium italic">No download template uploaded</span>
+                                        <span class="text-[10px] text-slate-400 font-medium italic">No document template uploaded</span>
                                     @endif
                                     <span class="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">
                                         Added {{ $req->created_at->format('M d, Y') }}
@@ -404,6 +516,47 @@
 
     </main>
 
+    <!-- BATCH APPROVE FORM -->
+    <form id="batchApproveForm" action="{{ route('coordinator.submissions.batch-approve') }}" method="POST" class="hidden">
+        @csrf
+        <div id="batchApproveInputs"></div>
+    </form>
+
+    <!-- BATCH DOWNLOAD FORM -->
+    <form id="batchDownloadForm" action="{{ route('coordinator.submissions.batch-download') }}" method="POST" class="hidden">
+        @csrf
+        <div id="batchDownloadInputs"></div>
+    </form>
+
+    <!-- BATCH APPROVE CONFIRMATION MODAL -->
+    <div id="batchApproveModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm transition-opacity duration-300">
+        <div class="bg-white rounded-2xl shadow-2xl border border-purple-100 p-6 w-full max-w-md mx-4">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-10 h-10 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">
+                    <span class="material-symbols-outlined text-2xl">verified</span>
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold text-slate-800 font-headline">Batch Approve Submissions</h3>
+                    <p class="text-xs text-slate-500 font-medium mt-0.5">Confirm bulk document verification</p>
+                </div>
+            </div>
+            
+            <p class="text-sm text-slate-600 mb-6">
+                You are about to approve <strong id="batchConfirmCountText" class="text-emerald-700 font-bold">0 submissions</strong> at once. These requirements will be marked as verified.
+            </p>
+
+            <div class="flex gap-3">
+                <button type="button" onclick="closeBatchModal()" class="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 text-gray-600 text-sm font-bold hover:bg-gray-50 transition cursor-pointer">
+                    Cancel
+                </button>
+                <button type="button" onclick="submitBatchApprove()" id="confirmBatchSubmitBtn" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-xl text-sm font-bold shadow-md transition flex items-center justify-center gap-2 cursor-pointer">
+                    <span class="material-symbols-outlined text-base">check</span>
+                    <span>Confirm Approval</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- REJECTION REMARKS MODAL -->
     <div id="rejectModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm transition-opacity duration-300">
         <div class="bg-white rounded-2xl shadow-2xl border border-purple-100 p-6 w-full max-w-md mx-4">
@@ -412,7 +565,7 @@
                     <span class="material-symbols-outlined text-rose-600">warning</span>
                     Return for Revision
                 </h2>
-                <button onclick="closeRejectModal()" class="text-gray-400 hover:text-rose-500 transition">
+                <button onclick="closeRejectModal()" class="text-gray-400 hover:text-rose-500 transition cursor-pointer">
                     <span class="material-symbols-outlined">close</span>
                 </button>
             </div>
@@ -427,10 +580,10 @@
                 </div>
 
                 <div class="flex gap-3">
-                    <button type="button" onclick="closeRejectModal()" class="flex-1 px-5 py-2.5 rounded-xl border border-gray-200 text-gray-600 text-sm font-bold hover:bg-gray-50 transition">
+                    <button type="button" onclick="closeRejectModal()" class="flex-1 px-5 py-2.5 rounded-xl border border-gray-200 text-gray-600 text-sm font-bold hover:bg-gray-50 transition cursor-pointer">
                         Cancel
                     </button>
-                    <button type="submit" class="flex-1 bg-rose-600 hover:bg-rose-700 text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-md transition">
+                    <button type="submit" class="flex-1 bg-rose-600 hover:bg-rose-700 text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-md transition cursor-pointer">
                         Reject Submission
                     </button>
                 </div>
@@ -438,19 +591,40 @@
         </div>
     </div>
 
-    <!-- DOCUMENT REVIEW LIGHTBOX MODAL -->
-    <div id="reviewModal" class="hidden fixed inset-0 z-[60] flex items-center justify-center bg-black/80 backdrop-blur-sm transition-opacity duration-300 p-4 sm:p-8">
-        <div class="bg-surface rounded-2xl shadow-2xl flex flex-col w-full max-w-5xl h-full max-h-[90vh] overflow-hidden relative">
+    <!-- DOCUMENT REVIEW LIGHTBOX MODAL (Speed Reviewer) -->
+    <div id="reviewModal" class="hidden fixed inset-0 z-[60] flex items-center justify-center bg-black/80 backdrop-blur-sm transition-opacity duration-300 p-2 sm:p-6">
+        <div class="bg-white rounded-2xl shadow-2xl flex flex-col w-full max-w-5xl h-full max-h-[92vh] overflow-hidden relative">
             
             <!-- Header -->
-            <div class="px-6 py-4 border-b border-outline/10 flex justify-between items-center bg-white">
-                <h2 class="text-lg font-bold font-headline text-slate-800 flex items-center gap-2">
-                    <span class="material-symbols-outlined text-purple-600">plagiarism</span>
-                    Document Verification Lightbox
-                </h2>
-                <button onclick="closeReviewModal()" class="p-2 text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-full transition">
-                    <span class="material-symbols-outlined">close</span>
-                </button>
+            <div class="px-5 py-3.5 border-b border-slate-200 flex flex-wrap gap-3 justify-between items-center bg-white">
+                <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center shrink-0">
+                        <span class="material-symbols-outlined text-[20px]">assignment</span>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <h2 id="modalStudentName" class="text-base font-bold text-slate-800 font-headline">Student Name</h2>
+                            <span id="modalStudentCourse" class="text-[10px] font-semibold uppercase tracking-wider bg-slate-100 text-slate-600 px-2 py-0.5 rounded-md">Course</span>
+                        </div>
+                        <p id="modalRequirementTitle" class="text-xs font-semibold text-purple-800">Requirement Title</p>
+                    </div>
+                </div>
+
+                <!-- Navigation Controls & Counter -->
+                <div class="flex items-center gap-3">
+                    <div class="flex items-center gap-1 bg-slate-100 rounded-lg p-1 text-xs">
+                        <button type="button" id="prevReviewBtn" onclick="navigateReview(-1)" class="p-1 hover:bg-white text-slate-600 rounded transition disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer" title="Previous Document">
+                            <span class="material-symbols-outlined text-[18px]">chevron_left</span>
+                        </button>
+                        <span id="reviewQueueCounter" class="px-2 font-bold text-slate-700 text-xs min-w-[50px] text-center">1 of 1</span>
+                        <button type="button" id="nextReviewBtn" onclick="navigateReview(1)" class="p-1 hover:bg-white text-slate-600 rounded transition disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer" title="Next Document">
+                            <span class="material-symbols-outlined text-[18px]">chevron_right</span>
+                        </button>
+                    </div>
+                    <button onclick="closeReviewModal()" class="p-2 text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-full transition cursor-pointer" title="Close Lightbox">
+                        <span class="material-symbols-outlined">close</span>
+                    </button>
+                </div>
             </div>
             
             <!-- Body: PDF Viewer -->
@@ -459,21 +633,26 @@
             </div>
 
             <!-- Footer: Actions -->
-            <div class="px-6 py-4 bg-white border-t border-outline/10 flex justify-between items-center">
-                <p class="text-xs text-slate-500 font-medium">Please review the document carefully before endorsing.</p>
-                <div class="flex items-center gap-3">
-                    <button type="button" id="reviewRejectBtn" class="px-6 py-2.5 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded-xl text-sm font-bold transition flex items-center gap-2">
+            <div class="px-5 py-3.5 bg-white border-t border-slate-200 flex flex-wrap gap-3 justify-between items-center">
+                <div class="flex items-center gap-2">
+                    <button type="button" id="reviewRejectBtn" class="px-4 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded-xl text-xs sm:text-sm font-bold transition flex items-center gap-1.5 cursor-pointer">
                         <span class="material-symbols-outlined text-[18px]">close</span>
                         Return for Revision
                     </button>
-                    
-                    <form method="POST" id="reviewApproveForm" class="m-0">
-                        @csrf
-                        <button type="submit" class="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-bold shadow-md transition flex items-center gap-2">
-                            <span class="material-symbols-outlined text-[18px]">verified</span>
-                            Endorse Document
-                        </button>
-                    </form>
+                    <a id="modalExternalLink" href="#" target="_blank" rel="noopener noreferrer" class="px-3 py-2 text-slate-500 hover:text-purple-700 text-xs font-semibold flex items-center gap-1 transition" title="Open in new tab">
+                        <span class="material-symbols-outlined text-[16px]">open_in_new</span>
+                        Open Tab
+                    </a>
+                </div>
+
+                <div class="flex items-center gap-2.5">
+                    <button type="button" id="skipReviewBtn" onclick="navigateReview(1)" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs sm:text-sm font-bold transition cursor-pointer">
+                        Skip
+                    </button>
+                    <button type="button" id="approveAndNextBtn" onclick="approveCurrentAndNext()" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs sm:text-sm font-bold shadow-md transition flex items-center gap-2 cursor-pointer">
+                        <span class="material-symbols-outlined text-[18px]">done_all</span>
+                        <span id="approveAndNextBtnText">Approve & Next</span>
+                    </button>
                 </div>
             </div>
         </div>
@@ -504,33 +683,396 @@
             // Set active button style
             document.getElementById(tabId).classList.add('border-purple-600', 'text-purple-600');
             document.getElementById(tabId).classList.remove('text-slate-500', 'border-transparent');
+
+            filterSubmissions();
+        }
+
+        // --- FILTERING LOGIC ---
+        function filterSubmissions() {
+            const search = (document.getElementById('submissionSearch')?.value || '').toLowerCase().trim();
+            const reqFilter = document.getElementById('filterRequirement')?.value || '';
+            const courseFilter = document.getElementById('filterCourse')?.value || '';
+
+            ['pending-content', 'approved-content', 'rejected-content'].forEach(tabId => {
+                const container = document.getElementById(tabId);
+                if (!container) return;
+
+                const rows = container.querySelectorAll('tbody tr.submission-row');
+                let visibleCount = 0;
+
+                rows.forEach(row => {
+                    const student = row.dataset.student || '';
+                    const reqTitle = (row.dataset.requirementTitle || '').toLowerCase();
+                    const reqId = row.dataset.requirementId || '';
+                    const course = row.dataset.course || '';
+
+                    const matchesSearch = !search || student.includes(search) || reqTitle.includes(search);
+                    const matchesReq = !reqFilter || reqId === reqFilter;
+                    const matchesCourse = !courseFilter || course === courseFilter;
+
+                    const isVisible = matchesSearch && matchesReq && matchesCourse;
+                    row.classList.toggle('hidden', !isVisible);
+
+                    if (isVisible) visibleCount++;
+                });
+
+                // Check empty state
+                const emptyRow = container.querySelector('tr[id$="-empty-row"]');
+                const noMatchRow = container.querySelector('tr[id$="-no-match-row"]');
+
+                if (rows.length === 0) {
+                    if (emptyRow) emptyRow.classList.remove('hidden');
+                    if (noMatchRow) noMatchRow.classList.add('hidden');
+                } else if (visibleCount === 0) {
+                    if (emptyRow) emptyRow.classList.add('hidden');
+                    if (noMatchRow) noMatchRow.classList.remove('hidden');
+                } else {
+                    if (emptyRow) emptyRow.classList.add('hidden');
+                    if (noMatchRow) noMatchRow.classList.add('hidden');
+                }
+            });
+
+            // Reset master checkbox if visible rows changed
+            const selectAll = document.getElementById('selectAllCheckbox');
+            if (selectAll) selectAll.checked = false;
+            updateBatchBar();
+
+            const selectAllApproved = document.getElementById('selectAllApprovedCheckbox');
+            if (selectAllApproved) selectAllApproved.checked = false;
+            updateApprovedBatchBar();
+        }
+
+        function resetFilters() {
+            const s = document.getElementById('submissionSearch');
+            const r = document.getElementById('filterRequirement');
+            const c = document.getElementById('filterCourse');
+            if (s) s.value = '';
+            if (r) r.value = '';
+            if (c) c.value = '';
+            filterSubmissions();
+        }
+
+        // --- BATCH APPROVE LOGIC ---
+        function toggleSelectAll(master) {
+            const visibleCheckboxes = document.querySelectorAll('#pending-content tbody .submission-row:not(.hidden) .sub-checkbox');
+            visibleCheckboxes.forEach(cb => cb.checked = master.checked);
+            updateBatchBar();
+        }
+
+        function handleRowCheckboxChange() {
+            updateBatchBar();
+        }
+
+        function updateBatchBar() {
+            const checked = document.querySelectorAll('#pending-content .sub-checkbox:checked');
+            const batchBar = document.getElementById('batchActionBar');
+            const text = document.getElementById('selectedCountText');
+            const selectAll = document.getElementById('selectAllCheckbox');
+            const visibleCheckboxes = document.querySelectorAll('#pending-content tbody .submission-row:not(.hidden) .sub-checkbox');
+
+            if (selectAll && visibleCheckboxes.length > 0) {
+                if (checked.length === visibleCheckboxes.length) {
+                    selectAll.checked = true;
+                    selectAll.indeterminate = false;
+                } else if (checked.length > 0) {
+                    selectAll.checked = false;
+                    selectAll.indeterminate = true;
+                } else {
+                    selectAll.checked = false;
+                    selectAll.indeterminate = false;
+                }
+            }
+
+            if (checked.length > 0) {
+                batchBar?.classList.remove('hidden');
+                batchBar?.classList.add('flex');
+                if (text) text.innerText = `${checked.length} submission${checked.length > 1 ? 's' : ''} selected`;
+            } else {
+                batchBar?.classList.add('hidden');
+                batchBar?.classList.remove('flex');
+            }
+        }
+
+        function clearSelectedSubmissions() {
+            document.querySelectorAll('#pending-content .sub-checkbox').forEach(cb => cb.checked = false);
+            updateBatchBar();
+        }
+
+        function confirmBatchApprove() {
+            const checked = document.querySelectorAll('#pending-content .sub-checkbox:checked');
+            if (checked.length === 0) return;
+            const countText = document.getElementById('batchConfirmCountText');
+            if (countText) countText.innerText = `${checked.length} submission${checked.length > 1 ? 's' : ''}`;
+            document.getElementById('batchApproveModal')?.classList.remove('hidden');
+        }
+
+        function closeBatchModal() {
+            document.getElementById('batchApproveModal')?.classList.add('hidden');
+        }
+
+        function submitBatchApprove() {
+            const checked = document.querySelectorAll('#pending-content .sub-checkbox:checked');
+            if (checked.length === 0) return;
+
+            const container = document.getElementById('batchApproveInputs');
+            if (!container) return;
+            container.innerHTML = '';
+
+            checked.forEach(cb => {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'ids[]';
+                input.value = cb.value;
+                container.appendChild(input);
+            });
+
+            const btn = document.getElementById('confirmBatchSubmitBtn');
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<span class="material-symbols-outlined text-base animate-spin">refresh</span> Approving...';
+            }
+
+            document.getElementById('batchApproveForm')?.submit();
+        }
+
+        // --- BATCH DOWNLOAD LOGIC ---
+        function submitBatchDownload(containerId) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+
+            const checkboxSelector = containerId === 'pending-content' ? '.sub-checkbox:checked' : '.approved-checkbox:checked';
+            const checked = container.querySelectorAll(checkboxSelector);
+
+            if (checked.length === 0) {
+                alert('Please select at least one document to download.');
+                return;
+            }
+
+            const downloadInputs = document.getElementById('batchDownloadInputs');
+            if (!downloadInputs) return;
+            downloadInputs.innerHTML = '';
+
+            checked.forEach(cb => {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'ids[]';
+                input.value = cb.value;
+                downloadInputs.appendChild(input);
+            });
+
+            document.getElementById('batchDownloadForm')?.submit();
+        }
+
+        // --- APPROVED BATCH SELECTION LOGIC ---
+        function toggleSelectAllApproved(master) {
+            const visibleCheckboxes = document.querySelectorAll('#approved-content tbody .submission-row:not(.hidden) .approved-checkbox');
+            visibleCheckboxes.forEach(cb => cb.checked = master.checked);
+            updateApprovedBatchBar();
+        }
+
+        function handleApprovedRowCheckboxChange() {
+            updateApprovedBatchBar();
+        }
+
+        function updateApprovedBatchBar() {
+            const checked = document.querySelectorAll('#approved-content .approved-checkbox:checked');
+            const batchBar = document.getElementById('approvedBatchActionBar');
+            const text = document.getElementById('approvedSelectedCountText');
+            const selectAll = document.getElementById('selectAllApprovedCheckbox');
+            const visibleCheckboxes = document.querySelectorAll('#approved-content tbody .submission-row:not(.hidden) .approved-checkbox');
+
+            if (selectAll && visibleCheckboxes.length > 0) {
+                if (checked.length === visibleCheckboxes.length) {
+                    selectAll.checked = true;
+                    selectAll.indeterminate = false;
+                } else if (checked.length > 0) {
+                    selectAll.checked = false;
+                    selectAll.indeterminate = true;
+                } else {
+                    selectAll.checked = false;
+                    selectAll.indeterminate = false;
+                }
+            }
+
+            if (checked.length > 0) {
+                batchBar?.classList.remove('hidden');
+                batchBar?.classList.add('flex');
+                if (text) text.innerText = `${checked.length} document${checked.length > 1 ? 's' : ''} selected`;
+            } else {
+                batchBar?.classList.add('hidden');
+                batchBar?.classList.remove('flex');
+            }
+        }
+
+        function clearSelectedApproved() {
+            document.querySelectorAll('#approved-content .approved-checkbox').forEach(cb => cb.checked = false);
+            updateApprovedBatchBar();
+        }
+
+        // --- SPEED REVIEWER LIGHTBOX LOGIC ---
+        let reviewQueue = [];
+        let currentReviewIndex = 0;
+
+        function getPendingQueue() {
+            const rows = document.querySelectorAll('#pending-content tbody .submission-row:not(.hidden)');
+            return Array.from(rows).map(row => ({
+                id: parseInt(row.dataset.id),
+                studentName: row.dataset.studentName || 'Student',
+                course: row.dataset.course || '',
+                requirementTitle: row.dataset.requirementTitle || 'Requirement',
+                fileUrl: row.dataset.fileUrl || '',
+                element: row
+            })).filter(item => !isNaN(item.id));
+        }
+
+        function openSpeedReviewModal(id) {
+            reviewQueue = getPendingQueue();
+            if (reviewQueue.length === 0) {
+                alert('No pending submissions available in the current view.');
+                return;
+            }
+
+            const idx = reviewQueue.findIndex(item => item.id === id);
+            currentReviewIndex = idx !== -1 ? idx : 0;
+
+            renderCurrentReview();
+            document.getElementById('reviewModal')?.classList.remove('hidden');
+        }
+
+        // Backward compatibility
+        function openReviewModal(id, pdfUrl) {
+            openSpeedReviewModal(id);
+        }
+
+        function renderCurrentReview() {
+            if (reviewQueue.length === 0) {
+                closeReviewModal();
+                checkTableEmptyState();
+                return;
+            }
+
+            if (currentReviewIndex < 0) currentReviewIndex = 0;
+            if (currentReviewIndex >= reviewQueue.length) currentReviewIndex = reviewQueue.length - 1;
+
+            const item = reviewQueue[currentReviewIndex];
+            document.getElementById('modalStudentName').innerText = item.studentName;
+            document.getElementById('modalStudentCourse').innerText = item.course || 'N/A';
+            document.getElementById('modalRequirementTitle').innerText = item.requirementTitle;
+            document.getElementById('reviewIframe').src = item.fileUrl + "#toolbar=0";
+            document.getElementById('modalExternalLink').href = item.fileUrl;
+            document.getElementById('reviewQueueCounter').innerText = `${currentReviewIndex + 1} of ${reviewQueue.length}`;
+
+            document.getElementById('prevReviewBtn').disabled = (currentReviewIndex === 0);
+            document.getElementById('nextReviewBtn').disabled = (currentReviewIndex >= reviewQueue.length - 1);
+            document.getElementById('skipReviewBtn').disabled = (currentReviewIndex >= reviewQueue.length - 1);
+
+            const isLast = (currentReviewIndex === reviewQueue.length - 1);
+            document.getElementById('approveAndNextBtnText').innerText = isLast ? 'Approve Document' : 'Approve & Next';
+
+            document.getElementById('reviewRejectBtn').onclick = function() {
+                openRejectModal(item.id);
+            };
+        }
+
+        function navigateReview(delta) {
+            const newIdx = currentReviewIndex + delta;
+            if (newIdx >= 0 && newIdx < reviewQueue.length) {
+                currentReviewIndex = newIdx;
+                renderCurrentReview();
+            }
+        }
+
+        async function approveCurrentAndNext() {
+            if (reviewQueue.length === 0) return;
+            const item = reviewQueue[currentReviewIndex];
+            const btn = document.getElementById('approveAndNextBtn');
+            const originalText = document.getElementById('approveAndNextBtnText').innerText;
+
+            btn.disabled = true;
+            document.getElementById('approveAndNextBtnText').innerText = 'Approving...';
+
+            try {
+                const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+                const response = await fetch(`/coordinator/submissions/${item.id}/approve`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': csrfToken,
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+
+                if (!response.ok) throw new Error('Failed to approve submission');
+
+                // Remove row from DOM
+                if (item.element && item.element.parentNode) {
+                    item.element.remove();
+                }
+
+                // Remove from queue
+                reviewQueue.splice(currentReviewIndex, 1);
+
+                // Update counter badges
+                updateTabCounts(-1, 1, 0);
+                updateBatchBar();
+
+                if (reviewQueue.length === 0) {
+                    closeReviewModal();
+                    checkTableEmptyState();
+                } else {
+                    if (currentReviewIndex >= reviewQueue.length) {
+                        currentReviewIndex = reviewQueue.length - 1;
+                    }
+                    renderCurrentReview();
+                }
+            } catch (err) {
+                alert('An error occurred while approving the document. Please try again.');
+                console.error(err);
+            } finally {
+                btn.disabled = false;
+                if (reviewQueue.length > 0) {
+                    const isLast = (currentReviewIndex === reviewQueue.length - 1);
+                    document.getElementById('approveAndNextBtnText').innerText = isLast ? 'Approve Document' : 'Approve & Next';
+                }
+            }
+        }
+
+        function closeReviewModal() {
+            document.getElementById('reviewModal')?.classList.add('hidden');
+            document.getElementById('reviewIframe').src = "";
         }
 
         function openRejectModal(id) {
             document.getElementById('rejectForm').action = `/coordinator/submissions/${id}/reject`;
-            document.getElementById('rejectModal').classList.remove('hidden');
+            document.getElementById('rejectModal')?.classList.remove('hidden');
         }
 
         function closeRejectModal() {
-            document.getElementById('rejectModal').classList.add('hidden');
+            document.getElementById('rejectModal')?.classList.add('hidden');
         }
 
-        function openReviewModal(id, pdfUrl) {
-            document.getElementById('reviewIframe').src = pdfUrl + "#toolbar=0";
-            document.getElementById('reviewApproveForm').action = `/coordinator/submissions/${id}/approve`;
-            
-            // Set reject button action inside review modal
-            document.getElementById('reviewRejectBtn').onclick = function() {
-                closeReviewModal();
-                openRejectModal(id);
-            };
-            
-            document.getElementById('reviewModal').classList.remove('hidden');
+        function updateTabCounts(deltaPending, deltaApproved, deltaRejected) {
+            const pBadge = document.getElementById('pendingCountBadge');
+            const aBadge = document.getElementById('approvedCountBadge');
+            const rBadge = document.getElementById('rejectedCountBadge');
+
+            if (pBadge) pBadge.innerText = Math.max(0, (parseInt(pBadge.innerText) || 0) + deltaPending);
+            if (aBadge) aBadge.innerText = Math.max(0, (parseInt(aBadge.innerText) || 0) + deltaApproved);
+            if (rBadge) rBadge.innerText = Math.max(0, (parseInt(rBadge.innerText) || 0) + deltaRejected);
         }
 
-        function closeReviewModal() {
-            document.getElementById('reviewModal').classList.add('hidden');
-            document.getElementById('reviewIframe').src = "";
+        function checkTableEmptyState() {
+            const pendingRows = document.querySelectorAll('#pending-content tbody .submission-row');
+            const emptyRow = document.getElementById('pending-empty-row');
+            if (pendingRows.length === 0) {
+                if (emptyRow) emptyRow.classList.remove('hidden');
+                else {
+                    const tbody = document.querySelector('#pending-content tbody');
+                    if (tbody) {
+                        tbody.innerHTML = '<tr id="pending-empty-row"><td colspan="5" class="py-12 text-center text-slate-400 font-medium italic">No pending submissions to verify.</td></tr>';
+                    }
+                }
+            }
         }
 
         // Sidebar Toggling Code

@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-#[Fillable(['name', 'email', 'password', 'role', 'company_id', 'department', 'contact_number'])]
+#[Fillable(['name', 'email', 'password', 'role', 'company_id', 'department', 'contact_number', 'profile_photo_path'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -82,6 +82,10 @@ class User extends Authenticatable
 
     public function getAvatarUrlAttribute()
     {
+        if ($this->profile_photo_path && \Illuminate\Support\Facades\Storage::disk('public')->exists($this->profile_photo_path)) {
+            return asset('storage/' . $this->profile_photo_path);
+        }
+
         if ($this->role === 'Student' && $this->studentProfile?->profile_photo_path && \Illuminate\Support\Facades\Storage::disk('public')->exists($this->studentProfile->profile_photo_path)) {
             return asset('storage/' . $this->studentProfile->profile_photo_path);
         }

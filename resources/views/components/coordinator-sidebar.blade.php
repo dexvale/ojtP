@@ -66,16 +66,24 @@
                     <span>Reports</span>
                 </a>
             @endif
+
+            <!-- Account Profile Settings -->
+            <a href="{{ route('account.profile') }}" 
+               class="mx-1 my-0.5 px-4 py-2.5 flex items-center gap-3 text-sm font-medium rounded-lg transition-all duration-300 {{ request()->routeIs('account.profile*') ? 'bg-[#faf1f8]/10 text-[#ffffff] translate-x-1 font-semibold' : 'text-[#faf1f8]/70 hover:text-[#ffffff] hover:bg-[#ffffff]/5' }}">
+                <span class="material-symbols-outlined" data-icon="manage_accounts">manage_accounts</span>
+                <span>Account Profile</span>
+            </a>
         </nav>
         <div class="flex-shrink-0 p-4 border-t border-[#ffffff]/10 bg-[#300050] pb-[calc(1rem+env(safe-area-inset-bottom,0px))]">
             <!-- Mobile User Profile snippet -->
-            <div class="flex items-center gap-3 px-3 py-2 mb-2 rounded-xl bg-white/5 border border-white/10 lg:hidden">
+            <a href="{{ route('account.profile') }}" class="flex items-center gap-3 px-3 py-2 mb-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 lg:hidden transition-colors">
                 <img alt="User avatar" class="w-8 h-8 rounded-full object-cover ring-1 ring-white/20" src="{{ auth()->user()->avatar_url }}">
                 <div class="min-w-0 flex-1">
                     <p class="text-xs font-bold text-white truncate">{{ auth()->user()->display_name }}</p>
                     <p class="text-[10px] uppercase tracking-wider text-[#faf1f8]/70 font-semibold truncate">{{ auth()->user()->display_role }}</p>
                 </div>
-            </div>
+                <span class="material-symbols-outlined text-xs text-white/50">chevron_right</span>
+            </a>
             <form method="POST" action="{{ route('logout') }}">
                 @csrf
                 <button type="submit" class="w-full text-left text-[#faf1f8] hover:text-white px-4 py-2.5 flex items-center gap-3 text-sm font-semibold rounded-xl bg-white/10 hover:bg-white/20 active:bg-white/25 transition-all duration-200 cursor-pointer">

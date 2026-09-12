@@ -36,9 +36,11 @@ Route::middleware(['auth', 'no.cache'])->group(function () {
 
     // Student Requirements routes
     Route::get('/student/requirements', [\App\Http\Controllers\Student\StudentRequirementController::class, 'index'])->name('student.requirements');
+    Route::get('/student/requirements/{id}/download-template', [\App\Http\Controllers\Student\StudentRequirementController::class, 'downloadTemplate'])->name('student.requirements.downloadTemplate');
     Route::post('/student/requirements/{id}/submit', [\App\Http\Controllers\Student\StudentRequirementController::class, 'submit'])->name('student.requirements.submit');
     Route::get('/student/requirements/{id}/fill', [\App\Http\Controllers\Student\StudentRequirementController::class, 'fill'])->name('student.requirements.fill');
     Route::post('/student/requirements/{id}/submit-form', [\App\Http\Controllers\Student\StudentRequirementController::class, 'submitForm'])->name('student.requirements.submitForm');
+    Route::post('/student/requirements/{id}/download-filled', [\App\Http\Controllers\Student\StudentRequirementController::class, 'downloadFilled'])->name('student.requirements.downloadFilled');
 
     // Student BISU Grading Sheet
     Route::get('/student/grading-sheet', function() {
@@ -48,6 +50,13 @@ Route::middleware(['auth', 'no.cache'])->group(function () {
         }
         return app(\App\Http\Controllers\Supervisor\EvaluationController::class)->showGradingSheet($profile->id);
     })->name('student.grading-sheet');
+});
+
+// Universal Account & Security Settings Routes (Admin, Coordinator, Supervisor)
+Route::middleware(['auth', 'no.cache'])->group(function () {
+    Route::get('/account/profile', [\App\Http\Controllers\AccountController::class, 'edit'])->name('account.profile');
+    Route::put('/account/profile', [\App\Http\Controllers\AccountController::class, 'update'])->name('account.profile.update');
+    Route::put('/account/password', [\App\Http\Controllers\AccountController::class, 'updatePassword'])->name('account.password.update');
 });
 
 // Coordinator Routes
@@ -80,6 +89,8 @@ Route::middleware(['auth', 'no.cache', 'role:Admin,coordinator'])->group(functio
     Route::delete('/coordinator/requirements/{id}', [\App\Http\Controllers\Coordinator\CoordinatorRequirementController::class, 'destroy'])->name('coordinator.requirements.destroy');
     Route::post('/coordinator/submissions/{id}/approve', [\App\Http\Controllers\Coordinator\CoordinatorRequirementController::class, 'approve'])->name('coordinator.submissions.approve');
     Route::post('/coordinator/submissions/{id}/reject', [\App\Http\Controllers\Coordinator\CoordinatorRequirementController::class, 'reject'])->name('coordinator.submissions.reject');
+    Route::post('/coordinator/submissions/batch-approve', [\App\Http\Controllers\Coordinator\CoordinatorRequirementController::class, 'batchApprove'])->name('coordinator.submissions.batch-approve');
+    Route::post('/coordinator/submissions/batch-download', [\App\Http\Controllers\Coordinator\CoordinatorRequirementController::class, 'batchDownload'])->name('coordinator.submissions.batch-download');
 
     Route::resource('coordinator/courses', \App\Http\Controllers\Coordinator\CourseController::class)
         ->names([
@@ -93,6 +104,10 @@ Route::middleware(['auth', 'no.cache', 'role:Admin,coordinator'])->group(functio
 
 // Admin (Super Admin / Dean) Only Routes
 Route::middleware(['auth', 'no.cache', 'role:Admin'])->group(function () {
+    Route::get('/admin', function () {
+        return redirect()->route('admin.academic_terms.index');
+    });
+
     Route::get('/coordinator/manage', [\App\Http\Controllers\Coordinator\CoordinatorManagerController::class, 'index'])->name('admin.coordinators');
     Route::post('/coordinator/manage', [\App\Http\Controllers\Coordinator\CoordinatorManagerController::class, 'store'])->name('admin.coordinators.store');
     Route::delete('/coordinator/manage/{id}', [\App\Http\Controllers\Coordinator\CoordinatorManagerController::class, 'destroy'])->name('admin.coordinators.destroy');
@@ -113,6 +128,7 @@ Route::middleware(['auth', 'no.cache', 'role:Advisor'])->group(function () {
     Route::get('/supervisor/approvals', [\App\Http\Controllers\Supervisor\DashboardController::class, 'approvals'])->name('supervisor.approvals');
     Route::get('/supervisor/leaderboard', [\App\Http\Controllers\Supervisor\DashboardController::class, 'viewLeaderboard'])->name('supervisor.leaderboard');
     
+    Route::post('/supervisor/logs/batch-approve', [\App\Http\Controllers\Supervisor\DashboardController::class, 'batchApprove'])->name('supervisor.logs.batchApprove');
     Route::post('/supervisor/logs/{log}/approve', [\App\Http\Controllers\Supervisor\DashboardController::class, 'approve'])->name('supervisor.logs.approve');
     Route::post('/supervisor/logs/{log}/reject', [\App\Http\Controllers\Supervisor\DashboardController::class, 'reject'])->name('supervisor.logs.reject');
     Route::post('/supervisor/interns/{student}/evaluate', [\App\Http\Controllers\Supervisor\EvaluationController::class, 'store'])->name('supervisor.interns.evaluate');

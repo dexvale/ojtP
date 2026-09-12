@@ -112,7 +112,12 @@ class DashboardController extends Controller
     public function showStudent(Request $request, $id)
     {
         $coordinator = auth()->user();
-        $student = \App\Models\StudentProfile::with(['company', 'academicTerm', 'user'])
+        $student = \App\Models\StudentProfile::with([
+            'company',
+            'academicTerm',
+            'academicCourse.requirements',
+            'user.requirementSubmissions.requirement'
+        ])
         ->withSum(['ojtLogs as approved_hours' => function ($query) {
             $query->where('status', 'Approved');
         }], 'hours_rendered')
@@ -124,6 +129,16 @@ class DashboardController extends Controller
                 abort(403, 'Unauthorized action. You do not manage this student\'s department.');
             }
         }
+
+        // Requirements and document submission stats
+        $courseRequirements = $student->academicCourse ? $student->academicCourse->requirements : collect();
+        $submissions = $student->user ? $student->user->requirementSubmissions : collect();
+        $approvedDocsCount = $submissions->where('status', 'Approved')->count();
+        $pendingDocsCount = $submissions->where('status', 'Pending')->count();
+        $rejectedDocsCount = $submissions->where('status', 'Rejected')->count();
+        $totalSubmissionsCount = $submissions->count();
+        $totalRequiredCount = $courseRequirements->count();
+        $allDocsVerified = ($totalRequiredCount > 0 && $approvedDocsCount >= $totalRequiredCount);
 
         // Available distinct months from student's logs
         $userId = $student->user_id;
@@ -167,7 +182,15 @@ class DashboardController extends Controller
             'availableMonths',
             'selectedMonth',
             'selectedMonthLabel',
-            'monthApprovedHours'
+            'monthApprovedHours',
+            'courseRequirements',
+            'submissions',
+            'approvedDocsCount',
+            'pendingDocsCount',
+            'rejectedDocsCount',
+            'totalRequiredCount',
+            'totalSubmissionsCount',
+            'allDocsVerified'
         ));
     }
 

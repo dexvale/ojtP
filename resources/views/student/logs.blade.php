@@ -61,10 +61,6 @@
     </div>
 
     <div class="flex items-center gap-3">
-        <div class="hidden md:flex bg-surface-container rounded-lg px-4 py-2 items-center gap-2 border border-outline/15">
-            <span class="material-symbols-outlined text-outline text-[18px]">search</span>
-            <input class="bg-transparent border-none focus:ring-0 text-sm w-44 text-on-surface-variant placeholder:text-outline/60" placeholder="Search resources..." type="text"/>
-        </div>
         <button class="relative p-2 text-primary rounded-lg hover:bg-surface-container transition-colors" aria-label="Notifications">
             <span class="material-symbols-outlined">notifications</span>
             <span class="absolute top-1.5 right-1.5 w-2 h-2 bg-error rounded-full"></span>
@@ -121,15 +117,6 @@
             
             <!-- Filters Form -->
             <form method="GET" action="{{ route('student.logs.index') }}" class="flex flex-col sm:flex-row items-center gap-3">
-                <div class="w-full sm:w-auto relative">
-                    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[18px] pointer-events-none">search</span>
-                    <input type="text" 
-                           name="search" 
-                           value="{{ request('search') }}"
-                           placeholder="Search activities..." 
-                           class="w-full sm:w-56 bg-surface-container-lowest border border-surface-variant/30 rounded-lg py-2 pl-9 pr-3 text-sm focus:ring-2 focus:ring-primary/40 focus:border-transparent transition-all placeholder:text-outline/60" />
-                </div>
-                
                 <div class="flex w-full sm:w-auto gap-3 items-center">
                     <select name="status" 
                             onchange="this.form.submit()" 
@@ -238,16 +225,16 @@
                                     <span class="material-symbols-outlined text-4xl text-outline/50 mb-2">search_off</span>
                                     <p class="font-bold text-on-surface text-base">No matching logs found</p>
                                     <p class="text-xs text-on-surface-variant mt-1">
-                                        @if(request()->filled('search') || (request()->filled('status') && request('status') !== 'all') || (request()->filled('month') && request('month') !== 'all'))
-                                            No shift logs matched your current filters. Try adjusting your search query, status, or month.
+                                        @if((request()->filled('status') && request('status') !== 'all') || (request()->filled('month') && request('month') !== 'all'))
+                                            No shift logs matched your current filters. Try adjusting your status or month filter.
                                         @else
                                             No logs found yet. Start logging your shifts from the dashboard!
                                         @endif
                                     </p>
-                                    @if(request()->filled('search') || (request()->filled('status') && request('status') !== 'all') || (request()->filled('month') && request('month') !== 'all'))
+                                    @if((request()->filled('status') && request('status') !== 'all') || (request()->filled('month') && request('month') !== 'all'))
                                         <a href="{{ route('student.logs.index') }}" class="mt-4 inline-flex items-center gap-1.5 px-4 py-2 bg-primary text-on-primary hover:opacity-90 rounded-lg text-xs font-bold transition-all shadow-xs">
                                             <span class="material-symbols-outlined text-sm">filter_alt_off</span>
-                                            Clear All Filters
+                                            Clear Filters
                                         </a>
                                     @endif
                                 </div>

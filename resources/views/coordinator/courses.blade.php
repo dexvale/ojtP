@@ -45,6 +45,7 @@
                 <span class="text-xl md:text-2xl font-headline font-semibold text-primary tracking-tight">OJT Management</span>
                 <nav class="hidden md:flex items-center gap-6">
                     @if(auth()->user()->role === 'Admin')
+                        <a class="text-sm font-semibold {{ request()->routeIs('admin.academic_terms.*') ? 'text-primary border-b-2 border-primary pb-1' : 'text-on-surface/60 hover:text-primary transition-colors duration-200' }}" href="{{ route('admin.academic_terms.index') }}">Academic Terms</a>
                         <a class="text-sm font-semibold {{ request()->routeIs('admin.coordinators') ? 'text-primary border-b-2 border-primary pb-1' : 'text-on-surface/60 hover:text-primary transition-colors duration-200' }}" href="{{ route('admin.coordinators') }}">Manage Coordinators</a>
                         <a class="text-sm font-semibold {{ request()->routeIs('courses.*') ? 'text-primary border-b-2 border-primary pb-1' : 'text-on-surface/60 hover:text-primary transition-colors duration-200' }}" href="{{ route('courses.index') }}">Course Settings</a>
                     @else
@@ -71,19 +72,7 @@
                                 src="{{ auth()->user()->avatar_url }}">
                         </button>
                         <!-- Dropdown Menu -->
-                        <div id="user-menu-dropdown" class="hidden absolute right-0 top-full mt-2 w-48 bg-white rounded-xl shadow-lg border border-slate-100 py-1.5 z-50">
-                            <div class="px-4 py-2 border-b border-slate-100 sm:hidden">
-                                <p class="text-xs font-bold text-slate-800 truncate">{{ auth()->user()->display_name }}</p>
-                                <p class="text-[10px] uppercase tracking-wider text-slate-500 font-semibold truncate">{{ auth()->user()->display_role }}</p>
-                            </div>
-                            <form method="POST" action="{{ route('logout') }}">
-                                @csrf
-                                <button type="submit" class="w-full text-left px-4 py-2 text-xs sm:text-sm text-red-600 hover:bg-red-50 flex items-center gap-2.5 font-semibold transition-colors cursor-pointer">
-                                    <span class="material-symbols-outlined text-[18px]">logout</span>
-                                    <span>Logout</span>
-                                </button>
-                            </form>
-                        </div>
+                        @include('components.user-dropdown')
                     </div>
                 </div>
             </div>

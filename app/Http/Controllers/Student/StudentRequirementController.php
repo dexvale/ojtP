@@ -28,15 +28,75 @@ class StudentRequirementController extends Controller
         return view('student.requirements', compact('requirements', 'studentSubmissions'));
     }
 
+    public function downloadTemplate($id)
+    {
+        $requirement = Requirement::findOrFail($id);
+
+        if (!$requirement->template_path || !Storage::disk('public')->exists($requirement->template_path)) {
+            return redirect()->back()->withErrors('Template file not found.');
+        }
+
+        $extension = pathinfo($requirement->template_path, PATHINFO_EXTENSION) ?: 'pdf';
+        $downloadName = \Illuminate\Support\Str::slug($requirement->title) . '.' . $extension;
+
+        return Storage::disk('public')->download($requirement->template_path, $downloadName);
+    }
+
     public function submit(Request $request, $id)
     {
+        // Support both submission_files array and submission_file single input
+        $files = $request->file('submission_files');
+        if (!$files && $request->hasFile('submission_file')) {
+            $files = [$request->file('submission_file')];
+        }
+
+        if (empty($files)) {
+            return redirect()->back()->withErrors(['submission_files' => 'Please select at least one document or scan to upload.']);
+        }
+
         $request->validate([
-            'submission_file' => 'required|file|mimes:pdf,docx,doc,zip,jpg,png|max:10240', // max 10MB
+            'submission_files' => 'nullable|array',
+            'submission_files.*' => 'file|mimes:pdf,docx,doc,zip,jpg,jpeg,png,webp|max:15360', // max 15MB each
+            'submission_file' => 'nullable|file|mimes:pdf,docx,doc,zip,jpg,jpeg,png,webp|max:15360',
         ]);
 
         $requirement = Requirement::findOrFail($id);
+        $filePath = null;
 
-        $filePath = $request->file('submission_file')->store('submissions', 'public');
+        // If only 1 file is uploaded
+        if (count($files) === 1) {
+            $file = $files[0];
+            $ext = strtolower($file->getClientOriginalExtension());
+
+            if (in_array($ext, ['pdf', 'docx', 'doc', 'zip'])) {
+                $filePath = $file->store('submissions', 'public');
+            } else {
+                // Single image (JPG, PNG, WEBP) -> convert into a clean single-page PDF
+                try {
+                    $filePath = $this->mergeFilesToPdf($files, $requirement->id);
+                } catch (\Throwable $e) {
+                    $filePath = $file->store('submissions', 'public');
+                }
+            }
+        } else {
+            // Multiple files uploaded -> merge into one PDF
+            foreach ($files as $file) {
+                $ext = strtolower($file->getClientOriginalExtension());
+                if (!in_array($ext, ['pdf', 'jpg', 'jpeg', 'png', 'webp'])) {
+                    return redirect()->back()->withErrors([
+                        'submission_files' => 'Multi-file automatic merging supports PDF and image scans (JPG, PNG, WEBP). Please ensure all selected files are PDFs or images, or archive them into a .ZIP.'
+                    ]);
+                }
+            }
+
+            try {
+                $filePath = $this->mergeFilesToPdf($files, $requirement->id);
+            } catch (\Throwable $e) {
+                return redirect()->back()->withErrors([
+                    'submission_files' => 'Could not merge documents into PDF: ' . $e->getMessage() . '. Please verify your files or upload them as a ZIP.'
+                ]);
+            }
+        }
 
         // Check if student already submitted this requirement
         $submission = RequirementSubmission::where('user_id', auth()->id())
@@ -45,7 +105,7 @@ class StudentRequirementController extends Controller
 
         if ($submission) {
             // Delete old file if it exists
-            if ($submission->file_path) {
+            if ($submission->file_path && Storage::disk('public')->exists($submission->file_path)) {
                 Storage::disk('public')->delete($submission->file_path);
             }
 
@@ -64,7 +124,96 @@ class StudentRequirementController extends Controller
             ]);
         }
 
-        return redirect()->back()->with('success', 'Document submitted successfully. Status set to Pending Verification.');
+        $successMsg = count($files) > 1
+            ? count($files) . ' files merged into a single PDF and submitted successfully. Status set to Pending Verification.'
+            : 'Document submitted successfully. Status set to Pending Verification.';
+
+        return redirect()->back()->with('success', $successMsg);
+    }
+
+    private function mergeFilesToPdf(array $files, int $requirementId): string
+    {
+        $pdf = new Fpdi('P', 'pt');
+
+        // Standard A4 dimensions in points: 595.28 x 841.89
+        $a4Width = 595.28;
+        $a4Height = 841.89;
+        $tempCleanup = [];
+
+        try {
+            foreach ($files as $file) {
+                $ext = strtolower($file->getClientOriginalExtension());
+                $realPath = $file->getRealPath();
+
+                if ($ext === 'pdf') {
+                    $pageCount = $pdf->setSourceFile($realPath);
+                    for ($pageNo = 1; $pageNo <= $pageCount; $pageNo++) {
+                        $templateId = $pdf->importPage($pageNo);
+                        $size = $pdf->getTemplateSize($templateId);
+                        $pdf->AddPage($size['orientation'], [$size['width'], $size['height']]);
+                        $pdf->useTemplate($templateId);
+                    }
+                } elseif (in_array($ext, ['jpg', 'jpeg', 'png', 'webp'])) {
+                    $imagePath = $realPath;
+                    $imageType = ($ext === 'png') ? 'PNG' : 'JPG';
+
+                    // Convert WEBP to PNG if needed
+                    if ($ext === 'webp' && function_exists('imagecreatefromwebp')) {
+                        $src = @imagecreatefromwebp($realPath);
+                        if ($src) {
+                            $tempConverted = tempnam(sys_get_temp_dir(), 'ojt_conv_') . '.png';
+                            imagepng($src, $tempConverted);
+                            $tempCleanup[] = $tempConverted;
+                            $imagePath = $tempConverted;
+                            $imageType = 'PNG';
+                        }
+                    }
+
+                    $imgInfo = @getimagesize($imagePath);
+                    if ($imgInfo && $imgInfo[0] > 0 && $imgInfo[1] > 0) {
+                        $imgWidth = $imgInfo[0];
+                        $imgHeight = $imgInfo[1];
+                        $isLandscape = $imgWidth > $imgHeight;
+
+                        $pageW = $isLandscape ? $a4Height : $a4Width;
+                        $pageH = $isLandscape ? $a4Width : $a4Height;
+                        $orientation = $isLandscape ? 'L' : 'P';
+
+                        $pdf->AddPage($orientation, [$pageW, $pageH]);
+
+                        // Scale to fit neatly with 30pt margin
+                        $margin = 30;
+                        $maxW = $pageW - ($margin * 2);
+                        $maxH = $pageH - ($margin * 2);
+
+                        $ratio = min($maxW / $imgWidth, $maxH / $imgHeight);
+                        $drawW = $imgWidth * $ratio;
+                        $drawH = $imgHeight * $ratio;
+                        $drawX = ($pageW - $drawW) / 2;
+                        $drawY = ($pageH - $drawH) / 2;
+
+                        $pdf->Image($imagePath, $drawX, $drawY, $drawW, $drawH, $imageType);
+                    }
+                }
+            }
+
+            $fileName = 'submissions/merged_' . $requirementId . '_' . time() . '_' . auth()->id() . '.pdf';
+            $outputPath = Storage::disk('public')->path($fileName);
+
+            $dir = dirname($outputPath);
+            if (!file_exists($dir)) {
+                mkdir($dir, 0755, true);
+            }
+
+            $pdf->Output($outputPath, 'F');
+            return $fileName;
+        } finally {
+            foreach ($tempCleanup as $tmp) {
+                if (file_exists($tmp)) {
+                    @unlink($tmp);
+                }
+            }
+        }
     }
 
     public function fill($id)
@@ -144,50 +293,14 @@ class StudentRequirementController extends Controller
         ]);
 
         $requirement = Requirement::findOrFail($id);
-
-        if (!$requirement->template_path || !Storage::disk('public')->exists($requirement->template_path)) {
-            return redirect()->back()->withErrors('Original template not found.');
-        }
-
         $stamps = json_decode($request->stamps, true) ?: [];
 
-        $templateFullPath = Storage::disk('public')->path($requirement->template_path);
-        
-        // Initialize FPDI with 'pt' (points) to match 1:1 with browser rendering scale
-        $pdf = new Fpdi('P', 'pt');
-        $pageCount = $pdf->setSourceFile($templateFullPath);
-        
-        // Group stamps by page number
-        $stampsByPage = [];
-        foreach ($stamps as $stamp) {
-            $pageNo = isset($stamp['page']) ? (int)$stamp['page'] : 1;
-            $stampsByPage[$pageNo][] = $stamp;
+        try {
+            $fileName = $this->generateStampedPdf($requirement, $stamps);
+        } catch (\Throwable $e) {
+            return redirect()->back()->withErrors('Could not generate filled document: ' . $e->getMessage());
         }
-        
-        // Import all pages of the document
-        for ($pageNo = 1; $pageNo <= $pageCount; $pageNo++) {
-            $templateId = $pdf->importPage($pageNo);
-            $size = $pdf->getTemplateSize($templateId);
-            
-            $pdf->AddPage($size['orientation'], [$size['width'], $size['height']]);
-            $pdf->useTemplate($templateId);
-            
-            $pdf->SetFont('Helvetica', '', 12);
-            
-            // Loop through stamps for this specific page
-            if (isset($stampsByPage[$pageNo])) {
-                foreach ($stampsByPage[$pageNo] as $stamp) {
-                    $pdf->SetXY($stamp['x'], $stamp['y']);
-                    $pdf->Write(0, $stamp['text']);
-                }
-            }
-        }
-        
-        $fileName = 'submissions/stamped_' . time() . '_' . auth()->id() . '.pdf';
-        $outputPath = Storage::disk('public')->path($fileName);
-        
-        $pdf->Output($outputPath, 'F');
-        
+
         // Check if student already submitted this requirement
         $submission = RequirementSubmission::where('user_id', auth()->id())
             ->where('requirement_id', $requirement->id)
@@ -213,5 +326,76 @@ class StudentRequirementController extends Controller
         }
 
         return redirect()->route('student.requirements')->with('success', 'Form filled and submitted successfully.');
+    }
+
+    public function downloadFilled(Request $request, $id)
+    {
+        $request->validate([
+            'stamps' => 'required|json'
+        ]);
+
+        $requirement = Requirement::findOrFail($id);
+        $stamps = json_decode($request->stamps, true) ?: [];
+
+        try {
+            $fileName = $this->generateStampedPdf($requirement, $stamps);
+            $fullPath = Storage::disk('public')->path($fileName);
+            $downloadName = \Illuminate\Support\Str::slug($requirement->title) . '_filled_for_signing.pdf';
+
+            return response()->download($fullPath, $downloadName)->deleteFileAfterSend(true);
+        } catch (\Throwable $e) {
+            return redirect()->back()->withErrors('Could not generate filled PDF for download: ' . $e->getMessage());
+        }
+    }
+
+    private function generateStampedPdf(Requirement $requirement, array $stamps): string
+    {
+        if (!$requirement->template_path || !Storage::disk('public')->exists($requirement->template_path)) {
+            throw new \Exception('Original template not found.');
+        }
+
+        $templateFullPath = Storage::disk('public')->path($requirement->template_path);
+
+        // Initialize FPDI with 'pt' (points) to match 1:1 with browser rendering scale
+        $pdf = new Fpdi('P', 'pt');
+        $pageCount = $pdf->setSourceFile($templateFullPath);
+
+        // Group stamps by page number
+        $stampsByPage = [];
+        foreach ($stamps as $stamp) {
+            $pageNo = isset($stamp['page']) ? (int)$stamp['page'] : 1;
+            $stampsByPage[$pageNo][] = $stamp;
+        }
+
+        // Import all pages of the document
+        for ($pageNo = 1; $pageNo <= $pageCount; $pageNo++) {
+            $templateId = $pdf->importPage($pageNo);
+            $size = $pdf->getTemplateSize($templateId);
+
+            $pdf->AddPage($size['orientation'], [$size['width'], $size['height']]);
+            $pdf->useTemplate($templateId);
+
+            $pdf->SetFont('Helvetica', '', 12);
+
+            // Loop through stamps for this specific page
+            if (isset($stampsByPage[$pageNo])) {
+                foreach ($stampsByPage[$pageNo] as $stamp) {
+                    $pdf->SetXY($stamp['x'], $stamp['y']);
+                    $pdf->Write(0, $stamp['text']);
+                }
+            }
+        }
+
+        $fileName = 'submissions/stamped_' . time() . '_' . auth()->id() . '.pdf';
+        $outputPath = Storage::disk('public')->path($fileName);
+
+        $dir = dirname($outputPath);
+        if (!file_exists($dir)) {
+            mkdir($dir, 0755, true);
+        }
+
+        $pdf->Output($outputPath, 'F');
+
+        return $fileName;
     }
 }

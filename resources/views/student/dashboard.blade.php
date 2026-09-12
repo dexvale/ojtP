@@ -62,10 +62,6 @@
     </div>
 
     <div class="flex items-center gap-3">
-        <div class="hidden md:flex bg-surface-container rounded-lg px-4 py-2 items-center gap-2 border border-outline/15">
-            <span class="material-symbols-outlined text-outline text-[18px]">search</span>
-            <input class="bg-transparent border-none focus:ring-0 text-sm w-44 text-on-surface-variant placeholder:text-outline/60" placeholder="Search resources..." type="text"/>
-        </div>
         <button class="relative p-2 text-primary rounded-lg hover:bg-surface-container transition-colors" aria-label="Notifications">
             <span class="material-symbols-outlined">notifications</span>
             <span class="absolute top-1.5 right-1.5 w-2 h-2 bg-error rounded-full"></span>
@@ -270,10 +266,9 @@
                             <div class="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
                                 <span class="material-symbols-outlined text-xl">assignment</span>
                             </div>
-                            <h2 class="text-2xl font-bold font-headline text-primary">Log OJT Shift</h2>
+                            <h2 class="text-2xl font-bold font-headline text-primary">Log OJT Sheet</h2>
                         </div>
                         <div class="flex items-center gap-2 bg-purple-50 border border-purple-100 rounded-lg px-3 py-1.5">
-                            <span class="material-symbols-outlined text-purple-700 text-sm">calendar_month</span>
                             <input type="date" 
                                    name="log_date" 
                                    id="log_date" 

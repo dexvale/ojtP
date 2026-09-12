@@ -188,7 +188,16 @@
                     <span class="hidden md:inline">Clear All</span>
                 </button>
 
-                <button onclick="submitStamps()" class="bg-[#300050] hover:bg-purple-950 text-white px-3 sm:px-5 py-2 sm:py-2.5 rounded-xl font-bold text-xs sm:text-sm shadow-md hover:shadow-purple-900/20 transition active:scale-95 flex items-center gap-1.5 sm:gap-2">
+                <button type="button" onclick="downloadFilledPdf()" title="Download typed PDF to print and collect physical pen signatures and official seals"
+                        style="background-color: #4338ca; color: #ffffff;"
+                        class="px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl font-bold text-xs sm:text-sm shadow-md transition active:scale-95 flex items-center gap-1.5 sm:gap-2 cursor-pointer hover:opacity-90">
+                    <span class="material-symbols-outlined text-[18px]" style="color: #ffffff;">print</span>
+                    <span style="color: #ffffff; font-weight: 700;">Download & Print</span>
+                    <span class="hidden md:inline text-[10px] font-normal px-1.5 py-0.5 rounded" style="background-color: rgba(255, 255, 255, 0.2); color: #ffffff;">(For Signing)</span>
+                </button>
+
+                <button type="button" onclick="submitStamps()" title="Directly submit filled document if no physical signatures/seals are needed"
+                        class="bg-[#300050] hover:bg-purple-950 text-white px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl font-bold text-xs sm:text-sm shadow-md hover:shadow-purple-900/20 transition active:scale-95 flex items-center gap-1.5 sm:gap-2">
                     <span class="material-symbols-outlined text-[18px]">assignment_turned_in</span>
                     <span>Stamp & Submit</span>
                 </button>
@@ -229,6 +238,16 @@
                     </button>
                 @endif
             @endforeach
+        </div>
+
+        <!-- Signing Guidance Info Banner -->
+        <div class="bg-amber-50 border-t border-amber-200/70 px-4 sm:px-6 py-1.5 flex items-center justify-between text-[11px] text-amber-900">
+            <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-amber-600 text-[16px] shrink-0">info</span>
+                <span>
+                    <strong>Need physical signatures or official seals?</strong> Fill in your details, click <strong class="text-indigo-950 font-bold">Download Filled PDF</strong>, print it out for signing and dry seals, then upload the scanned copy under <strong class="text-purple-950 font-bold">Submit File</strong> on your dashboard.
+                </span>
+            </div>
         </div>
     </header>
 
@@ -482,7 +501,7 @@
             }
         }
 
-        function submitStamps() {
+        function getStampsData() {
             const inputs = document.querySelectorAll('.pdf-text-input');
             const stamps = [];
 
@@ -507,13 +526,37 @@
                 }
             });
 
+            return stamps;
+        }
+
+        function downloadFilledPdf() {
+            const stamps = getStampsData();
+
+            if (stamps.length === 0) {
+                alert("Please add your information onto the document before downloading.");
+                return;
+            }
+
+            const form = document.getElementById('stampForm');
+            form.action = "{{ route('student.requirements.downloadFilled', $requirement->id) }}";
+            document.getElementById('stampsInput').value = JSON.stringify(stamps);
+            form.submit();
+        }
+
+        function submitStamps() {
+            const stamps = getStampsData();
+
             if (stamps.length === 0) {
                 alert("Please add at least one text field to the document before submitting.");
                 return;
             }
 
-            document.getElementById('stampsInput').value = JSON.stringify(stamps);
-            document.getElementById('stampForm').submit();
+            if (confirm("Are you sure you want to directly submit this document?\n\nNOTE: If this requirement requires real physical signatures or official school/company seals (like Parent's Consent or MOA), please click 'Download Filled PDF' instead so you can print it out for signing.")) {
+                const form = document.getElementById('stampForm');
+                form.action = "{{ route('student.requirements.submitForm', $requirement->id) }}";
+                document.getElementById('stampsInput').value = JSON.stringify(stamps);
+                form.submit();
+            }
         }
     </script>
 </body>
