@@ -65,10 +65,6 @@
                 <h1 class="text-4xl font-extrabold font-headline text-primary tracking-tight">Intern Attendance Tracker</h1>
                 <p class="text-on-surface/60 font-medium mt-1">Monitor daily time logs and weekly attendance trends.</p>
             </div>
-            <button class="flex items-center justify-center gap-2 px-5 py-2.5 border-2 border-primary text-primary bg-transparent rounded-lg font-bold text-sm hover:bg-primary hover:text-white transition-all shadow-sm active:scale-95">
-                <span class="material-symbols-outlined text-[20px]">download</span>
-                Download Weekly Report
-            </button>
         </div>
 
         <div class="flex flex-col gap-8">
@@ -98,32 +94,45 @@
                             @forelse($todayAttendance as $intern)
                                 @php 
                                     $log = $intern->ojtLogs->first(); 
+                                    $internName = $intern->user->display_name ?? trim($intern->first_name . ' ' . $intern->last_name) ?: 'Intern';
+                                    $initials = substr(implode('', array_map(fn($w) => strtoupper($w[0] ?? ''), explode(' ', $internName))), 0, 2) ?: strtoupper(substr($internName, 0, 2));
+                                    $timeInVal = $log ? ($log->morning_in ?? $log->afternoon_in) : null;
+                                    $timeOutVal = $log ? ($log->afternoon_out ?? $log->morning_out) : null;
                                 @endphp
                                 <tr class="hover:bg-surface/50 transition-colors group">
                                     <td class="py-4 px-4">
                                         <div class="flex items-center gap-3">
-                                            <div class="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-sm">{{ strtoupper(substr($intern->user->name, 0, 2)) }}</div>
-                                            <span class="font-bold text-sm text-on-surface">{{ $intern->user->name }}</span>
+                                            <div class="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-sm">{{ $initials }}</div>
+                                            <span class="font-bold text-sm text-on-surface">{{ $internName }}</span>
                                         </div>
                                     </td>
                                     <td class="py-4 px-4 hidden md:table-cell">
                                         <div class="text-sm font-semibold text-on-surface">{{ $intern->course ?? 'N/A' }}</div>
                                     </td>
-                                    <td class="py-4 px-4 font-bold text-sm text-on-surface">{{ $log && $log->morning_in ? \Carbon\Carbon::parse($log->morning_in)->format('h:i A') : '--:-- --' }}</td>
-                                    <td class="py-4 px-4 font-bold text-sm text-on-surface/40">{{ $log && $log->afternoon_out ? \Carbon\Carbon::parse($log->afternoon_out)->format('h:i A') : '--:-- --' }}</td>
+                                    <td class="py-4 px-4 font-bold text-sm text-on-surface">{{ $timeInVal ? \Carbon\Carbon::parse($timeInVal)->format('h:i A') : '--:-- --' }}</td>
+                                    <td class="py-4 px-4 font-bold text-sm text-on-surface/40">{{ $timeOutVal ? \Carbon\Carbon::parse($timeOutVal)->format('h:i A') : '--:-- --' }}</td>
                                     <td class="py-4 px-4">
-                                        @if($log && $log->morning_in)
-                                            @if(\Carbon\Carbon::parse($log->morning_in)->format('H:i') > '09:00')
-                                                <span class="bg-warning/10 text-warning border border-warning/20 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide">Late</span>
+                                        @if($timeInVal)
+                                            @php
+                                                $isLate = $log->morning_in ? (\Carbon\Carbon::parse($log->morning_in)->format('H:i') > '09:00') : (\Carbon\Carbon::parse($log->afternoon_in)->format('H:i') > '13:30');
+                                            @endphp
+                                            @if($isLate)
+                                                <span class="inline-flex items-center gap-1 bg-warning/10 text-warning border border-warning/20 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide">
+                                                    <span class="material-symbols-outlined text-[14px]">schedule</span> Late
+                                                </span>
                                             @else
-                                                <span class="bg-success/10 text-success border border-success/20 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide">Present</span>
+                                                <span class="inline-flex items-center gap-1 bg-success/10 text-success border border-success/20 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide">
+                                                    <span class="material-symbols-outlined text-[14px]">check_circle</span> Present
+                                                </span>
                                             @endif
                                         @else
-                                            <span class="bg-error/10 text-error border border-error/20 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide">Absent</span>
+                                            <span class="inline-flex items-center gap-1 bg-error/10 text-error border border-error/20 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide">
+                                                <span class="material-symbols-outlined text-[14px]">cancel</span> Absent
+                                            </span>
                                         @endif
                                     </td>
                                     <td class="py-4 px-4 text-right">
-                                        <button onclick="openAttendanceCalendar({{ $intern->id }})" class="text-primary hover:bg-primary/5 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors inline-flex items-center gap-1 border border-transparent hover:border-primary/20">
+                                        <button onclick="openAttendanceCalendar({{ $intern->id }})" class="text-primary hover:bg-primary/5 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors inline-flex items-center gap-1 border border-transparent hover:border-primary/20 cursor-pointer">
                                             <span class="material-symbols-outlined text-[16px]">calendar_view_week</span> View Calendar
                                         </button>
                                     </td>
@@ -152,22 +161,25 @@
                         <thead>
                             <tr class="bg-surface/50">
                                 <th class="py-4 px-4 border border-outline/20 text-left text-[10px] font-bold uppercase tracking-widest text-on-surface/50 rounded-tl-lg">Intern Name</th>
-                                <th class="py-4 px-2 border border-outline/20 text-[10px] font-bold uppercase tracking-widest text-on-surface/50 w-24">Mon</th>
-                                <th class="py-4 px-2 border border-outline/20 text-[10px] font-bold uppercase tracking-widest text-on-surface/50 w-24">Tue</th>
-                                <th class="py-4 px-2 border border-outline/20 text-[10px] font-bold uppercase tracking-widest text-on-surface/50 w-24">Wed</th>
-                                <th class="py-4 px-2 border border-outline/20 text-[10px] font-bold uppercase tracking-widest text-on-surface/50 w-24 {{ \Carbon\Carbon::today()->isThursday() ? 'bg-primary/5 text-primary' : '' }}">Thu {{ \Carbon\Carbon::today()->isThursday() ? '(Today)' : '' }}</th>
-                                <th class="py-4 px-2 border border-outline/20 text-[10px] font-bold uppercase tracking-widest text-on-surface/50 w-24 {{ \Carbon\Carbon::today()->isFriday() ? 'bg-primary/5 text-primary' : 'opacity-60' }}">Fri {{ \Carbon\Carbon::today()->isFriday() ? '(Today)' : '' }}</th>
-                                <th class="py-4 px-2 border border-outline/20 text-[10px] font-bold uppercase tracking-widest text-on-surface/50 w-24 {{ \Carbon\Carbon::today()->isSaturday() ? 'bg-primary/5 text-primary' : '' }}">Sat {{ \Carbon\Carbon::today()->isSaturday() ? '(Today)' : '' }}</th>
-                                <th class="py-4 px-2 border border-outline/20 text-[10px] font-bold uppercase tracking-widest text-on-surface/50 w-24 rounded-tr-lg {{ \Carbon\Carbon::today()->isSunday() ? 'bg-primary/5 text-primary' : '' }}">Sun {{ \Carbon\Carbon::today()->isSunday() ? '(Today)' : '' }}</th>
+                                @for($d = 0; $d < 7; $d++)
+                                    @php
+                                        $colDate = $startOfWeek->copy()->addDays($d);
+                                        $colIsToday = $colDate->format('Y-m-d') === \Carbon\Carbon::today()->format('Y-m-d');
+                                    @endphp
+                                    <th class="py-4 px-2 border border-outline/20 text-[10px] font-bold uppercase tracking-widest text-on-surface/50 w-24 {{ $colIsToday ? 'bg-primary/10 text-primary font-extrabold' : '' }} {{ $d === 6 ? 'rounded-tr-lg' : '' }}">
+                                        {{ $colDate->format('D') }} {{ $colIsToday ? '(Today)' : '' }}
+                                    </th>
+                                @endfor
                             </tr>
                         </thead>
                         <tbody class="bg-white">
                             @forelse($todayAttendance as $intern)
                             @php
                                 $studentWeeklyLogs = $weeklyLogs->get($intern->user_id, collect());
+                                $internName = $intern->user->display_name ?? trim($intern->first_name . ' ' . $intern->last_name) ?: 'Intern';
                             @endphp
                             <tr class="hover:bg-surface/30">
-                                <td class="py-3 px-4 border border-outline/10 text-left font-bold text-sm text-on-surface rounded-bl-lg">{{ $intern->user->name }}</td>
+                                <td class="py-3 px-4 border border-outline/10 text-left font-bold text-sm text-on-surface">{{ $internName }}</td>
                                 @for($i = 0; $i < 7; $i++)
                                     @php
                                         $dateObj = $startOfWeek->copy()->addDays($i);
@@ -194,7 +206,7 @@
                             </tr>
                             @empty
                             <tr>
-                                <td colspan="6" class="text-center py-6 text-on-surface/50 text-sm">No students assigned to your company yet.</td>
+                                <td colspan="8" class="text-center py-6 text-on-surface/50 text-sm">No students assigned to your company yet.</td>
                             </tr>
                             @endforelse
                         </tbody>

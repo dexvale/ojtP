@@ -79,21 +79,21 @@
                         </tr>
                     </thead>
                 <tbody class="divide-y divide-gray-50">
-                    @forelse($leaderboard as $index => $intern)
+                    @forelse($leaderboard as $intern)
                         @php
                             $studentName = $intern->user->display_name ?? trim($intern->first_name . ' ' . $intern->last_name);
                             $initials = substr(implode('', array_map(fn($w) => strtoupper($w[0] ?? ''), explode(' ', $studentName))), 0, 2);
                         @endphp
                         <tr class="hover:bg-gray-50/40 transition-colors">
                             <td class="p-4 font-mono font-bold text-center text-sm">
-                                @if($index === 0)
+                                @if($loop->iteration === 1)
                                     <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-amber-100 text-amber-800 text-xs">🥇</span>
-                                @elseif($index === 1)
+                                @elseif($loop->iteration === 2)
                                     <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-slate-100 text-slate-800 text-xs">🥈</span>
-                                @elseif($index === 2)
+                                @elseif($loop->iteration === 3)
                                     <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-orange-100 text-orange-800 text-xs">🥉</span>
                                 @else
-                                    <span class="text-gray-400 text-xs">#{{ $index + 1 }}</span>
+                                    <span class="text-gray-400 text-xs">#{{ $loop->iteration }}</span>
                                 @endif
                             </td>
 

@@ -1,4 +1,4 @@
-<aside id="sidebar" class="fixed left-0 top-0 h-full h-[100dvh] max-h-screen w-64 z-[60] bg-primary flex flex-col justify-between shadow-2xl overscroll-contain -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-in-out">
+<aside id="sidebar" class="fixed left-0 top-0 h-full h-[100dvh] max-h-screen w-64 z-[60] bg-primary flex flex-col justify-between shadow-2xl overscroll-contain -translate-x-full lg:translate-x-0 transition-transform duration-200 ease-out transform-gpu will-change-transform">
     <!-- Brand & Mobile Close -->
     <div class="px-6 pt-6 pb-2 mb-2 flex-shrink-0 flex items-center justify-between">
         <div class="flex items-center gap-3">
@@ -18,42 +18,42 @@
     <!-- Nav Links -->
     <nav class="flex-1 min-h-0 overflow-y-auto px-2 py-1 space-y-1 font-['Public_Sans'] text-sm">
         <a href="{{ route('student.dashboard') }}" 
-           class="mx-1 my-0.5 px-4 py-2.5 flex items-center gap-3 rounded-lg transition-all duration-200 
+           class="mx-1 my-0.5 px-4 py-2.5 flex items-center gap-3 rounded-lg transition-colors duration-150 
                   {{ request()->routeIs('student.dashboard') ? 'bg-white/10 text-white font-semibold' : 'text-white/60 hover:text-white hover:bg-white/5 font-medium' }}">
             <span class="material-symbols-outlined">dashboard</span>
             <span>Dashboard</span>
         </a>
 
         <a href="{{ route('student.logs.index') }}" 
-           class="mx-1 my-0.5 px-4 py-2.5 flex items-center gap-3 rounded-lg transition-all duration-200 
+           class="mx-1 my-0.5 px-4 py-2.5 flex items-center gap-3 rounded-lg transition-colors duration-150 
                   {{ request()->routeIs('student.logs.index') ? 'bg-white/10 text-white font-semibold' : 'text-white/60 hover:text-white hover:bg-white/5 font-medium' }}">
             <span class="material-symbols-outlined">description</span>
             <span>Internship Logs</span>
         </a>
 
         <a href="{{ route('student.placement') }}" 
-           class="mx-1 my-0.5 px-4 py-2.5 flex items-center gap-3 rounded-lg transition-all duration-200 
+           class="mx-1 my-0.5 px-4 py-2.5 flex items-center gap-3 rounded-lg transition-colors duration-150 
                   {{ request()->routeIs('student.placement*') ? 'bg-white/10 text-white font-semibold' : 'text-white/60 hover:text-white hover:bg-white/5 font-medium' }}">
             <span class="material-symbols-outlined">corporate_fare</span>
             <span>Company Placement</span>
         </a>
 
         <a href="{{ route('student.requirements') }}" 
-           class="mx-1 my-0.5 px-4 py-2.5 flex items-center gap-3 rounded-lg transition-all duration-200 
+           class="mx-1 my-0.5 px-4 py-2.5 flex items-center gap-3 rounded-lg transition-colors duration-150 
                   {{ request()->routeIs('student.requirements*') ? 'bg-white/10 text-white font-semibold' : 'text-white/60 hover:text-white hover:bg-white/5 font-medium' }}">
             <span class="material-symbols-outlined">assignment</span>
             <span>OJT Requirements</span>
         </a>
 
         <a href="{{ route('student.grading-sheet') }}" target="_blank"
-           class="mx-1 my-0.5 px-4 py-2.5 flex items-center gap-3 rounded-lg transition-all duration-200 
+           class="mx-1 my-0.5 px-4 py-2.5 flex items-center gap-3 rounded-lg transition-colors duration-150 
                   {{ request()->routeIs('student.grading-sheet') ? 'bg-white/10 text-white font-semibold' : 'text-white/60 hover:text-white hover:bg-white/5 font-medium' }}">
             <span class="material-symbols-outlined">grade</span>
             <span>BISU Grading Sheet</span>
         </a>
 
         <a href="{{ route('student.profile') }}" 
-           class="mx-1 my-0.5 px-4 py-2.5 flex items-center gap-3 rounded-lg transition-all duration-200 
+           class="mx-1 my-0.5 px-4 py-2.5 flex items-center gap-3 rounded-lg transition-colors duration-150 
                   {{ request()->routeIs('student.profile') ? 'bg-white/10 text-white font-semibold' : 'text-white/60 hover:text-white hover:bg-white/5 font-medium' }}">
             <span class="material-symbols-outlined">person</span>
             <span>Profile</span>

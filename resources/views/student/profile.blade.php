@@ -123,9 +123,17 @@
                         <h1 class="text-3xl lg:text-4xl font-extrabold font-headline tracking-tight text-primary leading-tight">
                             Student Profile<br class="sm:hidden"/> Information
                         </h1>
-                        <div class="flex items-center gap-1.5 mt-1.5">
-                            <span class="material-symbols-outlined text-tertiary text-base" style="font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 20;">verified</span>
-                            <span class="text-xs font-semibold text-tertiary uppercase tracking-wide">Verified Student Status</span>
+                        <div class="flex flex-wrap items-center gap-2.5 mt-1.5">
+                            <div class="flex items-center gap-1.5">
+                                <span class="material-symbols-outlined text-tertiary text-base" style="font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 20;">verified</span>
+                                <span class="text-xs font-semibold text-tertiary uppercase tracking-wide">Verified Student Status</span>
+                            </div>
+                            @if($user->studentProfile?->profile_photo_path || $user->profile_photo_path)
+                                <label class="inline-flex items-center gap-1.5 px-3 py-1 bg-rose-50 text-rose-700 hover:bg-rose-100 rounded-lg text-xs font-bold transition-colors cursor-pointer border border-rose-200 shadow-2xs">
+                                    <input type="checkbox" name="remove_photo" id="remove_photo_checkbox" value="1" onchange="handleRemovePhotoChange(this)" class="rounded text-rose-600 focus:ring-rose-500">
+                                    <span>Remove custom avatar</span>
+                                </label>
+                            @endif
                         </div>
                     </div>
                 </div>
@@ -505,6 +513,10 @@
                 return;
             }
 
+            // Uncheck remove_photo if user chooses a new image
+            const removeCb = document.getElementById('remove_photo_checkbox');
+            if (removeCb) removeCb.checked = false;
+
             const reader = new FileReader();
             reader.onload = function(e) {
                 document.getElementById('avatar-preview-img').src = e.target.result;
@@ -512,11 +524,26 @@
             reader.readAsDataURL(file);
 
             // Automatically reveal the Update Profile button so the user can save the photo
-            const saveBtn = document.getElementById('update-btn');
             const inputs  = document.querySelectorAll('.profile-input');
-            if (inputs[0].disabled) {
+            if (inputs.length && inputs[0].disabled) {
                 toggleEdit();
             }
+        }
+    }
+
+    function handleRemovePhotoChange(cb) {
+        const previewImg = document.getElementById('avatar-preview-img');
+        const photoInput = document.getElementById('profile_photo_input');
+        if (cb.checked) {
+            if (photoInput) photoInput.value = '';
+            previewImg.src = "https://ui-avatars.com/api/?name={{ urlencode($user->display_name ?: 'Student') }}&background=3a0ca3&color=fff&bold=true";
+        } else {
+            previewImg.src = "{{ $user->studentProfile?->profile_photo_url ?? $user->avatar_url }}";
+        }
+
+        const inputs = document.querySelectorAll('.profile-input');
+        if (inputs.length && inputs[0].disabled) {
+            toggleEdit();
         }
     }
 

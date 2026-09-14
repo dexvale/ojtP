@@ -6,6 +6,8 @@
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
     <title>OJT Portal | Course Settings</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
         href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,600;6..72,700;6..72,800&family=Public+Sans:wght@400;500;600&display=swap"
         rel="stylesheet">
@@ -42,8 +44,8 @@
                 <button id="sidebar-toggle" class="lg:hidden p-2 min-w-[40px] min-h-[40px] flex items-center justify-center text-primary rounded-lg hover:bg-black/5 transition-colors" aria-label="Toggle menu">
                     <span class="material-symbols-outlined">menu</span>
                 </button>
-                <span class="text-xl md:text-2xl font-headline font-semibold text-primary tracking-tight">OJT Management</span>
-                <nav class="hidden md:flex items-center gap-6">
+                <span class="text-xl md:text-2xl font-headline font-semibold text-primary tracking-tight whitespace-nowrap shrink-0">OJT Management</span>
+                <nav class="hidden xl:flex items-center gap-6">
                     @if(auth()->user()->role === 'Admin')
                         <a class="text-sm font-semibold {{ request()->routeIs('admin.academic_terms.*') ? 'text-primary border-b-2 border-primary pb-1' : 'text-on-surface/60 hover:text-primary transition-colors duration-200' }}" href="{{ route('admin.academic_terms.index') }}">Academic Terms</a>
                         <a class="text-sm font-semibold {{ request()->routeIs('admin.coordinators') ? 'text-primary border-b-2 border-primary pb-1' : 'text-on-surface/60 hover:text-primary transition-colors duration-200' }}" href="{{ route('admin.coordinators') }}">Manage Coordinators</a>
@@ -80,7 +82,7 @@
     </header>
 
     <!-- Main Content -->
-    <main class="lg:ml-64 ml-0 pt-20 md:pt-24 px-4 sm:px-6 lg:px-8 pb-12 min-h-screen border-none">
+    <main class="lg:ml-64 ml-0 pt-24 md:pt-28 px-4 sm:px-6 lg:px-8 pb-12 min-h-screen border-none">
         <!-- Page Header -->
         <div class="flex flex-col md:flex-row md:items-end md:justify-between mb-8 gap-4">
             <div>

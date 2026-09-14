@@ -157,8 +157,8 @@
                 <button id="sidebar-toggle" class="lg:hidden p-2 min-w-[40px] min-h-[40px] flex items-center justify-center text-primary rounded-lg hover:bg-black/5 transition-colors" aria-label="Toggle menu">
                     <span class="material-symbols-outlined">menu</span>
                 </button>
-                <span class="text-xl md:text-2xl font-headline font-semibold text-primary tracking-tight">OJT Management</span>
-                <nav class="hidden md:flex items-center gap-6">
+                <span class="text-xl md:text-2xl font-headline font-semibold text-primary tracking-tight whitespace-nowrap shrink-0">OJT Management</span>
+                <nav class="hidden xl:flex items-center gap-6">
                     <a class="text-sm font-semibold text-on-surface/60 hover:text-primary transition-colors duration-200" href="{{ route('coordinator.dashboard') }}">Dashboard</a>
                     <a class="text-sm font-semibold text-on-surface/60 hover:text-primary transition-colors duration-200" href="{{ route('coordinator.students') }}">Student List</a>
                     <a class="text-sm font-semibold text-on-surface/60 hover:text-primary transition-colors duration-200" href="{{ route('coordinator.companies') }}">Company Directory</a>
@@ -189,7 +189,7 @@
     </header>
 
     <!-- Main Content -->
-    <main class="lg:ml-64 ml-0 pt-20 md:pt-24 px-4 sm:px-6 lg:px-8 pb-12 min-h-screen border-none max-w-full overflow-x-hidden" x-data="{ activeTab: '{{ request('tab', 'dtr') }}', searchVal: '' }">
+    <main class="lg:ml-64 ml-0 pt-24 md:pt-28 px-4 sm:px-6 lg:px-8 pb-12 min-h-screen border-none max-w-full overflow-x-hidden" x-data="{ activeTab: '{{ request('tab', 'dtr') }}', searchVal: '' }">
         <!-- Page Header & Global Actions -->
         <div class="flex flex-col lg:flex-row lg:items-end lg:justify-between mb-6 sm:mb-8 gap-4 sm:gap-6 print:hidden">
             <div>

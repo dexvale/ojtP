@@ -90,6 +90,20 @@ class CoordinatorRequirementController extends Controller
         return redirect()->back()->with('success', 'Requirement template and all associated submissions deleted successfully.');
     }
 
+    public function downloadTemplate($id)
+    {
+        $requirement = Requirement::findOrFail($id);
+
+        if (!$requirement->template_path || !Storage::disk('public')->exists($requirement->template_path)) {
+            return redirect()->back()->withErrors('Template file not found.');
+        }
+
+        $extension = pathinfo($requirement->template_path, PATHINFO_EXTENSION) ?: 'docx';
+        $downloadName = Str::slug($requirement->title) . '.' . $extension;
+
+        return Storage::disk('public')->download($requirement->template_path, $downloadName);
+    }
+
     public function approve(Request $request, $id)
     {
         $submission = RequirementSubmission::findOrFail($id);

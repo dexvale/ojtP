@@ -4,6 +4,7 @@
     <meta charset="utf-8">
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
     <title>OJT Portal | Pending Approvals</title>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,600;6..72,700;6..72,800&family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -58,7 +59,7 @@
     <!-- MAIN CONTENT -->
     <main class="lg:ml-64 ml-0 pt-20 md:pt-24 px-4 sm:px-6 lg:px-8 pb-16 overflow-x-hidden">
         
-        <div class="max-w-7xl mx-auto space-y-6">
+        <div id="approvals-main-container" class="max-w-7xl mx-auto space-y-6 transition-opacity duration-150">
             
             <!-- Page Header -->
             <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
@@ -84,21 +85,27 @@
             @endif
 
             <!-- Status Tabs with Live Count Badges -->
-            <div class="flex items-center border-b border-outline/15 overflow-x-auto gap-2 sm:gap-6 no-scrollbar">
+            <div id="status-tabs-container" class="flex items-center border-b border-outline/15 overflow-x-auto gap-2 sm:gap-6 no-scrollbar">
                 <a href="{{ route('supervisor.approvals', array_merge(request()->query(), ['status' => 'Pending', 'page' => 1])) }}" 
-                   class="pb-3 px-1 text-xs sm:text-sm font-bold border-b-2 flex items-center gap-2 whitespace-nowrap transition-colors {{ $status === 'Pending' ? 'border-primary text-primary' : 'border-transparent text-on-surface/50 hover:text-primary' }}">
+                   data-status="Pending"
+                   onclick="handleTabClick(event, this)"
+                   class="approval-tab pb-3 px-1 text-xs sm:text-sm font-bold border-b-2 flex items-center gap-2 whitespace-nowrap transition-colors {{ $status === 'Pending' ? 'border-primary text-primary' : 'border-transparent text-on-surface/50 hover:text-primary' }}">
                     <span>Pending Queue</span>
-                    <span class="px-2 py-0.5 text-[11px] font-black rounded-full {{ $status === 'Pending' ? 'bg-primary text-white' : 'bg-surface-container text-on-surface/60' }}">{{ $pendingCount }}</span>
+                    <span id="badge-pending" class="px-2 py-0.5 text-[11px] font-black rounded-full {{ $status === 'Pending' ? 'bg-primary text-white' : 'bg-surface-container text-on-surface/60' }}">{{ $pendingCount }}</span>
                 </a>
                 <a href="{{ route('supervisor.approvals', array_merge(request()->query(), ['status' => 'Approved', 'page' => 1])) }}" 
-                   class="pb-3 px-1 text-xs sm:text-sm font-bold border-b-2 flex items-center gap-2 whitespace-nowrap transition-colors {{ $status === 'Approved' ? 'border-primary text-primary' : 'border-transparent text-on-surface/50 hover:text-primary' }}">
+                   data-status="Approved"
+                   onclick="handleTabClick(event, this)"
+                   class="approval-tab pb-3 px-1 text-xs sm:text-sm font-bold border-b-2 flex items-center gap-2 whitespace-nowrap transition-colors {{ $status === 'Approved' ? 'border-primary text-primary' : 'border-transparent text-on-surface/50 hover:text-primary' }}">
                     <span>Approved Logs</span>
-                    <span class="px-2 py-0.5 text-[11px] font-black rounded-full {{ $status === 'Approved' ? 'bg-emerald-600 text-white' : 'bg-surface-container text-on-surface/60' }}">{{ $approvedCount }}</span>
+                    <span id="badge-approved" class="px-2 py-0.5 text-[11px] font-black rounded-full {{ $status === 'Approved' ? 'bg-emerald-600 text-white' : 'bg-surface-container text-on-surface/60' }}">{{ $approvedCount }}</span>
                 </a>
                 <a href="{{ route('supervisor.approvals', array_merge(request()->query(), ['status' => 'Rejected', 'page' => 1])) }}" 
-                   class="pb-3 px-1 text-xs sm:text-sm font-bold border-b-2 flex items-center gap-2 whitespace-nowrap transition-colors {{ $status === 'Rejected' ? 'border-primary text-primary' : 'border-transparent text-on-surface/50 hover:text-primary' }}">
+                   data-status="Rejected"
+                   onclick="handleTabClick(event, this)"
+                   class="approval-tab pb-3 px-1 text-xs sm:text-sm font-bold border-b-2 flex items-center gap-2 whitespace-nowrap transition-colors {{ $status === 'Rejected' ? 'border-primary text-primary' : 'border-transparent text-on-surface/50 hover:text-primary' }}">
                     <span>Rejected / Revisions</span>
-                    <span class="px-2 py-0.5 text-[11px] font-black rounded-full {{ $status === 'Rejected' ? 'bg-rose-600 text-white' : 'bg-surface-container text-on-surface/60' }}">{{ $rejectedCount }}</span>
+                    <span id="badge-rejected" class="px-2 py-0.5 text-[11px] font-black rounded-full {{ $status === 'Rejected' ? 'bg-rose-600 text-white' : 'bg-surface-container text-on-surface/60' }}">{{ $rejectedCount }}</span>
                 </a>
             </div>
 
@@ -133,6 +140,7 @@
 
                     @if($internId)
                         <a href="{{ route('supervisor.approvals', ['status' => $status, 'sort' => $sortBy]) }}" 
+                           onclick="event.preventDefault(); loadTabContent(this.href);"
                            class="text-xs text-primary font-bold hover:underline inline-flex items-center gap-1 py-1">
                             <span class="material-symbols-outlined text-[14px]">close</span>
                             <span>Clear Filter</span>
@@ -310,7 +318,7 @@
                                         @if($status === 'Pending')
                                             <div class="flex items-center justify-end gap-1.5">
                                                 <!-- Quick Approve Form -->
-                                                <form method="POST" action="{{ route('supervisor.logs.approve', $log) }}" class="inline">
+                                                <form method="POST" action="{{ route('supervisor.logs.approve', $log) }}" class="inline" onsubmit="handleQuickApprove(event, {{ $log->id }})">
                                                     @csrf
                                                     <button type="submit" class="px-2.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition shadow-xs inline-flex items-center gap-1 active:scale-95 cursor-pointer" title="Approve Log">
                                                         <span class="material-symbols-outlined text-[16px]">check</span>
@@ -446,7 +454,7 @@
                                     <span class="material-symbols-outlined text-[16px]">undo</span>
                                     <span>Reject</span>
                                 </button>
-                                <form method="POST" action="{{ route('supervisor.logs.approve', $log) }}" class="w-full">
+                                <form method="POST" action="{{ route('supervisor.logs.approve', $log) }}" class="w-full" onsubmit="handleQuickApprove(event, {{ $log->id }})">
                                     @csrf
                                     <button type="submit" class="w-full py-2 px-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition shadow-xs flex items-center justify-center gap-1 active:scale-95 cursor-pointer">
                                         <span class="material-symbols-outlined text-[16px]">check</span>
@@ -504,7 +512,7 @@
                 </button>
             </div>
 
-            <form id="reject-form-element" method="POST" action="">
+            <form id="reject-form-element" method="POST" action="" onsubmit="handleRejectSubmit(event)">
                 @csrf
                 <div class="space-y-3">
                     <div class="bg-surface-container/60 p-3 rounded-xl text-xs space-y-1">
@@ -659,10 +667,290 @@
             }
         });
 
-        // ── Filter Application ──
+        // ── Non-intrusive Floating Toast Notifications ──
+        function showToast(message, type = 'success') {
+            let container = document.getElementById('approval-toast-container');
+            if (!container) {
+                container = document.createElement('div');
+                container.id = 'approval-toast-container';
+                container.className = 'fixed bottom-5 right-5 z-[9999] flex flex-col gap-2 pointer-events-none';
+                document.body.appendChild(container);
+            }
+
+            const toast = document.createElement('div');
+            const isSuccess = type === 'success';
+            const bg = isSuccess ? 'bg-emerald-600 text-white shadow-emerald-900/20' : 'bg-rose-600 text-white shadow-rose-900/20';
+            const icon = isSuccess ? 'check_circle' : 'info';
+
+            toast.className = `pointer-events-auto flex items-center gap-2.5 px-4 py-3 rounded-xl shadow-lg ${bg} text-xs sm:text-sm font-bold transition-all duration-300 transform translate-y-4 opacity-0`;
+            toast.innerHTML = `
+                <span class="material-symbols-outlined text-[18px]">${icon}</span>
+                <span>${message}</span>
+            `;
+
+            container.appendChild(toast);
+
+            requestAnimationFrame(() => {
+                toast.classList.remove('translate-y-4', 'opacity-0');
+                toast.classList.add('translate-y-0', 'opacity-100');
+            });
+
+            setTimeout(() => {
+                toast.classList.remove('translate-y-0', 'opacity-100');
+                toast.classList.add('translate-y-2', 'opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 3500);
+        }
+
+        // ── Real-Time Dynamic Counter Badges ──
+        function updateLiveCounters(deltaPending = 0, deltaApproved = 0, deltaRejected = 0) {
+            const pendingBadge = document.getElementById('badge-pending');
+            const approvedBadge = document.getElementById('badge-approved');
+            const rejectedBadge = document.getElementById('badge-rejected');
+
+            if (pendingBadge && deltaPending !== 0) {
+                const current = Math.max(0, parseInt(pendingBadge.innerText.trim() || '0', 10) + deltaPending);
+                pendingBadge.innerText = current;
+                _totalPendingCount = current;
+            }
+            if (approvedBadge && deltaApproved !== 0) {
+                const current = Math.max(0, parseInt(approvedBadge.innerText.trim() || '0', 10) + deltaApproved);
+                approvedBadge.innerText = current;
+            }
+            if (rejectedBadge && deltaRejected !== 0) {
+                const current = Math.max(0, parseInt(rejectedBadge.innerText.trim() || '0', 10) + deltaRejected);
+                rejectedBadge.innerText = current;
+            }
+        }
+
+        // ── Smooth Row Removal with Animation ──
+        function animateOutItem(logId, callback) {
+            const desktopRow = document.getElementById('log-row-' + logId);
+            const mobileCard = document.getElementById('mobile-card-' + logId);
+
+            [desktopRow, mobileCard].forEach(el => {
+                if (!el) return;
+                el.style.transition = 'all 200ms ease-out';
+                el.style.opacity = '0';
+                el.style.transform = 'translateX(20px)';
+            });
+
+            setTimeout(() => {
+                desktopRow?.remove();
+                mobileCard?.remove();
+                if (callback) callback();
+                checkEmptyState();
+            }, 200);
+        }
+
+        function checkEmptyState() {
+            const remainingRows = document.querySelectorAll('.log-table-row');
+            if (remainingRows.length === 0) {
+                const tbody = document.querySelector('tbody');
+                const mobileContainer = document.querySelector('.md\\:hidden.space-y-3');
+                if (tbody) {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="7" class="py-12 px-6 text-center text-on-surface/50">
+                                <span class="material-symbols-outlined text-4xl text-outline/40 mb-2 block">fact_check</span>
+                                <p class="font-bold text-sm text-on-surface/70">All caught up!</p>
+                                <p class="text-xs text-on-surface/50 mt-0.5">No pending log entries remaining on this page.</p>
+                            </td>
+                        </tr>
+                    `;
+                }
+                if (mobileContainer) {
+                    mobileContainer.innerHTML = `
+                        <div class="bg-white rounded-2xl border border-outline/20 p-8 text-center text-on-surface/50">
+                            <span class="material-symbols-outlined text-4xl text-outline/40 mb-2 block">fact_check</span>
+                            <p class="font-bold text-sm text-on-surface/70">All caught up!</p>
+                            <p class="text-xs text-on-surface/50 mt-0.5">No pending log entries remaining on this page.</p>
+                        </div>
+                    `;
+                }
+            }
+        }
+
+        // ── Instant Quick Approve via AJAX ──
+        async function handleQuickApprove(e, logId) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            const form = e.currentTarget;
+            const url = form.action;
+            const token = document.querySelector('meta[name="csrf-token"]')?.content || form.querySelector('input[name="_token"]')?.value;
+
+            const btn = form.querySelector('button');
+            if (btn) {
+                btn.disabled = true;
+                btn.classList.add('opacity-50');
+            }
+
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': token,
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    animateOutItem(logId, () => {
+                        updateLiveCounters(-1, +1, 0);
+                        updateBatchApproveState();
+                    });
+                    showToast('Intern daily log approved!', 'success');
+                } else {
+                    showToast(data.message || 'Approval failed.', 'error');
+                    if (btn) {
+                        btn.disabled = false;
+                        btn.classList.remove('opacity-50');
+                    }
+                }
+            } catch (err) {
+                form.submit();
+            }
+        }
+
+        // ── Instant Rejection / Revision via AJAX ──
+        let currentRejectLogId = null;
+
+        function openRejectModal(logId, internName, logDate, hours) {
+            currentRejectLogId = logId;
+            const form = document.getElementById('reject-form-element');
+            form.action = `/supervisor/logs/${logId}/reject`;
+
+            document.getElementById('reject-modal-name').innerText = internName;
+            document.getElementById('reject-modal-date').innerText = logDate;
+            document.getElementById('reject-modal-hours').innerText = `${hours} hrs`;
+            document.getElementById('reject-remarks-input').value = '';
+
+            document.getElementById('rejectModal').classList.remove('hidden');
+            document.body.classList.add('overflow-hidden');
+            setTimeout(() => document.getElementById('reject-remarks-input').focus(), 100);
+        }
+
+        async function handleRejectSubmit(e) {
+            e.preventDefault();
+            const form = document.getElementById('reject-form-element');
+            const url = form.action;
+            const remarks = document.getElementById('reject-remarks-input').value.trim();
+            if (!remarks) return;
+
+            const logId = currentRejectLogId;
+            const token = document.querySelector('meta[name="csrf-token"]')?.content || form.querySelector('input[name="_token"]')?.value;
+            const submitBtn = form.querySelector('button[type="submit"]');
+
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.classList.add('opacity-50');
+            }
+
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': token,
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ remarks: remarks })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    closeRejectModal();
+                    animateOutItem(logId, () => {
+                        updateLiveCounters(-1, 0, +1);
+                        updateBatchApproveState();
+                    });
+                    showToast('Log entry returned for revision.', 'error');
+                } else {
+                    showToast(data.message || 'Reject request failed.', 'error');
+                }
+            } catch (err) {
+                form.submit();
+            } finally {
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.classList.remove('opacity-50');
+                }
+            }
+        }
+
+        // ── Seamless Instant Tab Switching ──
+        function handleTabClick(e, tabLink) {
+            e.preventDefault();
+            loadTabContent(tabLink.href);
+        }
+
+        async function loadTabContent(url, pushState = true) {
+            const mainContainer = document.getElementById('approvals-main-container');
+            if (!mainContainer) {
+                window.location.href = url;
+                return;
+            }
+
+            mainContainer.style.opacity = '0.35';
+            mainContainer.style.pointerEvents = 'none';
+
+            try {
+                const response = await fetch(url, {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+
+                if (!response.ok) throw new Error('Network error');
+
+                const html = await response.text();
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+
+                const newContent = doc.getElementById('approvals-main-container');
+                if (newContent) {
+                    mainContainer.innerHTML = newContent.innerHTML;
+                    if (pushState) {
+                        window.history.pushState({}, '', url);
+                    }
+                    _selectAllResultsActive = false;
+                    updateBatchApproveState();
+                } else {
+                    window.location.href = url;
+                }
+            } catch (e) {
+                window.location.href = url;
+            } finally {
+                mainContainer.style.opacity = '1';
+                mainContainer.style.pointerEvents = '';
+            }
+        }
+
+        // Delegate pagination link clicks for instant paging without page reload
+        document.addEventListener('click', (e) => {
+            const paginationLink = e.target.closest('#approvals-main-container nav a');
+            if (paginationLink && paginationLink.href) {
+                e.preventDefault();
+                loadTabContent(paginationLink.href);
+            }
+        });
+
+        // Handle browser back/forward buttons
+        window.addEventListener('popstate', () => {
+            loadTabContent(window.location.href, false);
+        });
+
+        // ── Filter Application via Instant Fetch ──
         function applyFilters() {
-            const internId = document.getElementById('intern-filter').value;
-            const sort = document.getElementById('sort-filter').value;
+            const internEl = document.getElementById('intern-filter');
+            const sortEl = document.getElementById('sort-filter');
+            const internId = internEl ? internEl.value : '';
+            const sort = sortEl ? sortEl.value : '';
             const params = new URLSearchParams(window.location.search);
             
             if (internId) {
@@ -676,13 +964,13 @@
             }
             
             params.set('page', 1); // Reset to page 1 on filter
-            window.location.href = `${window.location.pathname}?${params.toString()}`;
+            const targetUrl = `${window.location.pathname}?${params.toString()}`;
+            loadTabContent(targetUrl);
         }
 
         // ── Select All Results across pages ──
         let _selectAllResultsActive = false;
-        const _totalPendingCount = {{ $pendingCount ?? 0 }};
-        const _pageCount = {{ $logs->count() }};
+        let _totalPendingCount = {{ $pendingCount ?? 0 }};
 
         function activateSelectAllResults() {
             _selectAllResultsActive = true;
@@ -690,7 +978,6 @@
             document.getElementById('select-all-banner-text')?.classList.add('hidden');
             document.getElementById('select-all-results-active')?.classList.remove('hidden');
             document.getElementById('select-all-results-active')?.classList.add('flex');
-            // Update button label to show the total count
             const batchLabel = document.getElementById('batch-approve-label');
             if (batchLabel) batchLabel.innerText = `Approve All (${_totalPendingCount})`;
         }
@@ -701,13 +988,12 @@
             document.getElementById('select-all-banner-text')?.classList.remove('hidden');
             document.getElementById('select-all-results-active')?.classList.add('hidden');
             document.getElementById('select-all-results-active')?.classList.remove('flex');
-            // Revert button label to page selection count
             const count = getCheckedValues().size;
             const batchLabel = document.getElementById('batch-approve-label');
             if (batchLabel) batchLabel.innerText = `Approve Selected (${count})`;
         }
 
-        // ── Row Click Toggle (clicks on row body toggle the checkbox; excludes action buttons/links) ──
+        // ── Row Click Toggle ──
         function handleRowClick(event, logId) {
             const excluded = ['BUTTON', 'A', 'INPUT', 'LABEL', 'FORM', 'SPAN'];
             let el = event.target;
@@ -730,7 +1016,7 @@
             });
         }
 
-        // ── Row highlight based on checkbox state (deduped by value) ──
+        // ── Row highlight based on checkbox state ──
         function applyRowHighlights() {
             const seen = new Set();
             document.querySelectorAll('.log-checkbox').forEach(cb => {
@@ -752,7 +1038,7 @@
             });
         }
 
-        // ── Get unique checked values (deduped across desktop + mobile) ──
+        // ── Get unique checked values ──
         function getCheckedValues() {
             const values = new Set();
             document.querySelectorAll('.log-checkbox:checked').forEach(cb => values.add(cb.value));
@@ -770,7 +1056,6 @@
         function toggleSelectAll(selectAllCheckbox) {
             document.querySelectorAll('.log-checkbox').forEach(cb => cb.checked = selectAllCheckbox.checked);
             applyRowHighlights();
-            // Show/hide the select-all-results banner
             const banner = document.getElementById('select-all-results-banner');
             if (banner) {
                 if (selectAllCheckbox.checked) {
@@ -786,7 +1071,6 @@
         }
 
         function updateBatchApproveState() {
-            // Sync all duplicate checkboxes (desktop ↔ mobile) first
             document.querySelectorAll('.log-checkbox').forEach(cb => {
                 syncCheckboxesByValue(cb.value, cb.checked);
             });
@@ -802,7 +1086,6 @@
             const count = checkedValues.size;
             const total = totalValues.size;
 
-            // ── Indeterminate state ──
             if (selectAllCheckbox && total > 0) {
                 if (count === 0) {
                     selectAllCheckbox.checked = false;
@@ -816,7 +1099,6 @@
                 }
             }
 
-            // ── Approve button dynamic state ──
             if (batchBtn && batchLabel) {
                 batchLabel.innerText = `Approve Selected (${count})`;
                 if (count > 0) {
@@ -831,9 +1113,9 @@
             }
         }
 
-        function submitBatchApprove() {
-            const checkedValues = getCheckedValues();
-            const count = _selectAllResultsActive ? _totalPendingCount : checkedValues.size;
+        async function submitBatchApprove() {
+            const checkedValues = Array.from(getCheckedValues());
+            const count = _selectAllResultsActive ? _totalPendingCount : checkedValues.length;
             if (count === 0) return;
 
             const confirmMsg = _selectAllResultsActive
@@ -843,17 +1125,54 @@
             if (!confirm(confirmMsg)) return;
 
             const form = document.getElementById('batch-approve-form');
-            // Remove any previously added log_ids inputs (keep CSRF + hidden flags)
-            form.querySelectorAll('input[name="log_ids[]"]').forEach(el => el.remove());
+            const url = form.action;
+            const token = document.querySelector('meta[name="csrf-token"]')?.content || form.querySelector('input[name="_token"]')?.value;
+            const batchBtn = document.getElementById('batch-approve-btn');
 
-            const flagInput = document.getElementById('batch-select-all-flag');
+            if (batchBtn) {
+                batchBtn.disabled = true;
+                batchBtn.classList.add('opacity-50');
+            }
 
-            if (_selectAllResultsActive) {
-                // Signal server to approve ALL results
-                if (flagInput) flagInput.value = '1';
-            } else {
-                // Normal mode: send selected IDs only
-                if (flagInput) flagInput.value = '0';
+            const payload = {
+                select_all: _selectAllResultsActive ? 1 : 0,
+                log_ids: checkedValues,
+                intern_id: document.getElementById('intern-filter')?.value || null
+            };
+
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': token,
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    if (_selectAllResultsActive) {
+                        loadTabContent(window.location.href, false);
+                    } else {
+                        checkedValues.forEach(id => {
+                            animateOutItem(id);
+                        });
+                        updateLiveCounters(-count, +count, 0);
+                        setTimeout(() => {
+                            updateBatchApproveState();
+                        }, 250);
+                        showToast(`Successfully approved ${count} logs!`, 'success');
+                    }
+                } else {
+                    showToast(data.message || 'Batch approval failed.', 'error');
+                }
+            } catch (err) {
+                form.querySelectorAll('input[name="log_ids[]"]').forEach(el => el.remove());
+                const flagInput = document.getElementById('batch-select-all-flag');
+                if (flagInput) flagInput.value = _selectAllResultsActive ? '1' : '0';
                 checkedValues.forEach(value => {
                     const input = document.createElement('input');
                     input.type = 'hidden';
@@ -861,24 +1180,13 @@
                     input.value = value;
                     form.appendChild(input);
                 });
+                form.submit();
+            } finally {
+                if (batchBtn) {
+                    batchBtn.disabled = false;
+                    batchBtn.classList.remove('opacity-50');
+                }
             }
-
-            form.submit();
-        }
-
-        // ── Rejection Modal ──
-        function openRejectModal(logId, internName, logDate, hours) {
-            const form = document.getElementById('reject-form-element');
-            form.action = `/supervisor/logs/${logId}/reject`;
-
-            document.getElementById('reject-modal-name').innerText = internName;
-            document.getElementById('reject-modal-date').innerText = logDate;
-            document.getElementById('reject-modal-hours').innerText = `${hours} hrs`;
-            document.getElementById('reject-remarks-input').value = '';
-
-            document.getElementById('rejectModal').classList.remove('hidden');
-            document.body.classList.add('overflow-hidden');
-            setTimeout(() => document.getElementById('reject-remarks-input').focus(), 100);
         }
 
         function closeRejectModal() {

@@ -87,6 +87,7 @@ Route::middleware(['auth', 'no.cache', 'role:Admin,coordinator'])->group(functio
     Route::get('/coordinator/requirements', [\App\Http\Controllers\Coordinator\CoordinatorRequirementController::class, 'index'])->name('coordinator.requirements');
     Route::post('/coordinator/requirements', [\App\Http\Controllers\Coordinator\CoordinatorRequirementController::class, 'store'])->name('coordinator.requirements.store');
     Route::delete('/coordinator/requirements/{id}', [\App\Http\Controllers\Coordinator\CoordinatorRequirementController::class, 'destroy'])->name('coordinator.requirements.destroy');
+    Route::get('/coordinator/requirements/{id}/download-template', [\App\Http\Controllers\Coordinator\CoordinatorRequirementController::class, 'downloadTemplate'])->name('coordinator.requirements.downloadTemplate');
     Route::post('/coordinator/submissions/{id}/approve', [\App\Http\Controllers\Coordinator\CoordinatorRequirementController::class, 'approve'])->name('coordinator.submissions.approve');
     Route::post('/coordinator/submissions/{id}/reject', [\App\Http\Controllers\Coordinator\CoordinatorRequirementController::class, 'reject'])->name('coordinator.submissions.reject');
     Route::post('/coordinator/submissions/batch-approve', [\App\Http\Controllers\Coordinator\CoordinatorRequirementController::class, 'batchApprove'])->name('coordinator.submissions.batch-approve');

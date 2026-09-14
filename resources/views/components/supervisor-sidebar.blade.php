@@ -1,4 +1,4 @@
-<aside id="sidebar" class="fixed left-0 top-0 h-full h-[100dvh] max-h-screen w-64 z-50 bg-[#300050] text-[#ffffff] flex flex-col justify-between shadow-[32px_0_64px_rgba(30,26,31,0.05)] -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-in-out overscroll-contain">
+<aside id="sidebar" class="fixed left-0 top-0 h-full h-[100dvh] max-h-screen w-64 z-50 bg-[#300050] text-[#ffffff] flex flex-col justify-between shadow-[32px_0_64px_rgba(30,26,31,0.05)] -translate-x-full lg:translate-x-0 transition-transform duration-200 ease-out transform-gpu will-change-transform overscroll-contain">
     <div class="px-6 pt-6 pb-2 mb-2 flex-shrink-0 flex items-center justify-between">
         <div class="flex items-center gap-3">
             <img alt="University Logo" class="h-8 w-8 object-contain" src="{{ asset('images/BISU-Logo-1-150x150.png.webp') }}" onerror="this.src='https://ui-avatars.com/api/?name=OJT&background=3a0ca3&color=fff'" />
@@ -12,23 +12,23 @@
         </button>
     </div>
     <nav class="flex-1 min-h-0 overflow-y-auto px-2 py-1 space-y-1">
-        <a href="{{ route('supervisor.dashboard') }}" class="mx-1 my-0.5 px-4 py-2.5 flex items-center gap-3 text-sm font-medium rounded-lg {{ request()->routeIs('supervisor.dashboard') ? 'bg-[#faf1f8]/10 text-[#ffffff] translate-x-1 font-semibold' : 'text-[#faf1f8]/70 hover:text-[#ffffff] hover:bg-[#ffffff]/5' }} transition-all duration-300">
+        <a href="{{ route('supervisor.dashboard') }}" class="mx-1 my-0.5 px-4 py-2.5 flex items-center gap-3 text-sm font-medium rounded-lg {{ request()->routeIs('supervisor.dashboard') ? 'bg-[#faf1f8]/10 text-[#ffffff] translate-x-1 font-semibold' : 'text-[#faf1f8]/70 hover:text-[#ffffff] hover:bg-[#ffffff]/5' }} transition-colors duration-150">
             <span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
             <span>Dashboard</span>
         </a>
-        <a href="{{ route('supervisor.attendance') }}" class="mx-1 my-0.5 px-4 py-2.5 flex items-center gap-3 text-sm font-medium rounded-lg {{ request()->routeIs('supervisor.attendance') ? 'bg-[#faf1f8]/10 text-[#ffffff] translate-x-1 font-semibold' : 'text-[#faf1f8]/70 hover:text-[#ffffff] hover:bg-[#ffffff]/5' }} transition-all duration-300">
+        <a href="{{ route('supervisor.attendance') }}" class="mx-1 my-0.5 px-4 py-2.5 flex items-center gap-3 text-sm font-medium rounded-lg {{ request()->routeIs('supervisor.attendance') ? 'bg-[#faf1f8]/10 text-[#ffffff] translate-x-1 font-semibold' : 'text-[#faf1f8]/70 hover:text-[#ffffff] hover:bg-[#ffffff]/5' }} transition-colors duration-150">
             <span class="material-symbols-outlined" data-icon="calendar_month">calendar_month</span>
             <span>Intern Attendance</span>
         </a>
-        <a href="{{ route('supervisor.interns.index') }}" class="mx-1 my-0.5 px-4 py-2.5 flex items-center gap-3 text-sm font-medium rounded-lg {{ request()->routeIs('supervisor.interns.*') ? 'bg-[#faf1f8]/10 text-[#ffffff] translate-x-1 font-semibold' : 'text-[#faf1f8]/70 hover:text-[#ffffff] hover:bg-[#ffffff]/5' }} transition-all duration-300">
+        <a href="{{ route('supervisor.interns.index') }}" class="mx-1 my-0.5 px-4 py-2.5 flex items-center gap-3 text-sm font-medium rounded-lg {{ request()->routeIs('supervisor.interns.*') ? 'bg-[#faf1f8]/10 text-[#ffffff] translate-x-1 font-semibold' : 'text-[#faf1f8]/70 hover:text-[#ffffff] hover:bg-[#ffffff]/5' }} transition-colors duration-150">
             <span class="material-symbols-outlined" data-icon="group">group</span>
             <span>My Interns</span>
         </a>
-        <a href="{{ route('supervisor.approvals') }}" class="mx-1 my-0.5 px-4 py-2.5 flex items-center gap-3 text-sm font-medium rounded-lg {{ request()->routeIs('supervisor.approvals') ? 'bg-[#faf1f8]/10 text-[#ffffff] translate-x-1 font-semibold' : 'text-[#faf1f8]/70 hover:text-[#ffffff] hover:bg-[#ffffff]/5' }} transition-all duration-300">
+        <a href="{{ route('supervisor.approvals') }}" class="mx-1 my-0.5 px-4 py-2.5 flex items-center gap-3 text-sm font-medium rounded-lg {{ request()->routeIs('supervisor.approvals') ? 'bg-[#faf1f8]/10 text-[#ffffff] translate-x-1 font-semibold' : 'text-[#faf1f8]/70 hover:text-[#ffffff] hover:bg-[#ffffff]/5' }} transition-colors duration-150">
             <span class="material-symbols-outlined" data-icon="fact_check">fact_check</span>
             <span>Pending Approvals</span>
         </a>
-        <a href="{{ route('account.profile') }}" class="mx-1 my-0.5 px-4 py-2.5 flex items-center gap-3 text-sm font-medium rounded-lg {{ request()->routeIs('account.profile*') ? 'bg-[#faf1f8]/10 text-[#ffffff] translate-x-1 font-semibold' : 'text-[#faf1f8]/70 hover:text-[#ffffff] hover:bg-[#ffffff]/5' }} transition-all duration-300">
+        <a href="{{ route('account.profile') }}" class="mx-1 my-0.5 px-4 py-2.5 flex items-center gap-3 text-sm font-medium rounded-lg {{ request()->routeIs('account.profile*') ? 'bg-[#faf1f8]/10 text-[#ffffff] translate-x-1 font-semibold' : 'text-[#faf1f8]/70 hover:text-[#ffffff] hover:bg-[#ffffff]/5' }} transition-colors duration-150">
             <span class="material-symbols-outlined" data-icon="manage_accounts">manage_accounts</span>
             <span>Account Profile</span>
         </a>

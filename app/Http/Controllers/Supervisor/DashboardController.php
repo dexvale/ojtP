@@ -49,7 +49,8 @@ class DashboardController extends Controller
                 }], 'hours_rendered');
             }])
             ->get()
-            ->sortByDesc('user.ojt_logs_sum_hours_rendered')
+            ->sortByDesc(fn($profile) => (float) ($profile->user->ojt_logs_sum_hours_rendered ?? 0))
+            ->values()
             ->take(3);
 
         $pendingLogs = OjtLog::where('status', 'Pending')
@@ -120,23 +121,28 @@ class DashboardController extends Controller
                 $studentQuery->where('supervisor_id', $user->id);
             }
 
-            $internUserIds = (clone $studentQuery)->pluck('user_id');
+            $interns = $studentQuery->with('user:id,name')->get();
+            $internUserIds = $interns->pluck('user_id');
             $baseQuery = \App\Models\OjtLog::whereIn('user_id', $internUserIds);
-            $interns = $studentQuery->with('user')->get();
         } else {
             // Fallback for development without company assigned
             $baseQuery = \App\Models\OjtLog::query();
-            $interns = \App\Models\StudentProfile::with('user')->get();
+            $interns = \App\Models\StudentProfile::with('user:id,name')->get();
         }
 
-        // Live status counts for tab badges
-        $pendingCount = (clone $baseQuery)->where('status', 'Pending')->count();
-        $approvedCount = (clone $baseQuery)->where('status', 'Approved')->count();
-        $rejectedCount = (clone $baseQuery)->where('status', 'Rejected')->count();
+        // Optimized single-query status counts for tab badges
+        $counts = (clone $baseQuery)
+            ->selectRaw("status, COUNT(*) as aggregate")
+            ->groupBy('status')
+            ->pluck('aggregate', 'status');
+
+        $pendingCount = (int) ($counts['Pending'] ?? 0);
+        $approvedCount = (int) ($counts['Approved'] ?? 0);
+        $rejectedCount = (int) ($counts['Rejected'] ?? 0);
 
         $query = (clone $baseQuery)
             ->where('status', $status)
-            ->with('user.studentProfile');
+            ->with(['user:id,name', 'user.studentProfile:id,user_id,student_id_number,course']);
 
         if ($internId) {
             $query->where('user_id', $internId);
@@ -144,7 +150,7 @@ class DashboardController extends Controller
 
         switch ($sortBy) {
             case 'newest_first':
-                $query->orderBy('log_date', 'desc')->orderBy('created_at', 'desc');
+                $query->orderBy('log_date', 'desc')->orderBy('id', 'desc');
                 break;
             case 'intern_name':
                 $query->join('users', 'ojt_logs.user_id', '=', 'users.id')
@@ -157,7 +163,7 @@ class DashboardController extends Controller
                 break;
             case 'oldest_first':
             default:
-                $query->orderBy('log_date', 'asc')->orderBy('created_at', 'asc');
+                $query->orderBy('log_date', 'asc')->orderBy('id', 'asc');
                 break;
         }
 
@@ -205,6 +211,16 @@ class DashboardController extends Controller
                 'remarks'    => null,
                 'updated_at' => now(),
             ]);
+
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => "Successfully approved all {$updatedCount} pending intern daily log(s)!",
+                    'updated_count' => $updatedCount,
+                    'select_all' => true,
+                ]);
+            }
+
             return redirect()->route('supervisor.approvals', ['status' => 'Pending'])
                 ->with('success', "Successfully approved all {$updatedCount} pending intern daily log(s)!");
         }
@@ -225,6 +241,15 @@ class DashboardController extends Controller
             'remarks'    => null,
             'updated_at' => now(),
         ]);
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => "Successfully approved {$updatedCount} intern daily log(s)!",
+                'updated_count' => $updatedCount,
+                'approved_ids' => $request->log_ids,
+            ]);
+        }
 
         return redirect()->back()->with('success', "Successfully approved {$updatedCount} intern daily log(s)!");
     }
@@ -248,6 +273,15 @@ class DashboardController extends Controller
         
         $log->save();
 
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Intern log entry verified and hours officially approved!',
+                'log_id' => $log->id,
+                'status' => 'Approved',
+            ]);
+        }
+
         return redirect()->back()->with('success', 'Intern log entry verified and hours officially approved!');
     }
 
@@ -261,6 +295,16 @@ class DashboardController extends Controller
         $log->status = 'Rejected';
         $log->remarks = $request->remarks;
         $log->save();
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Log entry sent back to intern for mandatory revision.',
+                'log_id' => $log->id,
+                'status' => 'Rejected',
+                'remarks' => $log->remarks,
+            ]);
+        }
 
         return redirect()->back()->with('error', 'Log entry sent back to intern for mandatory revision.');
     }
@@ -297,7 +341,7 @@ class DashboardController extends Controller
         }
 
         return response()->json([
-            'name' => $student->user->name,
+            'name' => $student->user->display_name ?? trim($student->first_name . ' ' . $student->last_name) ?: 'Intern',
             'course' => $student->course ?? $student->course_major ?? 'N/A',
             'metrics' => [
                 'present' => $presentCount,

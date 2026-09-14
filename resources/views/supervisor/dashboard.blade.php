@@ -149,23 +149,23 @@
                 </div>
                 
                 <div class="flex-1 flex flex-col gap-6 overflow-y-auto pr-1">
-                    @forelse($topPerformers as $index => $profile)
+                    @forelse($topPerformers as $profile)
                         @php
-                            $approvedHours = $profile->user->ojt_logs_sum_hours_rendered ?? 0;
+                            $approvedHours = (float) ($profile->user->ojt_logs_sum_hours_rendered ?? 0);
                             $requiredHours = $profile->academicCourse->required_hours ?? $profile->required_hours ?? 400;
                             $progressPercent = min(($approvedHours / max($requiredHours, 1)) * 100, 100);
                             $studentName = $profile->user->display_name ?? trim($profile->first_name . ' ' . $profile->last_name);
                             $initials = substr(implode('', array_map(fn($w) => strtoupper($w[0] ?? ''), explode(' ', $studentName))), 0, 2);
                         @endphp
-                        <!-- Rank {{ $index + 1 }} -->
+                        <!-- Rank {{ $loop->iteration }} -->
                         <div class="flex items-center gap-4 group">
-                            <div class="w-12 h-12 rounded-full border {{ $index === 0 ? 'border-warning/50 bg-warning/10 text-warning' : 'border-outline/30 bg-surface text-on-surface/60' }} shadow-sm flex items-center justify-center font-extrabold text-sm relative flex-shrink-0">
+                            <div class="w-12 h-12 rounded-full border {{ $loop->first ? 'border-warning/50 bg-warning/10 text-warning' : 'border-outline/30 bg-surface text-on-surface/60' }} shadow-sm flex items-center justify-center font-extrabold text-sm relative flex-shrink-0">
                                 {{ $initials }}
-                                <div class="absolute -top-2 -right-2 bg-surface-container rounded-full shadow-sm border border-outline/20 flex items-center justify-center {{ $index === 0 ? 'p-1' : 'w-6 h-6' }}">
-                                    @if($index === 0)
+                                <div class="absolute -top-2 -right-2 bg-surface-container rounded-full shadow-sm border border-outline/20 flex items-center justify-center {{ $loop->first ? 'p-1' : 'w-6 h-6' }}">
+                                    @if($loop->first)
                                         <span class="material-symbols-outlined text-[14px] text-warning" style="font-variation-settings: 'FILL' 1;">military_tech</span>
                                     @else
-                                        <span class="text-[10px] font-extrabold text-outline">#{{ $index + 1 }}</span>
+                                        <span class="text-[10px] font-extrabold text-outline">#{{ $loop->iteration }}</span>
                                     @endif
                                 </div>
                             </div>
@@ -175,10 +175,10 @@
                                         <p class="text-sm font-bold text-on-surface group-hover:text-primary transition-colors truncate">{{ $studentName }}</p>
                                         <p class="text-[10px] font-semibold text-on-surface/50 truncate">{{ $profile->course ?? 'Intern' }}</p>
                                     </div>
-                                    <span class="text-[10px] font-bold {{ $index === 0 ? 'text-primary bg-primary/5 border border-primary/10' : 'text-on-surface/70 bg-surface border border-outline/20' }} px-2 py-0.5 rounded whitespace-nowrap">{{ number_format($approvedHours, 2) }}/{{ $requiredHours }} hrs</span>
+                                    <span class="text-[10px] font-bold {{ $loop->first ? 'text-primary bg-primary/5 border border-primary/10' : 'text-on-surface/70 bg-surface border border-outline/20' }} px-2 py-0.5 rounded whitespace-nowrap">{{ number_format($approvedHours, 2) }}/{{ $requiredHours }} hrs</span>
                                 </div>
                                 <div class="w-full h-1.5 bg-outline/20 rounded-full overflow-hidden mt-2">
-                                    <div class="h-full bg-primary{{ $index > 0 ? '/'.(90 - ($index * 10)) : '' }} rounded-full transition-all" style="width: {{ $progressPercent }}%"></div>
+                                    <div class="h-full bg-primary rounded-full transition-all" style="width: {{ $progressPercent }}%"></div>
                                 </div>
                             </div>
                         </div>

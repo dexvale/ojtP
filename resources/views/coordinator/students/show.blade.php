@@ -36,7 +36,7 @@
                 <button id="sidebar-toggle" class="lg:hidden p-2 min-w-[40px] min-h-[40px] flex items-center justify-center text-primary rounded-lg hover:bg-black/5 transition-colors" aria-label="Toggle menu">
                     <span class="material-symbols-outlined">menu</span>
                 </button>
-                <span class="text-xl md:text-2xl font-headline font-semibold text-primary tracking-tight">OJT Management</span>
+                <span class="text-xl md:text-2xl font-headline font-semibold text-primary tracking-tight whitespace-nowrap shrink-0">OJT Management</span>
             </div>
             <div class="flex items-center gap-3 sm:gap-6">
                 <a href="{{ route('coordinator.students') }}" class="inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-700 bg-white hover:bg-slate-50 hover:text-primary hover:border-primary/30 transition-all shadow-sm active:scale-95">
@@ -57,7 +57,7 @@
         </div>
     </header>
 
-    <main class="lg:ml-64 ml-0 pt-20 md:pt-24 px-4 sm:px-6 lg:px-8 pb-12 min-h-screen">
+    <main class="lg:ml-64 ml-0 pt-24 md:pt-28 px-4 sm:px-6 lg:px-8 pb-12 min-h-screen">
         
         @if(session('success'))
             <div class="bg-emerald-50 border border-emerald-200 text-emerald-800 px-5 py-4 rounded-xl mb-6 shadow-sm flex items-center gap-3">

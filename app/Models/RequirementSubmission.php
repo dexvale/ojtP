@@ -20,4 +20,23 @@ class RequirementSubmission extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+    public function getDisplayFileNameAttribute()
+    {
+        if (!$this->file_path) {
+            return 'document';
+        }
+
+        $extension = strtolower(pathinfo($this->file_path, PATHINFO_EXTENSION));
+        $student = $this->user?->studentProfile;
+        $studentName = $student ? ($student->last_name . '_' . $student->first_name) : 'Student';
+        $reqTitle = $this->requirement?->title ?: 'Requirement';
+
+        return \Illuminate\Support\Str::slug($studentName . '_' . $reqTitle) . '.' . $extension;
+    }
+
+    public function getFileExtensionAttribute()
+    {
+        return strtolower(pathinfo($this->file_path, PATHINFO_EXTENSION));
+    }
 }

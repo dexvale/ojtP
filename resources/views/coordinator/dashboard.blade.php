@@ -38,33 +38,29 @@
     <header class="fixed top-0 lg:left-64 left-0 right-0 z-40 bg-surface/90 backdrop-blur-sm border-b border-[#cec3d0]/15">
         <div class="flex justify-between items-center px-4 md:px-8 py-3.5 md:py-4 w-full">
             <div class="flex items-center gap-3 md:gap-4">
-                <button id="sidebar-toggle" class="lg:hidden p-2 min-w-[40px] min-h-[40px] flex items-center justify-center text-primary rounded-lg hover:bg-black/5 transition-colors" aria-label="Toggle menu">
+                <button id="sidebar-toggle" class="lg:hidden p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center text-primary rounded-lg hover:bg-black/5 transition-colors" aria-label="Toggle menu">
                     <span class="material-symbols-outlined">menu</span>
                 </button>
-                <span class="text-xl md:text-2xl font-headline font-semibold text-primary tracking-tight">OJT Management</span>
-                <nav class="hidden md:flex items-center gap-6">
-                    <a class="text-sm font-semibold text-primary border-b-2 border-secondary pb-1" href="{{ route('coordinator.dashboard') }}">Dashboard</a>
+                <span class="text-xl md:text-2xl font-headline font-semibold text-primary tracking-tight whitespace-nowrap shrink-0">OJT Management</span>
+                <nav class="hidden xl:flex items-center gap-6">
+                    <a class="text-sm font-semibold text-primary border-b-2 border-primary pb-1" href="{{ route('coordinator.dashboard') }}">Dashboard</a>
                     <a class="text-sm font-semibold text-on-surface/60 hover:text-primary transition-colors duration-200" href="{{ route('coordinator.students') }}">Student List</a>
                     <a class="text-sm font-semibold text-on-surface/60 hover:text-primary transition-colors duration-200" href="{{ route('coordinator.companies') }}">Company Directory</a>
                     <a class="text-sm font-semibold text-on-surface/60 hover:text-primary transition-colors duration-200" href="{{ route('coordinator.reports') }}">Reports</a>
                 </nav>
             </div>
-            <div class="flex items-center gap-3 sm:gap-6">
-                <div class="relative hidden sm:block">
-                    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface/60 text-sm" data-icon="search">search</span>
-                    <input class="bg-surface-container-low border-none rounded-full py-2 pl-10 pr-4 text-sm w-44 lg:w-64 focus:ring-1 focus:ring-primary/20" placeholder="Search..." type="text">
-                </div>
-                <div class="flex items-center gap-2 sm:gap-3">
-                    <button class="p-2 text-primary hover:bg-surface-container-low rounded-full transition-all active:scale-95">
+            <div class="flex items-center gap-4 sm:gap-6">
+                <div class="flex items-center gap-3">
+                    <button class="p-2 text-primary hover:bg-black/5 rounded-full transition-all active:scale-95" title="Notifications">
                         <span class="material-symbols-outlined" data-icon="notifications">notifications</span>
                     </button>
-                    <div class="relative flex items-center sm:pl-2 sm:border-l sm:border-outline/20" id="user-profile-menu">
+                    <div class="relative flex items-center sm:pl-2 sm:border-l sm:border-[#cec3d0]/30" id="user-profile-menu">
                         <button type="button" id="user-menu-btn" class="flex items-center gap-3 cursor-pointer focus:outline-none" aria-expanded="false" aria-haspopup="true">
                             <div class="text-right hidden sm:block">
                                 <p class="text-sm font-bold font-headline text-primary">{{ auth()->user()->display_name }}</p>
                                 <p class="text-[10px] uppercase tracking-wider text-secondary font-bold">{{ auth()->user()->display_role }}</p>
                             </div>
-                            <img alt="User profile avatar" class="w-9 h-9 rounded-full object-cover ring-2 ring-primary/10 hover:ring-primary transition-all" src="{{ auth()->user()->avatar_url }}">
+                            <img alt="User profile avatar" class="w-9 h-9 rounded-full object-cover ring-2 ring-primary/10 hover:ring-primary transition-all flex-shrink-0" src="{{ auth()->user()->avatar_url }}">
                         </button>
                         <!-- Dropdown Menu -->
                         @include('components.user-dropdown')
@@ -75,7 +71,7 @@
     </header>
 
     <!-- Main Content -->
-    <main class="lg:ml-64 ml-0 pt-20 md:pt-24 px-4 sm:px-6 lg:px-8 pb-12 min-h-screen">
+    <main class="lg:ml-64 ml-0 pt-24 md:pt-28 px-4 sm:px-6 lg:px-8 pb-12 min-h-screen">
         <!-- Dashboard Header -->
         <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-6 sm:mb-8">
             <div>
@@ -261,18 +257,37 @@
                                     </div>
                                 </div>
                                 <div class="space-y-4">
-                                    <a href="{{ asset('storage/' . $firstSub->file_path) }}" target="_blank"
-                                        class="p-3 bg-surface rounded border border-outline/10 flex items-center gap-3 group cursor-pointer hover:border-primary transition-colors block">
-                                        <div class="w-10 h-12 bg-error/5 rounded flex items-center justify-center text-error shrink-0">
-                                            <span class="material-symbols-outlined text-[32px]" data-icon="picture_as_pdf">picture_as_pdf</span>
+                                    @php
+                                        $firstExt = strtolower(pathinfo($firstSub->file_path, PATHINFO_EXTENSION));
+                                        $isWord = in_array($firstExt, ['docx', 'doc']);
+                                        $iconName = $isWord ? 'description' : ($firstExt === 'zip' ? 'folder_zip' : 'picture_as_pdf');
+                                        $iconColor = $isWord ? 'text-blue-600 bg-blue-50 border-blue-200' : ($firstExt === 'zip' ? 'text-amber-600 bg-amber-50 border-amber-200' : 'text-rose-600 bg-rose-50 border-rose-200');
+                                        $studentLastName = $firstSub->user?->studentProfile?->last_name ?? 'Student';
+                                        $cleanName = \Illuminate\Support\Str::slug($studentLastName . '_' . ($firstSub->requirement->title ?? 'Document')) . '.' . $firstExt;
+                                    @endphp
+                                    <a href="{{ route('coordinator.requirements') }}"
+                                        class="p-3 bg-surface rounded-xl border border-outline/10 flex items-center gap-3 group cursor-pointer hover:border-primary hover:bg-primary/5 transition-all block"
+                                        title="Click to review document in Requirements">
+                                        <div class="w-11 h-12 rounded-lg flex items-center justify-center shrink-0 border {{ $iconColor }}">
+                                            <span class="material-symbols-outlined text-[28px]">{{ $iconName }}</span>
                                         </div>
                                         <div class="flex-1 overflow-hidden min-w-0">
-                                            <p class="text-xs font-bold text-on-surface truncate">
-                                                {{ basename($firstSub->file_path) }}
+                                            <div class="flex items-center gap-2 mb-0.5">
+                                                <p class="text-xs font-bold text-on-surface truncate group-hover:text-primary transition-colors">
+                                                    {{ $firstSub->requirement->title ?? 'Submitted Requirement' }}
+                                                </p>
+                                                <span class="text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded shrink-0 {{ $isWord ? 'bg-blue-100 text-blue-800' : 'bg-rose-100 text-rose-800' }}">
+                                                    {{ strtoupper($firstExt) }}
+                                                </span>
+                                            </div>
+                                            <p class="text-[11px] text-on-surface/60 font-medium truncate font-mono text-slate-500">
+                                                {{ $cleanName }}
                                             </p>
-                                            <p class="text-[10px] text-on-surface/50 font-medium truncate">Submitted: {{ $firstSub->requirement->title ?? 'Unknown Requirement' }}</p>
                                         </div>
-                                        <span class="material-symbols-outlined text-on-surface/40 opacity-0 group-hover:opacity-100 transition-opacity shrink-0" data-icon="visibility">visibility</span>
+                                        <div class="flex items-center gap-1 text-primary text-xs font-bold shrink-0 opacity-80 group-hover:opacity-100 transition-opacity">
+                                            <span class="hidden sm:inline text-[11px]">Review</span>
+                                            <span class="material-symbols-outlined text-[18px]">chevron_right</span>
+                                        </div>
                                     </a>
                                     <div class="flex flex-col sm:flex-row gap-2">
                                         <form action="{{ route('coordinator.submissions.approve', $firstSub->id) }}" method="POST" class="flex-1">
@@ -410,5 +425,39 @@
             document.getElementById('rejectModal').classList.add('hidden');
         }
     </script>
+
+    <!-- REJECTION REMARKS MODAL -->
+    <div id="rejectModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm transition-opacity duration-300">
+        <div class="bg-white rounded-2xl shadow-2xl border border-purple-100 p-6 w-full max-w-md mx-4">
+            <div class="flex justify-between items-center mb-5">
+                <h2 class="text-xl font-bold font-headline text-slate-800 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-rose-600">warning</span>
+                    Return for Revision
+                </h2>
+                <button onclick="closeRejectModal()" class="text-gray-400 hover:text-rose-500 transition cursor-pointer">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            
+            <form method="POST" id="rejectForm">
+                @csrf
+                <div class="mb-6">
+                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Provide Feedback / Remarks</label>
+                    <textarea name="remarks" required rows="4"
+                              class="w-full border border-slate-200 rounded-xl px-4 py-2.5 bg-slate-50/50 text-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all"
+                              placeholder="Describe why this document is being returned and what changes are needed."></textarea>
+                </div>
+
+                <div class="flex gap-3">
+                    <button type="button" onclick="closeRejectModal()" class="flex-1 px-5 py-2.5 rounded-xl border border-gray-200 text-gray-600 text-sm font-bold hover:bg-gray-50 transition cursor-pointer">
+                        Cancel
+                    </button>
+                    <button type="submit" class="flex-1 bg-rose-600 hover:bg-rose-700 text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-md transition cursor-pointer">
+                        Reject Submission
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
 </body>
 </html>

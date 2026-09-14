@@ -12,6 +12,13 @@
         rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
         rel="stylesheet">
+    <!-- JSZip (Required dependency for docx-preview to unpack .docx files) -->
+    <script src="{{ asset('vendor/docx/jszip.min.js') }}"></script>
+    <script>window.JSZip || document.write('<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"><\/script>');</script>
+
+    <!-- docx-preview for client-side Word document rendering -->
+    <script src="{{ asset('vendor/docx/docx-preview.min.js') }}"></script>
+    <script>window.docx || document.write('<script src="https://cdn.jsdelivr.net/npm/docx-preview@0.3.3/dist/docx-preview.min.js"><\/script>');</script>
 
     <style>
         body {
@@ -25,6 +32,59 @@
         .material-symbols-outlined {
             font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
             vertical-align: middle;
+        }
+
+        /* docx-preview responsive styling */
+        .docx-wrapper {
+            background: transparent !important;
+            padding: 16px 8px !important;
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: center !important;
+            width: 100% !important;
+            box-sizing: border-box !important;
+        }
+        .docx-wrapper > section.docx {
+            background: #ffffff !important;
+            box-shadow: 0 4px 25px rgba(0, 0, 0, 0.12) !important;
+            margin-bottom: 24px !important;
+            border-radius: 6px !important;
+            box-sizing: border-box !important;
+            color: #1e293b !important;
+            max-width: 100% !important;
+        }
+
+        /* Mobile specific docx adaptations */
+        @media (max-width: 640px) {
+            .docx-wrapper {
+                padding: 8px 4px !important;
+                overflow-x: hidden !important;
+            }
+            .docx-wrapper > section.docx {
+                width: 100% !important;
+                min-width: 0 !important;
+                max-width: 100% !important;
+                min-height: auto !important;
+                padding: 16px 12px !important;
+                margin-bottom: 12px !important;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
+                font-size: 13px !important;
+                line-height: 1.5 !important;
+            }
+            .docx-wrapper table {
+                max-width: 100% !important;
+                display: block !important;
+                overflow-x: auto !important;
+                -webkit-overflow-scrolling: touch !important;
+            }
+            .docx-wrapper img {
+                max-width: 100% !important;
+                height: auto !important;
+            }
+            .docx-wrapper p, .docx-wrapper span {
+                word-break: break-word !important;
+                overflow-wrap: break-word !important;
+            }
         }
     </style>
 </head>
@@ -43,8 +103,8 @@
                 <button id="sidebar-toggle" class="lg:hidden p-2 min-w-[40px] min-h-[40px] flex items-center justify-center text-primary rounded-lg hover:bg-black/5 transition-colors" aria-label="Toggle menu">
                     <span class="material-symbols-outlined">menu</span>
                 </button>
-                <span class="text-xl md:text-2xl font-headline font-semibold text-primary tracking-tight">OJT Management</span>
-                <nav class="hidden md:flex items-center gap-6">
+                <span class="text-xl md:text-2xl font-headline font-semibold text-primary tracking-tight whitespace-nowrap shrink-0">OJT Management</span>
+                <nav class="hidden xl:flex items-center gap-6">
                     <a class="text-sm font-semibold text-on-surface/60 hover:text-primary transition-colors duration-200" href="{{ route('coordinator.dashboard') }}">Dashboard</a>
                     <a class="text-sm font-semibold text-on-surface/60 hover:text-primary transition-colors duration-200" href="{{ route('coordinator.students') }}">Student List</a>
                     <a class="text-sm font-semibold text-on-surface/60 hover:text-primary transition-colors duration-200" href="{{ route('coordinator.companies') }}">Company Directory</a>
@@ -75,7 +135,7 @@
     </header>
 
     <!-- Main Content -->
-    <main class="lg:ml-64 ml-0 pt-20 md:pt-24 px-4 sm:px-6 lg:px-8 pb-12 min-h-screen border-none">
+    <main class="lg:ml-64 ml-0 pt-24 md:pt-28 px-4 sm:px-6 lg:px-8 pb-12 min-h-screen border-none">
         
         <!-- Page Header -->
         <div class="mb-8">
@@ -234,9 +294,12 @@
                                             </td>
                                             <td class="py-4 px-4 font-semibold text-purple-950">{{ $sub->requirement->title ?? 'Unknown Requirement' }}</td>
                                             <td class="py-4 px-4">
+                                                @php
+                                                    $subExt = strtolower(pathinfo($sub->file_path, PATHINFO_EXTENSION));
+                                                @endphp
                                                 <button onclick="openSpeedReviewModal({{ $sub->id }})"
                                                    class="inline-flex items-center gap-1.5 px-3 py-1 bg-purple-50 hover:bg-purple-100 border border-purple-100 rounded-lg text-purple-700 text-xs font-bold transition shadow-sm cursor-pointer">
-                                                    <span class="material-symbols-outlined text-[16px]">picture_as_pdf</span>
+                                                    <span class="material-symbols-outlined text-[16px]">{{ in_array($subExt, ['docx', 'doc']) ? 'description' : 'picture_as_pdf' }}</span>
                                                     Review Document
                                                 </button>
                                             </td>
@@ -315,11 +378,17 @@
                                             </td>
                                             <td class="py-4 px-4 font-semibold text-[#300050]">{{ $sub->requirement->title }}</td>
                                             <td class="py-4 px-4">
-                                                <a href="{{ asset('storage/' . $sub->file_path) }}" target="_blank" rel="noopener noreferrer"
-                                                   class="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg text-slate-600 text-xs font-bold transition">
-                                                    <span class="material-symbols-outlined text-[16px]">picture_as_pdf</span>
-                                                    View File
-                                                </a>
+                                                @php
+                                                    $subExt = strtolower(pathinfo($sub->file_path, PATHINFO_EXTENSION));
+                                                    $subUrl = asset('storage/' . $sub->file_path);
+                                                    $studentName = ($sub->user->studentProfile->first_name ?? 'Student') . ' ' . ($sub->user->studentProfile->last_name ?? '');
+                                                    $subTitle = $studentName . ' - ' . ($sub->requirement->title ?? 'Submission');
+                                                @endphp
+                                                <button type="button" onclick="openTemplatePreview('{{ $subUrl }}', '{{ addslashes($subTitle) }}', '{{ $subExt }}', '{{ $subUrl }}')"
+                                                   class="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg text-slate-600 hover:text-purple-900 text-xs font-bold transition cursor-pointer" title="View Document">
+                                                    <span class="material-symbols-outlined text-[16px]">{{ in_array($subExt, ['docx', 'doc']) ? 'description' : 'picture_as_pdf' }}</span>
+                                                    <span>View File</span>
+                                                </button>
                                             </td>
                                             <td class="py-4 px-4">
                                                 <span class="inline-flex items-center gap-1 px-2.5 py-0.5 bg-emerald-100 text-emerald-800 text-[10px] font-bold uppercase tracking-wider rounded-full shadow-sm">
@@ -365,11 +434,17 @@
                                             </td>
                                             <td class="py-4 px-4 font-semibold text-slate-700">{{ $sub->requirement->title }}</td>
                                             <td class="py-4 px-4 max-w-xs">
-                                                <a href="{{ asset('storage/' . $sub->file_path) }}" target="_blank" rel="noopener noreferrer"
-                                                   class="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg text-slate-600 text-xs font-bold transition mb-2">
-                                                    <span class="material-symbols-outlined text-[16px]">picture_as_pdf</span>
-                                                    Rejected File
-                                                </a>
+                                                @php
+                                                    $subExt = strtolower(pathinfo($sub->file_path, PATHINFO_EXTENSION));
+                                                    $subUrl = asset('storage/' . $sub->file_path);
+                                                    $studentName = ($sub->user->studentProfile->first_name ?? 'Student') . ' ' . ($sub->user->studentProfile->last_name ?? '');
+                                                    $subTitle = $studentName . ' - ' . ($sub->requirement->title ?? 'Submission');
+                                                @endphp
+                                                <button type="button" onclick="openTemplatePreview('{{ $subUrl }}', '{{ addslashes($subTitle) }}', '{{ $subExt }}', '{{ $subUrl }}')"
+                                                   class="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg text-slate-600 hover:text-purple-900 text-xs font-bold transition mb-2 cursor-pointer" title="View Document">
+                                                    <span class="material-symbols-outlined text-[16px]">{{ in_array($subExt, ['docx', 'doc']) ? 'description' : 'picture_as_pdf' }}</span>
+                                                    <span>View File</span>
+                                                </button>
                                                 <div class="bg-rose-50 text-rose-900 border border-rose-100 text-xs p-2 rounded-lg italic">
                                                     <strong>Remarks:</strong> {{ $sub->remarks }}
                                                 </div>
@@ -422,13 +497,31 @@
                                         {{ $req->description ?: 'No description provided.' }}
                                     </p>
                                 </div>
-                                <div class="border-t border-slate-100 pt-3 flex justify-between items-center mt-auto">
+                                <div class="border-t border-slate-100 pt-3 flex flex-wrap gap-2 justify-between items-center mt-auto">
                                     @if($req->template_path)
-                                        <a href="{{ asset('storage/' . $req->template_path) }}" target="_blank" rel="noopener noreferrer"
-                                           class="inline-flex items-center gap-1.5 text-xs font-bold text-purple-700 hover:text-purple-950 transition">
-                                            <span class="material-symbols-outlined text-[16px]">visibility</span>
-                                            View Document
-                                        </a>
+                                        @php
+                                            $ext = strtolower(pathinfo($req->template_path, PATHINFO_EXTENSION));
+                                            $fileUrl = asset('storage/' . $req->template_path);
+                                            $downloadUrl = route('coordinator.requirements.downloadTemplate', $req->id);
+                                            $isWord = in_array($ext, ['docx', 'doc']);
+                                        @endphp
+                                        <div class="flex items-center flex-wrap gap-1.5 sm:gap-2">
+                                            <span class="px-1.5 py-0.5 rounded text-[9px] font-extrabold uppercase border {{ $isWord ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-purple-50 text-purple-700 border-purple-200' }}">
+                                                {{ strtoupper($ext) }}
+                                            </span>
+                                            <button type="button" 
+                                                    onclick="openTemplatePreview('{{ $fileUrl }}', '{{ addslashes($req->title) }}', '{{ $ext }}', '{{ $downloadUrl }}')"
+                                                    class="inline-flex items-center gap-1 text-xs font-bold text-purple-700 hover:text-purple-950 transition cursor-pointer"
+                                                    title="Preview document on-screen">
+                                                <span class="material-symbols-outlined text-[16px]">visibility</span>
+                                                <span>Preview</span>
+                                            </button>
+                                            <span class="text-slate-300">•</span>
+                                            <a href="{{ $downloadUrl }}" class="inline-flex items-center gap-0.5 text-[11px] font-semibold text-slate-500 hover:text-purple-700 transition" title="Direct Download File">
+                                                <span class="material-symbols-outlined text-[14px]">download</span>
+                                                <span>Download</span>
+                                            </a>
+                                        </div>
                                     @else
                                         <span class="text-[10px] text-slate-400 font-medium italic">No document template uploaded</span>
                                     @endif
@@ -591,66 +684,167 @@
         </div>
     </div>
 
+    <!-- TEMPLATE PREVIEW MODAL (In-Browser Viewer for DOCX, PDF) -->
+    <div id="templatePreviewModal" class="hidden fixed inset-0 z-[65] flex items-center justify-center bg-black/80 backdrop-blur-sm transition-opacity duration-300 p-0 sm:p-4 md:p-6">
+        <div class="bg-white rounded-none sm:rounded-2xl shadow-2xl flex flex-col w-full max-w-5xl h-full sm:h-[92vh] max-h-[100dvh] sm:max-h-[92vh] overflow-hidden relative">
+            <!-- Header -->
+            <div class="px-3 sm:px-5 py-2.5 sm:py-3.5 border-b border-slate-200 flex gap-2 justify-between items-center bg-white shrink-0">
+                <div class="flex items-center gap-2 sm:gap-3 min-w-0">
+                    <button type="button" onclick="closeTemplatePreviewModal()" class="flex items-center gap-1 px-2.5 sm:px-3 py-1.5 rounded-lg sm:rounded-xl text-slate-700 hover:text-[#300050] bg-slate-100 hover:bg-purple-50 transition border border-slate-200 cursor-pointer shrink-0" title="Back to Requirements List">
+                        <span class="material-symbols-outlined text-[18px] sm:text-[20px]">arrow_back</span>
+                        <span class="text-xs font-bold">Back</span>
+                    </button>
+                    <div id="tplModalIconBox" class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center shrink-0">
+                        <span id="tplModalIcon" class="material-symbols-outlined text-[18px] sm:text-[20px]">description</span>
+                    </div>
+                    <div class="min-w-0">
+                        <div class="flex items-center gap-1.5 sm:gap-2">
+                            <h2 id="tplModalTitle" class="text-sm sm:text-base font-bold text-slate-800 font-headline truncate">Requirement Template</h2>
+                            <span id="tplModalBadge" class="text-[9px] sm:text-[10px] font-extrabold uppercase tracking-wider bg-blue-100 text-blue-800 px-1.5 sm:px-2 py-0.5 rounded-md shrink-0">DOCX</span>
+                        </div>
+                        <p class="text-[10px] sm:text-xs text-slate-400 font-medium truncate">Document Template Preview</p>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
+                    <a id="tplModalDownloadBtn" href="#" download class="px-2.5 sm:px-3.5 py-1.5 bg-[#300050] hover:bg-purple-950 text-white rounded-lg sm:rounded-xl text-xs font-bold transition flex items-center gap-1 shadow-sm" title="Download Original File">
+                        <span class="material-symbols-outlined text-[16px]">download</span>
+                        <span class="hidden sm:inline">Download</span>
+                    </a>
+                    <a id="tplModalExternalBtn" href="#" target="_blank" rel="noopener noreferrer" class="p-1.5 sm:px-3 sm:py-1.5 text-slate-600 hover:text-purple-700 text-xs font-semibold flex items-center gap-1 transition rounded-lg sm:rounded-xl hover:bg-slate-100" title="Open in new tab">
+                        <span class="material-symbols-outlined text-[16px]">open_in_new</span>
+                        <span class="hidden md:inline">Open Tab</span>
+                    </a>
+                    <button type="button" onclick="closeTemplatePreviewModal()" class="p-1.5 sm:p-2 text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-full transition cursor-pointer" title="Close Preview">
+                        <span class="material-symbols-outlined text-[20px]">close</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Body Viewer Area -->
+            <div class="flex-1 bg-slate-100 w-full relative overflow-hidden flex flex-col items-center justify-start">
+                <!-- Loading State -->
+                <div id="tplViewerLoading" class="absolute inset-0 bg-white/90 z-20 flex flex-col items-center justify-center gap-3">
+                    <div class="w-8 h-8 border-4 border-purple-200 border-t-[#300050] rounded-full animate-spin"></div>
+                    <p class="text-xs font-bold text-slate-700">Loading document preview...</p>
+                </div>
+
+                <!-- PDF Viewer Iframe -->
+                <iframe id="tplIframeViewer" src="" class="w-full h-full border-none hidden"></iframe>
+
+                <!-- DOCX Preview Container -->
+                <div id="tplDocxViewer" class="w-full h-full overflow-y-auto overflow-x-hidden p-2 sm:p-6 flex flex-col items-center hidden">
+                    <div id="tplDocxMount" class="w-full max-w-4xl flex flex-col items-center"></div>
+                </div>
+
+                <!-- Fallback Container (e.g. .doc or errors) -->
+                <div id="tplFallbackViewer" class="p-6 sm:p-8 text-center flex flex-col items-center justify-center h-full max-w-md mx-auto hidden">
+                    <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center mb-3 sm:mb-4">
+                        <span class="material-symbols-outlined text-2xl sm:text-3xl">description</span>
+                    </div>
+                    <h3 class="text-sm sm:text-base font-bold text-slate-800 mb-1">In-browser preview not available</h3>
+                    <p class="text-xs text-slate-500 mb-4 leading-relaxed">
+                        This file is in a legacy format (.doc) or contains restricted content. You can download and edit it directly in Microsoft Word.
+                    </p>
+                    <a id="tplFallbackDownloadBtn" href="#" download class="px-4 sm:px-5 py-2 sm:py-2.5 bg-[#300050] hover:bg-purple-950 text-white text-xs font-bold rounded-xl shadow-md transition flex items-center gap-2">
+                        <span class="material-symbols-outlined text-[16px]">download</span>
+                        <span>Download and Open in Word</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- DOCUMENT REVIEW LIGHTBOX MODAL (Speed Reviewer) -->
-    <div id="reviewModal" class="hidden fixed inset-0 z-[60] flex items-center justify-center bg-black/80 backdrop-blur-sm transition-opacity duration-300 p-2 sm:p-6">
-        <div class="bg-white rounded-2xl shadow-2xl flex flex-col w-full max-w-5xl h-full max-h-[92vh] overflow-hidden relative">
+    <div id="reviewModal" class="hidden fixed inset-0 z-[60] flex items-center justify-center bg-black/80 backdrop-blur-sm transition-opacity duration-300 p-0 sm:p-4 md:p-6">
+        <div class="bg-white rounded-none sm:rounded-2xl shadow-2xl flex flex-col w-full max-w-5xl h-full sm:h-[92vh] max-h-[100dvh] sm:max-h-[92vh] overflow-hidden relative">
             
             <!-- Header -->
-            <div class="px-5 py-3.5 border-b border-slate-200 flex flex-wrap gap-3 justify-between items-center bg-white">
-                <div class="flex items-center gap-3">
-                    <div class="w-9 h-9 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center shrink-0">
-                        <span class="material-symbols-outlined text-[20px]">assignment</span>
+            <div class="px-3 sm:px-5 py-2.5 sm:py-3.5 border-b border-slate-200 flex gap-2 justify-between items-center bg-white shrink-0">
+                <div class="flex items-center gap-2 sm:gap-3 min-w-0">
+                    <button type="button" onclick="closeReviewModal()" class="flex items-center gap-1 px-2.5 sm:px-3 py-1.5 rounded-lg sm:rounded-xl text-slate-700 hover:text-purple-900 bg-slate-100 hover:bg-purple-50 transition border border-slate-200 cursor-pointer shrink-0" title="Back to Submissions List">
+                        <span class="material-symbols-outlined text-[18px] sm:text-[20px]">arrow_back</span>
+                        <span class="text-xs font-bold">Back</span>
+                    </button>
+                    <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center shrink-0">
+                        <span class="material-symbols-outlined text-[18px] sm:text-[20px]">assignment</span>
                     </div>
-                    <div>
-                        <div class="flex items-center gap-2">
-                            <h2 id="modalStudentName" class="text-base font-bold text-slate-800 font-headline">Student Name</h2>
-                            <span id="modalStudentCourse" class="text-[10px] font-semibold uppercase tracking-wider bg-slate-100 text-slate-600 px-2 py-0.5 rounded-md">Course</span>
+                    <div class="min-w-0">
+                        <div class="flex items-center gap-1.5 sm:gap-2">
+                            <h2 id="modalStudentName" class="text-sm sm:text-base font-bold text-slate-800 font-headline truncate">Student Name</h2>
+                            <span id="modalStudentCourse" class="text-[9px] sm:text-[10px] font-semibold uppercase tracking-wider bg-slate-100 text-slate-600 px-1.5 sm:px-2 py-0.5 rounded-md truncate max-w-[100px] sm:max-w-none">Course</span>
                         </div>
-                        <p id="modalRequirementTitle" class="text-xs font-semibold text-purple-800">Requirement Title</p>
+                        <p id="modalRequirementTitle" class="text-[10px] sm:text-xs font-semibold text-purple-800 truncate">Requirement Title</p>
                     </div>
                 </div>
 
                 <!-- Navigation Controls & Counter -->
-                <div class="flex items-center gap-3">
-                    <div class="flex items-center gap-1 bg-slate-100 rounded-lg p-1 text-xs">
+                <div class="flex items-center gap-1.5 sm:gap-3 shrink-0">
+                    <div class="flex items-center gap-0.5 bg-slate-100 rounded-lg p-0.5 sm:p-1 text-xs">
                         <button type="button" id="prevReviewBtn" onclick="navigateReview(-1)" class="p-1 hover:bg-white text-slate-600 rounded transition disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer" title="Previous Document">
-                            <span class="material-symbols-outlined text-[18px]">chevron_left</span>
+                            <span class="material-symbols-outlined text-[16px] sm:text-[18px]">chevron_left</span>
                         </button>
-                        <span id="reviewQueueCounter" class="px-2 font-bold text-slate-700 text-xs min-w-[50px] text-center">1 of 1</span>
+                        <span id="reviewQueueCounter" class="px-1 sm:px-2 font-bold text-slate-700 text-[11px] sm:text-xs min-w-[36px] sm:min-w-[50px] text-center">1 of 1</span>
                         <button type="button" id="nextReviewBtn" onclick="navigateReview(1)" class="p-1 hover:bg-white text-slate-600 rounded transition disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer" title="Next Document">
-                            <span class="material-symbols-outlined text-[18px]">chevron_right</span>
+                            <span class="material-symbols-outlined text-[16px] sm:text-[18px]">chevron_right</span>
                         </button>
                     </div>
-                    <button onclick="closeReviewModal()" class="p-2 text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-full transition cursor-pointer" title="Close Lightbox">
-                        <span class="material-symbols-outlined">close</span>
+                    <button onclick="closeReviewModal()" class="p-1.5 sm:p-2 text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-full transition cursor-pointer" title="Close Lightbox">
+                        <span class="material-symbols-outlined text-[20px]">close</span>
                     </button>
                 </div>
             </div>
             
-            <!-- Body: PDF Viewer -->
-            <div class="flex-1 bg-slate-200/50 w-full relative">
+            <!-- Body: Document Viewer (PDF or DOCX) -->
+            <div class="flex-1 bg-slate-100 w-full relative overflow-hidden flex flex-col items-center justify-start">
+                <div id="reviewViewerLoading" class="absolute inset-0 bg-white/90 z-20 flex flex-col items-center justify-center gap-3 hidden">
+                    <div class="w-8 h-8 border-4 border-purple-200 border-t-[#300050] rounded-full animate-spin"></div>
+                    <p class="text-xs font-bold text-slate-700">Loading document preview...</p>
+                </div>
+
                 <iframe id="reviewIframe" src="" class="absolute inset-0 w-full h-full border-none"></iframe>
+
+                <div id="reviewDocxContainer" class="w-full h-full overflow-y-auto overflow-x-hidden p-2 sm:p-6 flex flex-col items-center hidden">
+                    <div id="reviewDocxMount" class="w-full max-w-4xl flex flex-col items-center"></div>
+                </div>
+
+                <div id="reviewFallbackContainer" class="p-6 sm:p-8 text-center flex flex-col items-center justify-center h-full max-w-md mx-auto hidden">
+                    <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center mb-3 sm:mb-4">
+                        <span class="material-symbols-outlined text-2xl sm:text-3xl">description</span>
+                    </div>
+                    <h3 class="text-sm sm:text-base font-bold text-slate-800 mb-1">Preview not supported for this file format</h3>
+                    <p class="text-xs text-slate-500 mb-4">Click below to download and inspect this document.</p>
+                    <a id="reviewFallbackDownload" href="#" download class="px-4 sm:px-5 py-2 sm:py-2.5 bg-[#300050] text-white text-xs font-bold rounded-xl shadow-md flex items-center gap-2">
+                        <span class="material-symbols-outlined text-base">download</span>
+                        <span>Download Document</span>
+                    </a>
+                </div>
             </div>
 
             <!-- Footer: Actions -->
-            <div class="px-5 py-3.5 bg-white border-t border-slate-200 flex flex-wrap gap-3 justify-between items-center">
-                <div class="flex items-center gap-2">
-                    <button type="button" id="reviewRejectBtn" class="px-4 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded-xl text-xs sm:text-sm font-bold transition flex items-center gap-1.5 cursor-pointer">
-                        <span class="material-symbols-outlined text-[18px]">close</span>
-                        Return for Revision
+            <div class="px-3 sm:px-5 py-2.5 sm:py-3.5 bg-white border-t border-slate-200 flex flex-wrap gap-2 justify-between items-center shrink-0">
+                <div class="flex items-center gap-1.5 sm:gap-2">
+                    <button type="button" onclick="closeReviewModal()" class="px-2.5 sm:px-3.5 py-1.5 sm:py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg sm:rounded-xl text-xs sm:text-sm font-bold transition flex items-center gap-1 cursor-pointer" title="Back to Submissions List">
+                        <span class="material-symbols-outlined text-[16px] sm:text-[18px]">arrow_back</span>
+                        <span>Back</span>
                     </button>
-                    <a id="modalExternalLink" href="#" target="_blank" rel="noopener noreferrer" class="px-3 py-2 text-slate-500 hover:text-purple-700 text-xs font-semibold flex items-center gap-1 transition" title="Open in new tab">
+                    <button type="button" id="reviewRejectBtn" class="px-2.5 sm:px-4 py-1.5 sm:py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded-lg sm:rounded-xl text-xs sm:text-sm font-bold transition flex items-center gap-1 cursor-pointer">
+                        <span class="material-symbols-outlined text-[16px] sm:text-[18px]">close</span>
+                        <span class="hidden sm:inline">Return for Revision</span>
+                        <span class="sm:hidden">Reject</span>
+                    </button>
+                    <a id="modalExternalLink" href="#" target="_blank" rel="noopener noreferrer" class="p-1.5 sm:px-3 sm:py-2 text-slate-500 hover:text-purple-700 text-xs font-semibold flex items-center gap-1 transition" title="Open in new tab">
                         <span class="material-symbols-outlined text-[16px]">open_in_new</span>
-                        Open Tab
+                        <span class="hidden md:inline">Open Tab</span>
                     </a>
                 </div>
 
-                <div class="flex items-center gap-2.5">
-                    <button type="button" id="skipReviewBtn" onclick="navigateReview(1)" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs sm:text-sm font-bold transition cursor-pointer">
+                <div class="flex items-center gap-1.5 sm:gap-2.5">
+                    <button type="button" id="skipReviewBtn" onclick="navigateReview(1)" class="px-2.5 sm:px-4 py-1.5 sm:py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg sm:rounded-xl text-xs sm:text-sm font-bold transition cursor-pointer">
                         Skip
                     </button>
-                    <button type="button" id="approveAndNextBtn" onclick="approveCurrentAndNext()" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs sm:text-sm font-bold shadow-md transition flex items-center gap-2 cursor-pointer">
-                        <span class="material-symbols-outlined text-[18px]">done_all</span>
+                    <button type="button" id="approveAndNextBtn" onclick="approveCurrentAndNext()" class="px-3 sm:px-5 py-1.5 sm:py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg sm:rounded-xl text-xs sm:text-sm font-bold shadow-md transition flex items-center gap-1.5 cursor-pointer">
+                        <span class="material-symbols-outlined text-[16px] sm:text-[18px]">done_all</span>
                         <span id="approveAndNextBtnText">Approve & Next</span>
                     </button>
                 </div>
@@ -944,6 +1138,15 @@
             openSpeedReviewModal(id);
         }
 
+        function closeReviewModal() {
+            document.getElementById('reviewModal')?.classList.add('hidden');
+            const iframe = document.getElementById('reviewIframe');
+            if (iframe) iframe.src = '';
+            const docxMount = document.getElementById('reviewDocxMount');
+            if (docxMount) docxMount.innerHTML = '';
+            document.body.classList.remove('overflow-hidden');
+        }
+
         function renderCurrentReview() {
             if (reviewQueue.length === 0) {
                 closeReviewModal();
@@ -958,9 +1161,66 @@
             document.getElementById('modalStudentName').innerText = item.studentName;
             document.getElementById('modalStudentCourse').innerText = item.course || 'N/A';
             document.getElementById('modalRequirementTitle').innerText = item.requirementTitle;
-            document.getElementById('reviewIframe').src = item.fileUrl + "#toolbar=0";
             document.getElementById('modalExternalLink').href = item.fileUrl;
             document.getElementById('reviewQueueCounter').innerText = `${currentReviewIndex + 1} of ${reviewQueue.length}`;
+
+            // Handle PDF vs DOCX vs Legacy DOC for student review
+            const ext = (item.fileUrl.split('.').pop() || '').toLowerCase().split('?')[0].split('#')[0];
+            const iframe = document.getElementById('reviewIframe');
+            const docxContainer = document.getElementById('reviewDocxContainer');
+            const docxMount = document.getElementById('reviewDocxMount');
+            const fallback = document.getElementById('reviewFallbackContainer');
+            const fallbackDl = document.getElementById('reviewFallbackDownload');
+            const loading = document.getElementById('reviewViewerLoading');
+
+            iframe.classList.add('hidden');
+            iframe.src = '';
+            docxContainer.classList.add('hidden');
+            docxMount.innerHTML = '';
+            fallback.classList.add('hidden');
+            if (fallbackDl) fallbackDl.href = item.fileUrl;
+
+            if (ext === 'docx') {
+                loading?.classList.remove('hidden');
+                docxContainer.classList.remove('hidden');
+
+                fetch(item.fileUrl)
+                    .then(res => {
+                        if (!res.ok) throw new Error('File fetch error');
+                        return res.blob();
+                    })
+                    .then(blob => {
+                        loading?.classList.add('hidden');
+                        if (window.docx) {
+                            window.docx.renderAsync(blob, docxMount, null, {
+                                className: "docx",
+                                inWrapper: true,
+                                ignoreWidth: false,
+                                ignoreHeight: false,
+                                breakPages: true
+                            }).catch(err => {
+                                console.error('DOCX render error:', err);
+                                docxContainer.classList.add('hidden');
+                                fallback.classList.remove('hidden');
+                            });
+                        } else {
+                            throw new Error('docx library missing');
+                        }
+                    })
+                    .catch(err => {
+                        console.error('Fetch error:', err);
+                        loading?.classList.add('hidden');
+                        docxContainer.classList.add('hidden');
+                        fallback.classList.remove('hidden');
+                    });
+            } else if (ext === 'doc') {
+                loading?.classList.add('hidden');
+                fallback.classList.remove('hidden');
+            } else {
+                loading?.classList.add('hidden');
+                iframe.classList.remove('hidden');
+                iframe.src = item.fileUrl + "#toolbar=0";
+            }
 
             document.getElementById('prevReviewBtn').disabled = (currentReviewIndex === 0);
             document.getElementById('nextReviewBtn').disabled = (currentReviewIndex >= reviewQueue.length - 1);
@@ -972,6 +1232,107 @@
             document.getElementById('reviewRejectBtn').onclick = function() {
                 openRejectModal(item.id);
             };
+        }
+
+        // --- TEMPLATE PREVIEW MODAL FUNCTIONS (Option B) ---
+        function openTemplatePreview(fileUrl, title, ext, downloadUrl) {
+            const modal = document.getElementById('templatePreviewModal');
+            const modalTitle = document.getElementById('tplModalTitle');
+            const modalBadge = document.getElementById('tplModalBadge');
+            const downloadBtn = document.getElementById('tplModalDownloadBtn');
+            const externalBtn = document.getElementById('tplModalExternalBtn');
+            const icon = document.getElementById('tplModalIcon');
+            const iconBox = document.getElementById('tplModalIconBox');
+            const iframe = document.getElementById('tplIframeViewer');
+            const docxViewer = document.getElementById('tplDocxViewer');
+            const docxMount = document.getElementById('tplDocxMount');
+            const fallback = document.getElementById('tplFallbackViewer');
+            const fallbackDownload = document.getElementById('tplFallbackDownloadBtn');
+            const loading = document.getElementById('tplViewerLoading');
+
+            const dlUrl = downloadUrl || fileUrl;
+            modalTitle.innerText = title;
+            modalBadge.innerText = (ext || 'FILE').toUpperCase();
+            downloadBtn.href = dlUrl;
+            externalBtn.href = fileUrl;
+            if (fallbackDownload) fallbackDownload.href = dlUrl;
+
+            // Reset viewer states
+            iframe.classList.add('hidden');
+            iframe.src = '';
+            docxViewer.classList.add('hidden');
+            docxMount.innerHTML = '';
+            fallback.classList.add('hidden');
+            loading.classList.remove('hidden');
+
+            const normalizedExt = (ext || '').toLowerCase();
+
+            if (normalizedExt === 'docx') {
+                icon.innerText = 'description';
+                iconBox.className = 'w-9 h-9 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center shrink-0';
+                modalBadge.className = 'text-[10px] font-extrabold uppercase tracking-wider bg-blue-100 text-blue-800 px-2 py-0.5 rounded-md';
+
+                fetch(fileUrl)
+                    .then(res => {
+                        if (!res.ok) throw new Error('Network error: ' + res.status);
+                        return res.blob();
+                    })
+                    .then(blob => {
+                        loading.classList.add('hidden');
+                        docxViewer.classList.remove('hidden');
+                        if (window.docx) {
+                            window.docx.renderAsync(blob, docxMount, null, {
+                                className: "docx",
+                                inWrapper: true,
+                                ignoreWidth: false,
+                                ignoreHeight: false,
+                                breakPages: true
+                            }).catch(err => {
+                                console.error('DOCX render error:', err);
+                                docxViewer.classList.add('hidden');
+                                fallback.classList.remove('hidden');
+                            });
+                        } else {
+                            throw new Error('docx library not loaded');
+                        }
+                    })
+                    .catch(err => {
+                        console.error('Fetch error:', err);
+                        loading.classList.add('hidden');
+                        fallback.classList.remove('hidden');
+                    });
+
+            } else if (normalizedExt === 'doc') {
+                icon.innerText = 'description';
+                iconBox.className = 'w-9 h-9 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center shrink-0';
+                modalBadge.className = 'text-[10px] font-extrabold uppercase tracking-wider bg-amber-100 text-amber-800 px-2 py-0.5 rounded-md';
+                loading.classList.add('hidden');
+                fallback.classList.remove('hidden');
+
+            } else {
+                // PDF or Image
+                icon.innerText = 'picture_as_pdf';
+                iconBox.className = 'w-9 h-9 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center shrink-0';
+                modalBadge.className = 'text-[10px] font-extrabold uppercase tracking-wider bg-purple-100 text-purple-800 px-2 py-0.5 rounded-md';
+
+                iframe.onload = () => loading.classList.add('hidden');
+                iframe.src = fileUrl;
+                iframe.classList.remove('hidden');
+                setTimeout(() => loading.classList.add('hidden'), 1500);
+            }
+
+            modal.classList.remove('hidden');
+            document.body.classList.add('overflow-hidden');
+        }
+
+        function closeTemplatePreviewModal() {
+            const modal = document.getElementById('templatePreviewModal');
+            const iframe = document.getElementById('tplIframeViewer');
+            const docxMount = document.getElementById('tplDocxMount');
+            if (modal) modal.classList.add('hidden');
+            if (iframe) iframe.src = '';
+            if (docxMount) docxMount.innerHTML = '';
+            document.body.classList.remove('overflow-hidden');
         }
 
         function navigateReview(delta) {
@@ -1105,6 +1466,16 @@
         document.addEventListener('click', (e) => {
             if (!userMenuDropdown?.contains(e.target) && !userMenuBtn?.contains(e.target)) {
                 userMenuDropdown?.classList.add('hidden');
+            }
+        });
+
+        // Keyboard Escape key to go back / close preview
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeTemplatePreviewModal();
+                closeReviewModal();
+                closeRejectModal();
+                closeBatchModal();
             }
         });
     </script>

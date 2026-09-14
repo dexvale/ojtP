@@ -38,6 +38,20 @@ class ProfileController extends Controller
             'profile_photo' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
         ]);
 
+        // Handle Profile Photo Removal
+        if ($request->boolean('remove_photo')) {
+            if ($profile->profile_photo_path && \Illuminate\Support\Facades\Storage::disk('public')->exists($profile->profile_photo_path)) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($profile->profile_photo_path);
+            }
+            $profile->profile_photo_path = null;
+
+            if ($user->profile_photo_path && \Illuminate\Support\Facades\Storage::disk('public')->exists($user->profile_photo_path)) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($user->profile_photo_path);
+            }
+            $user->profile_photo_path = null;
+            $user->save();
+        }
+
         // Handle Profile Photo Upload
         if ($request->hasFile('profile_photo')) {
             if ($profile->profile_photo_path && \Illuminate\Support\Facades\Storage::disk('public')->exists($profile->profile_photo_path)) {
@@ -45,6 +59,8 @@ class ProfileController extends Controller
             }
             $photoPath = $request->file('profile_photo')->store('profile_photos', 'public');
             $profile->profile_photo_path = $photoPath;
+            $user->profile_photo_path = $photoPath;
+            $user->save();
         }
 
         // Update credentials on the core users table
