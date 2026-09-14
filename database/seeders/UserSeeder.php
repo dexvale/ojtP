@@ -127,6 +127,7 @@ class UserSeeder extends Seeder
         
         // Student 1 (IT - Managed, Dexter Vale)
         $studentUser1 = User::create([
+            'name'     => 'Dexter Vale',
             'email'    => 'dexter@student.bisu.edu.ph',
             'password' => Hash::make('student123'),
             'role'     => 'Student',
@@ -148,6 +149,7 @@ class UserSeeder extends Seeder
 
         // Student 2 (IT - Managed, Liam Smith)
         $studentUser2 = User::create([
+            'name'     => 'Liam James Smith',
             'email'    => 'liam@student.bisu.edu.ph',
             'password' => Hash::make('student123'),
             'role'     => 'Student',
@@ -169,6 +171,7 @@ class UserSeeder extends Seeder
 
         // Student 3 (CS - Managed, Sophia Johnson)
         $studentUser3 = User::create([
+            'name'     => 'Sophia Rose Johnson',
             'email'    => 'sophia@student.bisu.edu.ph',
             'password' => Hash::make('student123'),
             'role'     => 'Student',
@@ -190,6 +193,7 @@ class UserSeeder extends Seeder
 
         // Student 4 (Unassigned Student for testing placement submission)
         $studentUser4 = User::create([
+            'name'     => 'Emma Watson Brown',
             'email'    => 'emma@student.bisu.edu.ph',
             'password' => Hash::make('student123'),
             'role'     => 'Student',
@@ -211,6 +215,7 @@ class UserSeeder extends Seeder
 
         // Student 5 (CS - Managed, Robert Chen) - COMPLETED
         $studentUser5 = User::create([
+            'name'     => 'Robert S Chen',
             'email'    => 'robert@student.bisu.edu.ph',
             'password' => Hash::make('student123'),
             'role'     => 'Student',
@@ -232,6 +237,7 @@ class UserSeeder extends Seeder
 
         // Student 6 (IT - Managed, Emily Rivera) - COMPLETED
         $studentUser6 = User::create([
+            'name'     => 'Emily Jane Rivera',
             'email'    => 'emily@student.bisu.edu.ph',
             'password' => Hash::make('student123'),
             'role'     => 'Student',

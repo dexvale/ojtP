@@ -118,7 +118,7 @@
                             <option value="">All Assigned Interns ({{ $interns->count() }})</option>
                             @foreach($interns as $intern)
                                 <option value="{{ $intern->user_id }}" {{ $internId == $intern->user_id ? 'selected' : '' }}>
-                                    {{ $intern->user->display_name }}
+                                    {{ $intern->user?->display_name ?: trim(($intern->first_name ?? '') . ' ' . ($intern->last_name ?? '')) ?: 'Intern' }}
                                 </option>
                             @endforeach
                         </select>
@@ -209,7 +209,10 @@
                         <tbody class="divide-y divide-outline/10 text-sm">
                             @forelse($logs as $log)
                                 @php
-                                    $internDisplayName = $log->user->display_name ?? 'Intern';
+                                    $internDisplayName = $log->user?->display_name;
+                                    if (empty($internDisplayName) || $internDisplayName === 'Intern') {
+                                        $internDisplayName = trim(($log->user?->studentProfile?->first_name ?? '') . ' ' . ($log->user?->studentProfile?->last_name ?? '')) ?: 'Intern';
+                                    }
                                     $internInitials = strtoupper(substr(preg_replace('/[^A-Za-z]/', '', $internDisplayName) ?: 'IN', 0, 2));
                                     $logPayload = [
                                         'id' => $log->id,

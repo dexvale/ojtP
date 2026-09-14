@@ -121,13 +121,13 @@ class DashboardController extends Controller
                 $studentQuery->where('supervisor_id', $user->id);
             }
 
-            $interns = $studentQuery->with('user:id,name')->get();
+            $interns = $studentQuery->with('user:id,name,role,email')->get();
             $internUserIds = $interns->pluck('user_id');
             $baseQuery = \App\Models\OjtLog::whereIn('user_id', $internUserIds);
         } else {
             // Fallback for development without company assigned
             $baseQuery = \App\Models\OjtLog::query();
-            $interns = \App\Models\StudentProfile::with('user:id,name')->get();
+            $interns = \App\Models\StudentProfile::with('user:id,name,role,email')->get();
         }
 
         // Optimized single-query status counts for tab badges
@@ -142,7 +142,7 @@ class DashboardController extends Controller
 
         $query = (clone $baseQuery)
             ->where('status', $status)
-            ->with(['user:id,name', 'user.studentProfile:id,user_id,student_id_number,course']);
+            ->with(['user:id,name,role,email', 'user.studentProfile:id,user_id,first_name,middle_name,last_name,student_id_number,course']);
 
         if ($internId) {
             $query->where('user_id', $internId);
